@@ -10,7 +10,6 @@ import FeedbackPage from "./pages/FeedbackPage";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Booking from "./pages/Booking";
-import Trailer from "./pages/Trailer";
 import MovieDetail from "./pages/MovieDetail";
 import "./App.css";
 
@@ -59,7 +58,6 @@ function App() {
           <Route path="/register" element={<Register onRegisterSuccess={handleAuthSuccess} />} />
 
           <Route path="/booking" element={<Booking />} />
-          <Route path="/trailer" element={<Trailer />} />
           <Route path="/movie/:id" element={<MovieDetail />} />
         </Routes>
 
