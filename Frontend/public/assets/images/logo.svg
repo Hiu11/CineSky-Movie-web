@@ -1,0 +1,31 @@
+<svg width="220" height="60" viewBox="0 0 220 60" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="gradSky" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#6C5CE7"></stop>
+      <stop offset="100%" stop-color="#F2C94C"></stop>
+    </linearGradient>
+
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.5" result="coloredBlur"></feGaussianBlur>
+      <feMerge>
+        <feMergeNode in="coloredBlur"></feMergeNode>
+        <feMergeNode in="SourceGraphic"></feMergeNode>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Star -->
+  <polygon points="105,10 108,18 116,18 110,23 112,31 105,26 98,31 100,23 94,18 102,18" fill="#F2C94C" filter="url(#glow)"></polygon>
+
+  <!-- Text -->
+  <text x="10" y="42" font-family="Poppins, sans-serif" font-size="32" font-weight="500" fill="#FFFFFF">
+    Cine
+  </text>
+
+  <text x="85" y="42" font-family="Poppins, sans-serif" font-size="32" font-weight="700" fill="url(#gradSky)" filter="url(#glow)">
+    Sky
+  </text>
+
+  <!-- Beam line -->
+  <line x1="10" y1="50" x2="180" y2="50" stroke="url(#gradSky)" stroke-width="1.5" opacity="0.6"></line>
+</svg>

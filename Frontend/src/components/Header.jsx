@@ -1,23 +1,36 @@
-import { Link, NavLink } from "react-router-dom"; 
+import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
-export default function Header({ isLoggedIn, user, onLogout, setSearchQuery }) {
+export default function Header({ isLoggedIn, user, onLogout, searchQuery, setSearchQuery }) {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const searchParams = new URLSearchParams(location.search);
+  const tabParam = searchParams.get("tab") || "now";
+
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    navigate("/");
+  };
+
   return (
     <header className="main-header">
-
       <div className="header-top">
-
         <Link to="/" className="logo-link-clean">
-          <h2 className="logo-text-cinestar">CINESTAR</h2>
+          <img
+            src="/assets/images/logo.svg"
+            alt="CineSky"
+            className="logo-image"
+          />
         </Link>
 
-        <div className="search-pill-modern">
+        <form className="search-pill-modern" onSubmit={handleSearchSubmit}>
           <input
             type="text"
             placeholder="Tìm phim, rạp..."
+            value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />
-          <button className="search-pill-btn-inner">Tìm kiếm</button>
-        </div>
+          <button type="submit" className="search-pill-btn-inner">Tìm kiếm</button>
+        </form>
 
         {!isLoggedIn ? (
           <div className="auth-btns-header">
@@ -38,21 +51,45 @@ export default function Header({ isLoggedIn, user, onLogout, setSearchQuery }) {
             </button>
           </div>
         )}
-
       </div>
 
-      <nav className="header-bottom-nav">
-        <ul>
-          <li>Chọn rạp</li>
-          <li>Lịch chiếu</li>
-          <li>Khuyến mãi</li>
-          <li>Tổ chức sự kiện</li>
-          <li>Dịch vụ giải trí khác</li>
-          <li><NavLink to="/about">Giới thiệu</NavLink></li>
-          <li><NavLink to="/feedback">Góp ý</NavLink></li>
-        </ul>
-      </nav>
+      <div className="movie-tabs-navigation">
+        <Link
+          to="/?tab=now"
+          className={location.pathname === "/" && tabParam === "now" ? "tab-btn active" : "tab-btn"}
+        >
+          PHIM ĐANG CHIẾU
+        </Link>
 
+        <Link
+          to="/?tab=soon"
+          className={location.pathname === "/" && tabParam === "soon" ? "tab-btn active" : "tab-btn"}
+        >
+          PHIM SẮP CHIẾU
+        </Link>
+
+        <NavLink
+          to="/filter"
+          className={({ isActive }) => (isActive ? "tab-btn active" : "tab-btn")}
+        >
+          LỌC PHIM
+        </NavLink>
+
+        <NavLink
+          to="/about"
+          className={({ isActive }) => (isActive ? "tab-btn active" : "tab-btn")}
+        >
+          GIỚI THIỆU
+        </NavLink>
+
+        <NavLink
+          to="/feedback"
+          className={({ isActive }) => (isActive ? "tab-btn active" : "tab-btn")}
+        >
+          GÓP Ý
+        </NavLink>
+      </div>
     </header>
   );
 }
+
