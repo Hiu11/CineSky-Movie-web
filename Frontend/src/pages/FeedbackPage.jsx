@@ -1,40 +1,51 @@
-import React from 'react';
+import React from "react";
 
 const FeedbackPage = () => {
-  const formStyle = {
-    background: '#181c31',
-    padding: '30px',
-    borderRadius: '8px',
-    maxWidth: '600px',
-    margin: '0 auto',
-    color: 'white'
-  };
-
-  const inputStyle = {
-    width: '100%',
-    padding: '10px',
-    margin: '10px 0',
-    borderRadius: '4px',
-    border: 'none'
-  };
-
   return (
-    <main className="main-content" style={{padding: '50px 0'}}>
-      <div style={formStyle}>
-        <h2 style={{color: '#f7b400', textAlign: 'center'}}>GÓP Ý VỚI CHÚNG TÔI</h2>
-        <form>
-            <label>Họ và tên</label>
-            <input type="text" style={inputStyle} placeholder="Nhập tên của bạn" />
-            
-            <label>Email</label>
-            <input type="email" style={inputStyle} placeholder="Nhập email" />
-            
-            <label>Nội dung góp ý</label>
-            <textarea style={{...inputStyle, height: '100px'}} placeholder="Bạn muốn nhắn nhủ gì..."></textarea>
-            
-            <button type="button" className="btn btn-yellow" style={{width: '100%', marginTop: '20px'}}>
-                GỬI GÓP Ý
-            </button>
+    <main className="feedback-page">
+      <div className="feedback-card">
+        <div className="feedback-header">
+          <span className="feedback-pill">Chúng tôi lắng nghe</span>
+          <h2>Góp ý với chúng tôi</h2>
+          <p>
+            Hãy cho CineSky biết trải nghiệm của bạn để chúng tôi phục vụ tốt
+            hơn.
+          </p>
+        </div>
+
+        <form className="feedback-form">
+          <label className="feedback-label" htmlFor="fullName">
+            Họ và tên
+          </label>
+          <input
+            id="fullName"
+            type="text"
+            className="feedback-input"
+            placeholder="Nhập tên của bạn"
+          />
+
+          <label className="feedback-label" htmlFor="email">
+            Email
+          </label>
+          <input
+            id="email"
+            type="email"
+            className="feedback-input"
+            placeholder="Nhập email"
+          />
+
+          <label className="feedback-label" htmlFor="message">
+            Nội dung góp ý
+          </label>
+          <textarea
+            id="message"
+            className="feedback-textarea"
+            placeholder="Bạn muốn nhắn nhủ gì..."
+          />
+
+          <button type="button" className="feedback-submit">
+            GỬI GÓP Ý
+          </button>
         </form>
       </div>
     </main>
