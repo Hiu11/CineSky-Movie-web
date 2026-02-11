@@ -1,8 +1,10 @@
-import React from "react";
-import { useNavigate } from "react-router-dom";
+﻿import React from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const MovieCard = ({ movie }) => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const currentTab = new URLSearchParams(location.search).get("tab") || "now";
   const isComingSoon =
     Array.isArray(movie.times) && movie.times.includes("Chưa có lịch");
 
@@ -18,7 +20,7 @@ const MovieCard = ({ movie }) => {
   return (
     <div
       className="movie-card-container"
-      onClick={() => navigate(`/movie/${movie.id}`)}
+      onClick={() => navigate(`/movie/${movie.id}?tab=${currentTab}`)}
     >
       <div className="movie-card-box">
         <div className="movie-poster">
@@ -40,7 +42,7 @@ const MovieCard = ({ movie }) => {
             <span className={`rating-badge ${movie.ratingClass}`}>
               {movie.rating}
             </span>
-            {movie.genre} | {movie.duration} Phút
+            {movie.genre} | {movie.duration} Phút 
           </p>
 
           <p className="rating-desc">{movie.ratingDesc}</p>
@@ -65,7 +67,7 @@ const MovieCard = ({ movie }) => {
               className="btn-trailer"
               onClick={(e) => {
                 e.stopPropagation();
-                navigate(`/movie/${movie.id}#trailer`);
+                navigate(`/movie/${movie.id}?tab=${currentTab}#trailer`);
               }}
             >
               Xem Trailer
@@ -82,8 +84,8 @@ const MovieCard = ({ movie }) => {
                   : undefined
               }
             >
-              ĐẶT VÉ
-            </button>
+                      ĐẶT VÉ
+                    </button>
           </div>
         </div>
       </div>
@@ -92,3 +94,5 @@ const MovieCard = ({ movie }) => {
 };
 
 export default MovieCard;
+
+

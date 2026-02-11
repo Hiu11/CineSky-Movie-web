@@ -1,4 +1,4 @@
-import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+﻿import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 
 export default function Header({
   isLoggedIn,
@@ -11,6 +11,8 @@ export default function Header({
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const tabParam = searchParams.get("tab") || "now";
+  const isMovieDetail = location.pathname.startsWith("/movie/");
+  const movieDetailTab = isMovieDetail ? tabParam : null;
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -68,7 +70,7 @@ export default function Header({
         <Link
           to="/?tab=now"
           className={
-            location.pathname === "/" && tabParam === "now"
+            (location.pathname === "/" && tabParam === "now") || movieDetailTab === "now"
               ? "tab-btn active"
               : "tab-btn"
           }
@@ -79,7 +81,7 @@ export default function Header({
         <Link
           to="/?tab=soon"
           className={
-            location.pathname === "/" && tabParam === "soon"
+            (location.pathname === "/" && tabParam === "soon") || movieDetailTab === "soon"
               ? "tab-btn active"
               : "tab-btn"
           }
@@ -111,3 +113,5 @@ export default function Header({
     </header>
   );
 }
+
+

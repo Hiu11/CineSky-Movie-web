@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Login({ onLoginSuccess }) {
@@ -47,8 +47,12 @@ export default function Login({ onLoginSuccess }) {
           padding: 24,
           borderRadius: 12,
           color: "white",
+          position: "relative",
         }}
       >
+        <button onClick={() => navigate("/")} style={closeBtnStyle} aria-label="Close">
+          X
+        </button>
         <h2 style={{ textAlign: "center", marginBottom: 20 }}>Đăng Nhập</h2>
 
         <input
@@ -92,5 +96,19 @@ const btnStyle = {
   fontWeight: "bold",
   borderRadius: 8,
   border: "none",
+  cursor: "pointer",
+};
+
+const closeBtnStyle = {
+  position: "absolute",
+  top: 10,
+  right: 10,
+  width: 30,
+  height: 30,
+  borderRadius: "50%",
+  border: "1px solid #666",
+  background: "transparent",
+  color: "white",
+  fontWeight: "bold",
   cursor: "pointer",
 };
