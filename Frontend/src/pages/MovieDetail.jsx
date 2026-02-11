@@ -138,7 +138,7 @@ Bộ phim gửi gắm thông điệp về lòng nhân ái, sự thấu hiểu v�
       director: "Jon Bell",
       genres: ["Kinh Dị", "Phụ Đề"],
       poster: "/assets/images/te-le-quy-linh-nhi.webp",
-      trailer: "about:blank",
+      trailer: "https://www.youtube.com/embed/VtLnDGnPw50",
       description: `
 Sau khi chào đón đứa con thứ hai, một cặp vợ chồng trẻ tưởng chừng đang bước vào quãng thời gian hạnh phúc nhất của cuộc đời. Thế nhưng niềm vui ấy nhanh chóng biến thành cơn ác mộng khi Sarah, người mẹ, tin rằng một linh hồn tà ác đang rình rập và tìm cách bắt đi đứa con mới sinh của cô.
 
@@ -154,7 +154,7 @@ Fergus, chồng Sarah, cố gắng tin tưởng vợ mình. Nhưng khi những b
       director: "Minh Beta",
       genres: ["Tình Cảm", "Gia đình"],
       poster: "/assets/images/mui-pho.webp",
-      trailer: "about:blank",
+      trailer: "https://www.youtube.com/embed/7L5qkIkkcY8",
       description: `
 Câu chuyện về sự xung đột thế hệ và những va chạm giữa quan niệm cũ và lối sống hiện đại, xoay quanh món Phở - biểu tượng ẩm thực Việt. Đằng sau những mâu thuẫn và tranh cãi ấy, từng bí mật dần được hé lộ, mở ra hành trình tìm lại sự ấm áp của tình thân qua những tình tiết hài hước, dí dỏm và đầy duyên dáng.
       `.trim(),
@@ -168,7 +168,7 @@ Câu chuyện về sự xung đột thế hệ và những va chạm giữa quan
       director: "Pom Nguyễn",
       genres: ["Kinh Dị"],
       poster: "/assets/images/quy-nhap-trang-main.webp",
-      trailer: "about:blank",
+      trailer: "https://www.youtube.com/embed/q0UWKBzFFxQ",
       description: `
 Quỷ Nhập Tràng 2 là tiền truyện của nhân vật Minh Như, trở về xưởng nhuộm gia đình sau nhiều năm bị xua đuổi. Tại đây, cô phải đối mặt với những hiện tượng ma quái cùng sự thật tàn khốc về cái chết của mẹ và giao ước đẫm máu năm xưa. Ác giả ác báo, liệu Minh Như có thoát khỏi vòng vây của quỷ dữ?
       `.trim(),

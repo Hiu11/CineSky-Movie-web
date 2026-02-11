@@ -8,7 +8,7 @@ export default function Login({ onLoginSuccess }) {
 
   const handleLogin = () => {
     const users = JSON.parse(localStorage.getItem("users")) || [];
-    const foundUser = users.find(u => u.email === email);
+    const foundUser = users.find((u) => u.email === email);
 
     if (!foundUser) {
       alert("Tài khoản chưa đăng ký!");
@@ -49,14 +49,12 @@ export default function Login({ onLoginSuccess }) {
           color: "white",
         }}
       >
-        <h2 style={{ textAlign: "center", marginBottom: 20 }}>
-          Đăng Nhập
-        </h2>
+        <h2 style={{ textAlign: "center", marginBottom: 20 }}>Đăng Nhập</h2>
 
         <input
           placeholder="Email"
           value={email}
-          onChange={e => setEmail(e.target.value)}
+          onChange={(e) => setEmail(e.target.value)}
           style={inputStyle}
         />
 
@@ -64,7 +62,7 @@ export default function Login({ onLoginSuccess }) {
           type="password"
           placeholder="Mật khẩu"
           value={password}
-          onChange={e => setPassword(e.target.value)}
+          onChange={(e) => setPassword(e.target.value)}
           style={inputStyle}
         />
 

@@ -1,8 +1,19 @@
-import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from "react";
+import { useNavigate } from "react-router-dom";
 
 const MovieCard = ({ movie }) => {
   const navigate = useNavigate();
+  const isComingSoon =
+    Array.isArray(movie.times) && movie.times.includes("Chưa có lịch");
+
+  const handleBookingClick = (e) => {
+    e.stopPropagation();
+    if (isComingSoon) {
+      alert("Phim chưa có lịch chiếu. Vui lòng quay lại sau.");
+      return;
+    }
+    navigate(`/booking?movieId=${movie.id}`);
+  };
 
   return (
     <div
@@ -62,10 +73,14 @@ const MovieCard = ({ movie }) => {
 
             <button
               className="btn-book"
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(`/booking?movieId=${movie.id}`);
-              }}
+              onClick={handleBookingClick}
+              disabled={isComingSoon}
+              title={isComingSoon ? "Phim chưa có lịch chiếu" : ""}
+              style={
+                isComingSoon
+                  ? { opacity: 0.6, cursor: "not-allowed" }
+                  : undefined
+              }
             >
               ĐẶT VÉ
             </button>
