@@ -15,6 +15,39 @@ const HomePage = ({ searchQuery = "" }) => {
 
   const allMovies = [
     {
+      id: 201,
+      title: "THỎ ƠI!!",
+      poster: "/assets/images/thỏ ơi.jpg",
+      genre: "Tâm Lý, Tình Cảm",
+      duration: "127",
+      rating: "T18",
+      ratingClass: "t18",
+      ratingDesc: "**T18:** Phim dành cho khán giả từ đủ 18 tuổi trở lên",
+      times: ["10:15", "13:30", "16:45", "20:00"],
+    },
+    {
+      id: 202,
+      title: "TIỂU YÊU QUÁI NÚI LÃNG LÃNG",
+      poster: "/assets/images/tiểu yêu quái núi lãng lãng.jpg",
+      genre: "Hoạt Hình",
+      duration: "118",
+      rating: "T13",
+      ratingClass: "t13",
+      ratingDesc: "**T13:** Phim dành cho khán giả từ đủ 13 tuổi trở lên",
+      times: ["09:30", "12:15", "15:00", "18:30"],
+    },
+    {
+      id: 203,
+      title: "RUNNING MAN VIỆT NAM MÙA 3: CON RỐI TỰ DO",
+      poster: "/assets/images/running-man.jpg",
+      genre: "Chương Trình Thực Tế",
+      duration: "161",
+      rating: "T16",
+      ratingClass: "t16",
+      ratingDesc: "**T16:** Phim dành cho khán giả từ đủ 16 tuổi trở lên",
+      times: ["11:00", "14:30", "19:30"],
+    },
+    {
       id: 1,
       title: "AVATAR: LỬA VÀ TRO TÀN",
       poster:

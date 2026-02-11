@@ -23,6 +23,9 @@ export default function Booking() {
   const [time, setTime] = useState("09:00");
 
   const movies = [
+    { id: 201, title: "THỎ ƠI!!" },
+    { id: 202, title: "TIỂU YÊU QUÁI NÚI LÃNG LÃNG" },
+    { id: 203, title: "RUNNING MAN VIỆT NAM MÙA 3: CON RỐI TỰ DO" },
     { id: 1, title: "Avatar: Lửa Và Tro Tàn" },
     { id: 2, title: "Tử Chiến Trên Không" },
     { id: 3, title: "THOR: THẾ GIỚI BÓNG TỐI" },

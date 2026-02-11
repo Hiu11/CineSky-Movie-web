@@ -7,6 +7,70 @@ export default function MovieDetail() {
 
   const movies = [
     {
+      id: 201,
+      title: "THỎ ƠI!!",
+      duration: "127 phút",
+      release: "10/02/2026",
+      country: "Việt Nam",
+      director: "Trấn Thành",
+      genres: ["Tâm Lý", "Tình Cảm"],
+      poster: "/assets/images/thỏ ơi.jpg",
+      trailer: "https://www.youtube.com/embed/XMv1Zhj5TQg",
+      description: `
+Thỏ ơi!! (tiếng Anh: Bunnie!!) là một bộ phim điện ảnh Việt Nam ra mắt năm 2026 thuộc thể loại lãng mạn – giật gân – chính kịch do Trấn Thành làm đạo diễn, viết kịch bản và sản xuất, được lấy cảm hứng từ những câu chuyện tình yêu có thật, khai thác từ góc nhìn cá nhân của anh. Tác phẩm do HKFilm, Galaxy Studio và Trấn Thành Town hợp tác sản xuất. Với sự tham gia diễn xuất của các diễn viên gồm Pháo, Trấn Thành, Lyly, Vĩnh Đam, Văn Mai Hương và Quốc Anh, phim xoay quanh các mối quan hệ tình cảm phức tạp cùng những xung đột tâm lý giữa các nhân vật, với cao trào tập trung vào nhân vật Hải Linh và Nhật Hạ.
+
+Thỏ ơi có buổi họp báo và giới thiệu vào ngày 21 tháng 1 tại Thành phố Hồ Chí Minh và có buổi ra mắt vào ngày 12 tháng 2 tại Thành phố Hồ Chí Minh và ngày 14 tháng 2 tại Hà Nội. Tác phẩm sau đó được công chiếu chính thức trên toàn quốc vào ngày 17 tháng 2 năm 2026, tức mùng 1 Tết Nguyên Đán Bính Ngọ.
+      `.trim(),
+    },
+    {
+      id: 202,
+      title: "TIỂU YÊU QUÁI NÚI LÃNG LÃNG",
+      duration: "118 phút",
+      release: "23/01/2026",
+      country: "Trung Quốc",
+      director: "Shui Yu (Thủy Ngọc)",
+      genres: ["Hoạt Hình"],
+      poster: "/assets/images/tiểu yêu quái núi lãng lãng.jpg",
+      trailer: "https://www.youtube.com/embed/D6vLPsyMSUY",
+      description: `
+Sau khi không thể cướp của một lữ khách, một con yêu quái cấp thấp là Heo tinh cố gắng tìm việc tại Đại Vương động, một vùng núi do một yêu quái quyền lực là đại vương Hổ tinh cai quản, với sự giúp đỡ của người bạn là yêu quái Cóc tinh. Chúng được giao công việc nặng nhọc là dùng giẻ chùi vạc để đại vương nấu thịt Đường Tam Tạng (Đường Tăng) đang trên đường sang Tây Thiên thỉnh kinh, mong được để miếng thịt thừa để ăn cho bất tử. Heo lấy lông cứng của mình để đánh bóng cái vạc, nhưng lại vô tình xóa mất dòng chữ thư pháp do lão tổ của Hổ đại vương để lại, và bị đuổi đánh khỏi núi.
+
+Sau khi trốn thoát, Heo và Cóc nảy ra ý tưởng đi lấy kinh bằng cách cải trang thành đoàn thầy trò Đường Tăng để dễ bề xin ăn qua đường. Gia nhập cùng chúng là một con Chồn tinh lắm mồm và một con Khỉ Đột tinh hướng nội, nhút nhát. Cóc cải trang thành Đường Tăng, Heo thành Trư Bát Giới, Chồn thành Sa Ngộ Tĩnh, và Khỉ Đột thành Tôn Ngộ Không.
+
+Cóc trên đường bị một tộc Cẩu tinh bắt cóc về động Song Cẩu định ăn thịt vì nghĩ rằng Cóc chính là Đường tăng. Khi những tiểu yêu còn lại đến động Song Cẩu, lũ Cẩu, vì sợ hãi trước việc Tôn Ngộ Không thật đã diệt hết yêu quái ở Đại Vương động, đã đãi cả nhóm một liệu trình spa trước khi cho họ đi tiếp.
+
+Nhóm tiểu yêu trên đường đã tình cờ tới một thôn làng tên Bắc Trương đang bị một con Chuột thành tinh khủng bố và đã đánh bại con chuột đó. Sau đó, nhóm dừng chân tại quê nhà của Heo. Trong buổi tối nghỉ chân, cha của Heo đã dạy Chồn một bí thuật biến hình đặc biệt mang lại sức mạnh phi thường nhưng phải đánh đổi bằng yêu phép, khiến yêu quái trở lại hình dạng súc sinh vô tri sau khi thuật hết tác dụng. Trong khi đó, đoàn thầy trò Đường Tăng thật đến động của Cẩu tinh. Nghĩ rằng đoàn này là giả mạo, lũ Cẩu tinh quay ra tấn công và bị Ngộ Không thật tiêu diệt, chỉ chừa một con đau bụng không kịp ra ứng chiến.
+
+Nhóm tiểu yêu quyết định dừng chân tại chùa Tiểu Lôi Âm, nơi đầy rẫy yêu quái do Hoàng My đại vương cầm đầu. Tưởng rằng đang đón Đường Tăng, Hoàng My và thuộc hạ đóng giả thành Phật và tùy tùng rồi dụ vào để ăn thịt. Cóc và Heo ban đầu đánh lừa được chúng, nhưng sau bị lộ tẩy và đuổi khỏi chùa. Nhóm tiểu yêu sau đó đi xin ăn ở một thôn có liên hệ với trưởng thôn làng Bắc Trương. Dân làng cầu xin nhóm tiểu yêu cứu con cái của họ khỏi bị bắt cóc và Heo đồng ý mà không nhận ra rằng kẻ chủ mưu bắt cóc là Hoàng My đã cho thuộc hạ theo đuôi chờ dân làng sơ hở. Nhóm đã cố gắng bảo vệ dân làng khỏi thuộc hạ của Hoàng My nhưng không thành, bị đánh đập và vạch trần là lừa đảo. Sau đó chúng cùng lũ trẻ trong thôn bị đưa vào chùa.
+
+Hoàng My lên kế hoạch hiến tế lũ trẻ gồm mười đồng nam đồng nữ để có sức mạnh chiến đấu với nhóm của Đường Tăng. Trong khi đó tên phó tướng Cẩu còn sống chạy tới cảnh báo rằng "kẻ giả mạo" (nhóm thầy trò Đường Tăng thật) sắp đến. Hoàng My đề nghị nhóm tiểu yêu cơ hội ăn thịt Đường Tăng nếu chúng giúp hắn tế lũ trẻ. Khỉ Đột từ chối và bị đưa đi xử tử, Cóc và Heo chấp nhận, còn Chồn trốn thoát. Khỉ Đột bị giải đến một vách đá, nhưng tên phó tướng Cẩu leo lên và tấn công lính canh. Hắn bị đánh bại, nhưng đã tạo điều kiện Heo và Chồn khống chế lính canh. Heo, Chồn và Khỉ đột đánh cắp áo giáp của Hoàng My để giả dạng hắn ra lệnh cho lính canh giao lũ trẻ cho chúng, nhưng bị tên phó tướng của Hoàng My chất vấn. Cóc lừa hắn thả lũ trẻ đi và ở lại trong chùa.
+
+Hoàng My phát hiện ra việc bị xổng lũ trẻ và dẫn binh đi truy sát nhóm tiểu yêu. Heo quyết định một mình đối đầu với Hoàng My và sử dụng bí thuật biến hình để trở thành một chiến binh mạnh mẽ, tiêu diệt toàn bộ binh lực của Hoàng My nhưng lại thất thế trước hắn.
+
+Cóc lừa Hoàng My để đến gần Heo và sử dụng bí thuật. Cả hai hợp thể và chiến đấu với Hoàng My, nhưng vẫn bị hắn đánh bại. Khỉ đột và Chồn đến và cũng sử dụng bí thuật để hợp nhất với Heo và Cóc. Hoàng My bị đánh bại trở lại hình dạng tiểu đồng. Sau khi sử dụng bí thuật, nhóm tiểu yêu nằm chờ hoá lại thành súc sinh. Cả bốn hy vọng sẽ được hoá kiếp tốt đẹp hơn, nhưng cũng đều hài lòng với kiếp sống đã theo lối riêng của mình.
+
+Đức Phật Di lặc hiện lên quở trách Hoàng My, vốn được phái xuống để thử thách Đường Tăng nhưng đã trở nên sa đoạ. Đức Phật trả lại sức mạnh cho hắn và sai hắn tiếp tục nhiệm vụ thử thách nhóm của Đường Tăng, nhưng nhắc rằng sau khi bị Đường Tăng đánh bại thì hắn sẽ phải về Thiên giới chịu phạt. Khi một tiểu đồng khác hỏi phải làm gì với bốn con súc sinh từng thành tinh kia, Đức Phật chỉ cười.
+
+Bốn con tiểu yêu được nhân dân lập miếu thờ phụng, và Ngộ Không khi nghe danh đã bứt cho chúng 4 cọng lông giữ mạng.
+      `.trim(),
+    },
+    {
+      id: 203,
+      title: "RUNNING MAN VIỆT NAM MÙA 3: CON RỐI TỰ DO",
+      duration: "161 phút",
+      release: "30/01/2026",
+      country: "Việt Nam",
+      director: "Kim Dong Wook",
+      genres: ["Chương Trình Thực Tế"],
+      poster: "/assets/images/running-man.jpg",
+      trailer: "https://www.youtube.com/embed/uCXi2yUYpb8",
+      description: `
+Bộ phim đóng vai trò là phần kết cho cuộc đua kéo dài 15 tập của Running Man Vietnam 3: Chạy ngay đi, với chủ đề xuyên suốt là: "Tiền – Tài – Sắc – Danh".
+
+Con rối tự do được xây dựng từ hình ảnh ẩn dụ về đời sống hiện đại, nơi con người không ngừng chạy theo những giá trị như tiền tài, danh vọng và sắc đẹp, đồng thời tự ràng buộc mình trong những áp lực vô hình. Phiên bản điện ảnh cũng kế thừa và mở rộng thông điệp xuyên suốt của mùa chương trình, nhấn mạnh giá trị của sự tự do – tự do suy nghĩ, tự do lựa chọn và tự do yêu thương. Trong phim, các nghệ sĩ hóa thân thành những chú hề, tham gia vào cuộc đua tìm kiếm các quả bóng Running Ball, với mục tiêu giành lấy danh hiệu Biểu tượng giải trí của mùa chương trình. Tuy khai thác những giới hạn và quy luật khắc nghiệt của cuộc chơi, tác phẩm không hướng đến góc nhìn bi quan, mà nhấn mạnh quyền lựa chọn của con người trong cách sống và cách bước đi của chính mình, qua đó truyền tải thông điệp: "Nếu đã là con rối, hãy là những con rối tự do".
+      `.trim(),
+    },
+    {
       id: 1,
       title: "Avatar: Lửa Và Tro Tàn",
       duration: "197 phút",
