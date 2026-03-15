@@ -298,13 +298,7 @@ Quỷ Nhập Tràng 2 là tiền truyện của nhân vật Minh Như, trở v�
         <h2 className="md-h2">Trailer</h2>
 
         <div className="md-video">
-          <iframe
-            src={movie.trailer}
-            title="Trailer"
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-          />
+          <iframe src={movie.trailer} title="Trailer" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
         </div>
       </section>
 

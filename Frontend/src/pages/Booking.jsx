@@ -67,108 +67,40 @@ export default function Booking() {
   return (
     <div style={styles.page}>
       <h1 style={styles.title}>🎟️ Đặt vé</h1>
-
-      <p style={{ opacity: 0.85, marginBottom: 20 }}>
-        Phim: <b>{movie.title}</b>
-      </p>
+      <p style={{ opacity: 0.85, marginBottom: 20 }}>Phim: <b>{movie.title}</b></p>
 
       <div style={styles.section}>
         <h3>Chọn rạp</h3>
-
-        <div style={styles.row}>
-          {streets.map((street) => (
-            <button
-              key={street}
-              onClick={() => setCinema(street)}
-              style={{
-                ...styles.optionBtn,
-                background: cinema === street ? "#f7b400" : "#2a2d45",
-                color: cinema === street ? "#000" : "#fff",
-              }}
-            >
-              {street}
-            </button>
-          ))}
-        </div>
+        <div style={styles.row}>{streets.map((s) => (
+          <button key={s} onClick={() => setCinema(s)} style={{ ...styles.optionBtn, background: cinema === s ? "#f7b400" : "#2a2d45", color: cinema === s ? "#000" : "#fff" }}>{s}</button>
+        ))}</div>
       </div>
 
       <div style={styles.section}>
         <h3>Chọn suất</h3>
-
-        <div style={styles.row}>
-          {["09:00", "11:30", "14:00", "16:30", "18:30", "21:00"].map((t) => (
-            <button
-              key={t}
-              onClick={() => setTime(t)}
-              style={{
-                ...styles.optionBtn,
-                background: time === t ? "#f7b400" : "#2a2d45",
-                color: time === t ? "#000" : "#fff",
-              }}
-            >
-              {t}
-            </button>
-          ))}
-        </div>
+        <div style={styles.row}>{["09:00", "11:30", "14:00", "16:30", "18:30", "21:00"].map((t) => (
+          <button key={t} onClick={() => setTime(t)} style={{ ...styles.optionBtn, background: time === t ? "#f7b400" : "#2a2d45", color: time === t ? "#000" : "#fff" }}>{t}</button>
+        ))}</div>
       </div>
 
       <div style={styles.sectionCenter}>
         <div style={styles.screen}>MÀN HÌNH</div>
-
         {rows.map((row) => (
-          <div key={row} style={styles.seatRow}>
-            {Array.from({ length: 10 }, (_, i) => {
-              const seat = `${row}${i + 1}`;
-              const active = selectedSeats.includes(seat);
-
-              return (
-                <button
-                  key={seat}
-                  onClick={() => toggleSeat(seat)}
-                  style={{
-                    ...styles.seat,
-                    background: active ? "#4ade80" : "#2a2d45",
-                    color: active ? "#000" : "#fff",
-                  }}
-                >
-                  {seat}
-                </button>
-              );
-            })}
-          </div>
+          <div key={row} style={styles.seatRow}>{Array.from({ length: 10 }, (_, i) => {
+            const seat = `${row}${i + 1}`;
+            const active = selectedSeats.includes(seat);
+            return <button key={seat} onClick={() => toggleSeat(seat)} style={{ ...styles.seat, background: active ? "#4ade80" : "#2a2d45", color: active ? "#000" : "#fff" }}>{seat}</button>;
+          })}</div>
         ))}
       </div>
 
       <div style={styles.summary}>
-        <p>
-          <b>Phim:</b> {movie.title}
-        </p>
-        <p>
-          <b>Rạp:</b> {cinema}
-        </p>
-        <p>
-          <b>Suất:</b> {time}
-        </p>
-
-        <p>
-          <b>Ghế:</b>{" "}
-          {selectedSeats.length > 0 ? selectedSeats.join(", ") : "Chưa chọn"}
-        </p>
-
-        <p>
-          <b>Số ghế:</b> {selectedSeats.length}
-        </p>
-
-        <button
-          disabled={selectedSeats.length === 0}
-          onClick={handleConfirmBooking}
-          style={{
-            ...styles.confirmBtn,
-            opacity: selectedSeats.length === 0 ? 0.5 : 1,
-          }}
-        >
-          XÁC NHẬN ĐẶT VÉ
-        </button>
+        <p><b>Phim:</b> {movie.title}</p>
+        <p><b>Rạp:</b> {cinema}</p>
+        <p><b>Suất:</b> {time}</p>
+        <p><b>Ghế:</b> {selectedSeats.length > 0 ? selectedSeats.join(", ") : "Chưa chọn"}</p>
+        <p><b>Số ghế:</b> {selectedSeats.length}</p>
+        <button disabled={selectedSeats.length === 0} onClick={handleConfirmBooking} style={{ ...styles.confirmBtn, opacity: selectedSeats.length === 0 ? 0.5 : 1 }}>XÁC NHẬN ĐẶT VÉ</button>
       </div>
     </div>
   );

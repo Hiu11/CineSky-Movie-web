@@ -29,50 +29,13 @@ export default function Login({ onLoginSuccess }) {
   };
 
   return (
-    <div
-      style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 9999,
-        background: "rgba(0,0,0,.7)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-      }}
-    >
-      <div
-        style={{
-          width: 400,
-          background: "#0b1020",
-          padding: 24,
-          borderRadius: 12,
-          color: "white",
-          position: "relative",
-        }}
-      >
-        <button onClick={() => navigate("/")} style={closeBtnStyle} aria-label="Close">
-          X
-        </button>
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,.7)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ width: 400, background: "#0b1020", padding: 24, borderRadius: 12, color: "white", position: "relative" }}>
+        <button onClick={() => navigate("/")} style={closeBtnStyle} aria-label="Close">X</button>
         <h2 style={{ textAlign: "center", marginBottom: 20 }}>Đăng Nhập</h2>
-
-        <input
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={inputStyle}
-        />
-
-        <input
-          type="password"
-          placeholder="Mật khẩu"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={inputStyle}
-        />
-
-        <button onClick={handleLogin} style={btnStyle}>
-          ĐĂNG NHẬP
-        </button>
+        <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} />
+        <input type="password" placeholder="Mật khẩu" value={password} onChange={(e) => setPassword(e.target.value)} style={inputStyle} />
+        <button onClick={handleLogin} style={btnStyle}>ĐĂNG NHẬP</button>
       </div>
     </div>
   );

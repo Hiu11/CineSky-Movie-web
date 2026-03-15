@@ -70,54 +70,19 @@ export default function Register({ onRegisterSuccess }) {
           X
         </button>
         <h2 style={{ textAlign: "center", marginBottom: 20 }}>Đăng Ký Tài Khoản</h2>
-
-        <input
-          placeholder="Họ và tên"
-          value={fullName}
-          onChange={(e) => setFullName(e.target.value)}
-          style={inputStyle}
-        />
-        <input
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          style={inputStyle}
-        />
-        <input
-          placeholder="Số điện thoại"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          style={inputStyle}
-        />
+        <input placeholder="Họ và tên" value={fullName} onChange={(e) => setFullName(e.target.value)} style={inputStyle} />
+        <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} style={inputStyle} />
+        <input placeholder="Số điện thoại" value={phone} onChange={(e) => setPhone(e.target.value)} style={inputStyle} />
 
         <div style={{ display: "flex", gap: 20, marginBottom: 12 }}>
-          <label>
-            <input type="radio" name="gender" value="Nam" onChange={(e) => setGender(e.target.value)} /> Nam
-          </label>
-          <label>
-            <input type="radio" name="gender" value="Nữ" onChange={(e) => setGender(e.target.value)} /> Nữ
-          </label>
+          <label><input type="radio" name="gender" value="Nam" onChange={(e) => setGender(e.target.value)} /> Nam</label>
+          <label><input type="radio" name="gender" value="Nữ" onChange={(e) => setGender(e.target.value)} /> Nữ</label>
         </div>
 
         <input type="date" value={birthday} onChange={(e) => setBirthday(e.target.value)} style={inputStyle} />
-        <input
-          type="password"
-          placeholder="Mật khẩu"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          style={inputStyle}
-        />
-        <input
-          type="password"
-          placeholder="Nhập lại mật khẩu"
-          value={confirm}
-          onChange={(e) => setConfirm(e.target.value)}
-          style={inputStyle}
-        />
-
-        <button onClick={handleRegister} style={btnStyle}>
-          HOÀN TẤT
-        </button>
+        <input type="password" placeholder="Mật khẩu" value={password} onChange={(e) => setPassword(e.target.value)} style={inputStyle} />
+        <input type="password" placeholder="Nhập lại mật khẩu" value={confirm} onChange={(e) => setConfirm(e.target.value)} style={inputStyle} />
+        <button onClick={handleRegister} style={btnStyle}>HOÀN TẤT</button>
       </div>
     </div>
   );

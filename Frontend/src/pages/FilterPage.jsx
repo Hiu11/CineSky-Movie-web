@@ -224,43 +224,19 @@ const FilterPage = ({ searchQuery = "" }) => {
     <div className="filter-view-container">
       <div className="filter-options-panel">
         <div className="filter-row">
-          <select
-            className="custom-select"
-            value={selectedGenre}
-            onChange={(e) => setSelectedGenre(e.target.value)}
-          >
+          <select className="custom-select" value={selectedGenre} onChange={(e) => setSelectedGenre(e.target.value)}>
             <option value="">Thể loại</option>
-            {genreOptions.map((genre) => (
-              <option key={genre} value={genre}>
-                {genre}
-              </option>
-            ))}
+            {genreOptions.map((genre) => <option key={genre} value={genre}>{genre}</option>)}
           </select>
 
-          <select
-            className="custom-select"
-            value={selectedCountry}
-            onChange={(e) => setSelectedCountry(e.target.value)}
-          >
+          <select className="custom-select" value={selectedCountry} onChange={(e) => setSelectedCountry(e.target.value)}>
             <option value="">Quốc gia</option>
-            {countryOptions.map((country) => (
-              <option key={country} value={country}>
-                {country}
-              </option>
-            ))}
+            {countryOptions.map((country) => <option key={country} value={country}>{country}</option>)}
           </select>
 
-          <select
-            className="custom-select"
-            value={selectedRating}
-            onChange={(e) => setSelectedRating(e.target.value)}
-          >
+          <select className="custom-select" value={selectedRating} onChange={(e) => setSelectedRating(e.target.value)}>
             <option value="">Độ tuổi</option>
-            {ratingOptions.map((rating) => (
-              <option key={rating} value={rating}>
-                {rating}
-              </option>
-            ))}
+            {ratingOptions.map((rating) => <option key={rating} value={rating}>{rating}</option>)}
           </select>
         </div>
       </div>

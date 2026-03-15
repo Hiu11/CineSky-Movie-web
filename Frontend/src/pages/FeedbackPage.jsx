@@ -14,38 +14,16 @@ const FeedbackPage = () => {
         </div>
 
         <form className="feedback-form">
-          <label className="feedback-label" htmlFor="fullName">
-            Họ và tên
-          </label>
-          <input
-            id="fullName"
-            type="text"
-            className="feedback-input"
-            placeholder="Nhập tên của bạn"
-          />
+          <label className="feedback-label" htmlFor="fullName">Họ và tên</label>
+          <input id="fullName" type="text" className="feedback-input" placeholder="Nhập tên của bạn" />
 
-          <label className="feedback-label" htmlFor="email">
-            Email
-          </label>
-          <input
-            id="email"
-            type="email"
-            className="feedback-input"
-            placeholder="Nhập email"
-          />
+          <label className="feedback-label" htmlFor="email">Email</label>
+          <input id="email" type="email" className="feedback-input" placeholder="Nhập email" />
 
-          <label className="feedback-label" htmlFor="message">
-            Nội dung góp ý
-          </label>
-          <textarea
-            id="message"
-            className="feedback-textarea"
-            placeholder="Bạn muốn nhắn nhủ gì..."
-          />
+          <label className="feedback-label" htmlFor="message">Nội dung góp ý</label>
+          <textarea id="message" className="feedback-textarea" placeholder="Bạn muốn nhắn nhủ gì..." />
 
-          <button type="button" className="feedback-submit">
-            GỬI GÓP Ý
-          </button>
+          <button type="button" className="feedback-submit">GỬI GÓP Ý</button>
         </form>
       </div>
     </main>
