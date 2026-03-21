@@ -1,4 +1,4 @@
-﻿import { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Register({ onRegisterSuccess }) {
@@ -32,7 +32,7 @@ export default function Register({ onRegisterSuccess }) {
       gender,
       birthday,
       password,
-      avatar: "/user.png",
+      avatar: "",
     };
 
     users.push(newUser);
@@ -75,14 +75,20 @@ export default function Register({ onRegisterSuccess }) {
         <input placeholder="Số điện thoại" value={phone} onChange={(e) => setPhone(e.target.value)} style={inputStyle} />
 
         <div style={{ display: "flex", gap: 20, marginBottom: 12 }}>
-          <label><input type="radio" name="gender" value="Nam" onChange={(e) => setGender(e.target.value)} /> Nam</label>
-          <label><input type="radio" name="gender" value="Nữ" onChange={(e) => setGender(e.target.value)} /> Nữ</label>
+          <label>
+            <input type="radio" name="gender" value="Nam" onChange={(e) => setGender(e.target.value)} /> Nam
+          </label>
+          <label>
+            <input type="radio" name="gender" value="Nữ" onChange={(e) => setGender(e.target.value)} /> Nữ
+          </label>
         </div>
 
         <input type="date" value={birthday} onChange={(e) => setBirthday(e.target.value)} style={inputStyle} />
         <input type="password" placeholder="Mật khẩu" value={password} onChange={(e) => setPassword(e.target.value)} style={inputStyle} />
         <input type="password" placeholder="Nhập lại mật khẩu" value={confirm} onChange={(e) => setConfirm(e.target.value)} style={inputStyle} />
-        <button onClick={handleRegister} style={btnStyle}>HOÀN TẤT</button>
+        <button onClick={handleRegister} style={btnStyle}>
+          HOÀN TẤT
+        </button>
       </div>
     </div>
   );
