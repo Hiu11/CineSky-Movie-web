@@ -1,0 +1,132 @@
+.main-header {
+  background-color: var(--header-navy);
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+}
+
+.header-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  padding: 8px 5%;
+}
+
+.logo-link-clean {
+  text-decoration: none;
+}
+
+.logo-image {
+  height: 100px;
+  width: auto;
+  display: block;
+}
+
+.search-pill-modern {
+  display: flex;
+  align-items: center;
+  flex: 1;
+  max-width: 560px;
+  background-color: white;
+  border-radius: 30px;
+  padding: 6px 6px 6px 18px;
+}
+
+.search-pill-modern input {
+  width: 100%;
+  border: none;
+  outline: none;
+  color: #333;
+  font-size: 16px;
+}
+
+.search-pill-btn-inner {
+  background: var(--secondary-purple);
+  color: white;
+  border: none;
+  padding: 8px 24px;
+  border-radius: 25px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.auth-btns-header,
+.user-nav-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-action {
+  padding: 8px 18px;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 13px;
+  text-transform: uppercase;
+}
+
+.btn-gold {
+  background-color: var(--primary-gold);
+  color: #000;
+}
+
+.btn-violet {
+  background-color: var(--secondary-purple);
+  color: #fff;
+}
+
+.user-display-name {
+  white-space: nowrap;
+}
+
+.avatar-frame-small {
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+}
+
+.avatar-fallback {
+  background: var(--primary-gold);
+  color: #111;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.movie-tabs-navigation {
+  display: flex;
+  background-color: #181c31;
+  border-bottom: 2px solid #3a3f5a;
+}
+
+.tab-btn {
+  flex: 1;
+  padding: 12px 0;
+  background: transparent;
+  border: none;
+  color: white;
+  font-weight: bold;
+  text-transform: uppercase;
+  cursor: pointer;
+  opacity: 0.7;
+  font-size: 14px;
+  text-decoration: none;
+  text-align: center;
+}
+
+.tab-btn.active {
+  opacity: 1;
+  color: var(--primary-gold);
+  border-bottom: 3px solid var(--primary-gold);
+}

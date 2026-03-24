@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from "react";
-import MovieCard from "../components/MovieCard";
+import MovieCard from "../../components/MovieCard/MovieCard";
+import "./FilterPage.css";
 
 const normalizeText = (value) =>
   value

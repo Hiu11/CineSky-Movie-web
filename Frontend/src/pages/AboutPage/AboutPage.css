@@ -1,0 +1,17 @@
+.about-page {
+  color: white;
+  padding: 50px 10%;
+}
+
+.about-page__title {
+  color: var(--primary-gold);
+  margin-bottom: 20px;
+}
+
+.about-page__subtitle {
+  margin: 24px 0 10px;
+}
+
+.about-page__text {
+  max-width: 920px;
+}

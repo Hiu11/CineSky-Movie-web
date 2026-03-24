@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
+import "./Header.css";
 
 export default function Header({ isLoggedIn, user, onLogout, searchQuery, setSearchQuery }) {
   const navigate = useNavigate();
@@ -49,33 +50,17 @@ export default function Header({ isLoggedIn, user, onLogout, searchQuery, setSea
             </Link>
           </div>
         ) : (
-          <div className="user-nav-profile" style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <div className="user-nav-profile">
             <span className="user-display-name">{user?.name}</span>
             {!avatarFailed && user?.avatar ? (
               <img
                 src={user.avatar}
                 alt={user?.name || "User"}
                 className="avatar-frame-small"
-                style={{ width: "35px", height: "35px", borderRadius: "50%", objectFit: "cover" }}
                 onError={() => setAvatarFailed(true)}
               />
             ) : (
-              <div
-                className="avatar-frame-small"
-                aria-label="User avatar"
-                style={{
-                  width: "35px",
-                  height: "35px",
-                  borderRadius: "50%",
-                  background: "#f7b400",
-                  color: "#111",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  fontWeight: "bold",
-                  fontSize: "14px",
-                }}
-              >
+              <div className="avatar-frame-small avatar-fallback" aria-label="User avatar">
                 {userInitial}
               </div>
             )}

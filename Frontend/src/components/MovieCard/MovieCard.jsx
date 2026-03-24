@@ -1,5 +1,6 @@
-﻿import React from "react";
+import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import "./MovieCard.css";
 
 const MovieCard = ({ movie }) => {
   const navigate = useNavigate();
@@ -17,10 +18,7 @@ const MovieCard = ({ movie }) => {
   };
 
   return (
-    <div
-      className="movie-card-container"
-      onClick={() => navigate(`/movie/${movie.id}?tab=${currentTab}`)}
-    >
+    <div className="movie-card-container" onClick={() => navigate(`/movie/${movie.id}?tab=${currentTab}`)}>
       <div className="movie-card-box">
         <div className="movie-poster">
           <img src={movie.poster} alt={movie.title} />
@@ -47,11 +45,7 @@ const MovieCard = ({ movie }) => {
             <div className="time-grid">
               {movie.times &&
                 movie.times.map((time, index) => (
-                  <button
-                    key={index}
-                    className="time-btn"
-                    onClick={(e) => e.stopPropagation()}
-                  >
+                  <button key={index} className="time-btn" onClick={(e) => e.stopPropagation()}>
                     {time}
                   </button>
                 ))}
@@ -70,11 +64,10 @@ const MovieCard = ({ movie }) => {
             </button>
 
             <button
-              className="btn-book"
+              className={`btn-book ${isComingSoon ? "btn-book-disabled" : ""}`}
               onClick={handleBookingClick}
               disabled={isComingSoon}
               title={isComingSoon ? "Phim chưa có lịch chiếu" : ""}
-              style={isComingSoon ? { opacity: 0.6, cursor: "not-allowed" } : undefined}
             >
               ĐẶT VÉ
             </button>
@@ -86,5 +79,3 @@ const MovieCard = ({ movie }) => {
 };
 
 export default MovieCard;
-
-

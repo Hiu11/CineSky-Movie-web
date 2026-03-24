@@ -1,0 +1,12 @@
+.homepage-wrapper .movie-grid-container {
+  padding: 30px 5% 120px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+  gap: 30px;
+}
+
+.home-empty-state {
+  color: white;
+  text-align: center;
+  width: 100%;
+}

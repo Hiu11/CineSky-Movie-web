@@ -1,0 +1,47 @@
+.filter-view-container {
+  padding-top: 30px;
+}
+
+.filter-view-container .movie-grid-container {
+  padding: 30px 5% 120px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+  gap: 30px;
+}
+
+.filter-options-panel {
+  background: rgba(24, 28, 49, 0.8);
+  padding: 15px 5%;
+  display: flex;
+  justify-content: center;
+  border-bottom: 1px solid #3a3f5a;
+  margin-bottom: 25px;
+}
+
+.filter-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+.custom-select {
+  background: #2d2e37;
+  color: white;
+  border: 1px solid #444;
+  padding: 8px 15px;
+  border-radius: 4px;
+  min-width: 140px;
+  outline: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.custom-select:focus {
+  border-color: var(--primary-gold);
+}
+
+.filter-empty-state {
+  color: white;
+  text-align: center;
+  width: 100%;
+}

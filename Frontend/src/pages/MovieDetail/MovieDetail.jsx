@@ -1,5 +1,6 @@
 import React from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import "./MovieDetail.css";
 
 export default function MovieDetail() {
   const { id } = useParams();

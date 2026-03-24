@@ -1,0 +1,143 @@
+.movie-card-container {
+  background: var(--card-bg);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  height: 320px;
+  cursor: pointer;
+}
+
+.movie-card-box {
+  display: flex;
+  height: 100%;
+}
+
+.movie-poster {
+  width: 35%;
+  position: relative;
+}
+
+.movie-poster img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.overlay-tags {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  gap: 5px;
+}
+
+.tag-2d,
+.tag-rating,
+.rating-badge {
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: bold;
+  color: white;
+  font-size: 12px;
+}
+
+.tag-2d {
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.t18 {
+  background: #e91e63;
+}
+
+.t13 {
+  background: #673ab7;
+}
+
+.p-rating {
+  background: #4caf50;
+}
+
+.movie-info {
+  width: 65%;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.movie-title {
+  font-size: 20px;
+  margin-bottom: 10px;
+  color: white;
+  text-transform: uppercase;
+}
+
+.movie-meta {
+  font-size: 13px;
+  color: #b0b0b0;
+  margin-bottom: 5px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rating-desc {
+  background: rgba(93, 46, 140, 0.2);
+  color: #ce93d8;
+  padding: 5px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  margin-bottom: 15px;
+}
+
+.showtime-label {
+  font-weight: bold;
+  margin-bottom: 10px;
+  display: block;
+}
+
+.time-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.time-btn {
+  background: rgba(255, 255, 255, 0.08);
+  color: white;
+  border: none;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.card-actions {
+  margin-top: auto;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.btn-trailer {
+  background: none;
+  border: none;
+  color: white;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.btn-book {
+  background: var(--primary-gold);
+  color: black;
+  border: none;
+  padding: 8px 25px;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.btn-book-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

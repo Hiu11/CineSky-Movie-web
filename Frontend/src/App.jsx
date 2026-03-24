@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-import Header from "./components/Header";
-import Footer from "./components/Footer";
-import HomePage from "./pages/HomePage";
-import FilterPage from "./pages/FilterPage";
-import AboutPage from "./pages/AboutPage";
-import FeedbackPage from "./pages/FeedbackPage";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import Booking from "./pages/Booking";
-import MovieDetail from "./pages/MovieDetail";
+import Header from "./components/Header/Header";
+import Footer from "./components/Footer/Footer";
+import HomePage from "./pages/HomePage/HomePage";
+import FilterPage from "./pages/FilterPage/FilterPage";
+import AboutPage from "./pages/AboutPage/AboutPage";
+import FeedbackPage from "./pages/FeedbackPage/FeedbackPage";
+import Login from "./pages/Login/Login";
+import Register from "./pages/Register/Register";
+import Booking from "./pages/Booking/Booking";
+import MovieDetail from "./pages/MovieDetail/MovieDetail";
 import "./App.css";
 
 function App() {
