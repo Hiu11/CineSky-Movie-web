@@ -1,9 +1,9 @@
 import React from "react";
 import "./Footer.css";
 
-const Footer = () => {
+const Footer = ({ flushTop = false }) => {
   return (
-    <footer className="complex-footer">
+    <footer className={"complex-footer" + (flushTop ? " complex-footer--flush" : "")}>
       <div className="footer-top-grid">
         <div className="footer-brand">
           <p className="brand-slogan">BE HAPPY. BE A STAR</p>

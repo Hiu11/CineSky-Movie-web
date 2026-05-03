@@ -1,36 +1,355 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
+import { normalizeAuthUser } from "../../services/authService";
+import {
+  createFeedbackEntry,
+  getFeedbackEntries,
+} from "../../services/feedbackService";
 import "./FeedbackPage.css";
 
-const FeedbackPage = () => {
+const ratingLabelMap = {
+  1: "Rất chưa hài lòng",
+  2: "Chưa hài lòng",
+  3: "Ổn",
+  4: "Hài lòng",
+  5: "Rất hài lòng",
+};
+
+const getSessionUser = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const rawUser = sessionStorage.getItem("user");
+    return rawUser ? normalizeAuthUser(JSON.parse(rawUser)) : null;
+  } catch {
+    return null;
+  }
+};
+
+const buildInitialFormState = (sessionUser) => ({
+  fullName: sessionUser?.fullName || sessionUser?.name || "",
+  email: sessionUser?.email || "",
+  message: "",
+});
+
+const formatCreatedAt = (value) => {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return date.toLocaleDateString("vi-VN", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  });
+};
+
+const FeedbackPage = ({ showToast }) => {
+  const sessionUser = useMemo(() => getSessionUser(), []);
+  const [form, setForm] = useState(() => buildInitialFormState(sessionUser));
+  const [selectedRating, setSelectedRating] = useState(0);
+  const [hoveredRating, setHoveredRating] = useState(0);
+  const [status, setStatus] = useState({ type: "", message: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [feedbackEntries, setFeedbackEntries] = useState([]);
+  const [isEntriesLoading, setIsEntriesLoading] = useState(true);
+  const [entriesErrorMessage, setEntriesErrorMessage] = useState("");
+
+  const activeRating = hoveredRating || selectedRating;
+  const messageLength = form.message.trim().length;
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadFeedbackEntries = async () => {
+      try {
+        setIsEntriesLoading(true);
+        setEntriesErrorMessage("");
+
+        const entries = await getFeedbackEntries({ limit: 6 });
+
+        if (isMounted) {
+          setFeedbackEntries(Array.isArray(entries) ? entries : []);
+        }
+      } catch (error) {
+        if (isMounted) {
+          setFeedbackEntries([]);
+          setEntriesErrorMessage(
+            error.message || "Không thể tải phản hồi gần đây từ server."
+          );
+        }
+      } finally {
+        if (isMounted) {
+          setIsEntriesLoading(false);
+        }
+      }
+    };
+
+    loadFeedbackEntries();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const ratingHint = useMemo(() => {
+    if (selectedRating > 0) {
+      return `${selectedRating}/5 sao - ${ratingLabelMap[selectedRating]}`;
+    }
+
+    return "Chọn từ 1 đến 5 sao để đánh giá trải nghiệm của bạn";
+  }, [selectedRating]);
+
+  const handleFieldChange = (field) => (event) => {
+    if (status.message) {
+      setStatus({ type: "", message: "" });
+    }
+
+    setForm((previousState) => ({
+      ...previousState,
+      [field]: event.target.value,
+    }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setStatus({ type: "", message: "" });
+
+    if (!form.fullName.trim() || !form.email.trim() || !form.message.trim()) {
+      const message = "Vui lòng điền đầy đủ họ tên, email và nội dung góp ý.";
+      setStatus({ type: "error", message });
+      showToast?.({
+        type: "error",
+        title: "Thiếu thông tin",
+        message,
+      });
+      return;
+    }
+
+    if (selectedRating === 0) {
+      const message =
+        "Hãy chọn số sao đánh giá để CineSky hiểu rõ mức độ hài lòng của bạn.";
+      setStatus({ type: "error", message });
+      showToast?.({
+        type: "error",
+        title: "Chưa chọn sao",
+        message,
+      });
+      return;
+    }
+
+    if (messageLength < 12) {
+      const message =
+        "Nội dung góp ý nên dài ít nhất 12 ký tự để nhóm dễ tiếp nhận hơn.";
+      setStatus({ type: "error", message });
+      showToast?.({
+        type: "error",
+        title: "Nội dung quá ngắn",
+        message,
+      });
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+
+      const createdEntry = await createFeedbackEntry({
+        userId: sessionUser?.id || "",
+        fullName: form.fullName,
+        email: form.email,
+        rating: selectedRating,
+        message: form.message,
+      });
+
+      setFeedbackEntries((currentEntries) =>
+        [createdEntry, ...currentEntries].slice(0, 6)
+      );
+
+      const successMessage = `Cảm ơn ${form.fullName.trim()}! Đánh giá ${selectedRating}/5 sao của bạn đã được ghi nhận.`;
+
+      setStatus({
+        type: "success",
+        message: successMessage,
+      });
+      showToast?.({
+        type: "success",
+        title: "Gửi góp ý thành công",
+        message: successMessage,
+      });
+      setForm(buildInitialFormState(sessionUser));
+      setSelectedRating(0);
+      setHoveredRating(0);
+    } catch (error) {
+      const message =
+        error.message || "Không thể gửi góp ý lúc này. Vui lòng thử lại sau.";
+
+      setStatus({ type: "error", message });
+      showToast?.({
+        type: "error",
+        title: "Gửi góp ý thất bại",
+        message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <main className="feedback-page">
-      <div className="feedback-card">
-        <div className="feedback-header">
-          <span className="feedback-pill">Chúng tôi lắng nghe</span>
-          <h2>Góp ý với chúng tôi</h2>
-          <p>Hãy cho CineSky biết trải nghiệm của bạn để chúng tôi phục vụ tốt hơn.</p>
-        </div>
+      <div className="feedback-shell">
+        <section className="feedback-card">
+          <div className="feedback-header">
+            <span className="feedback-pill">Chúng tôi lắng nghe</span>
+            <h2>Góp ý với CineSky</h2>
+            <p>
+              Chia sẻ cảm nhận của bạn về giao diện, trải nghiệm đặt vé hoặc bất
+              kỳ điểm nào cần cải thiện.
+            </p>
+          </div>
 
-        <form className="feedback-form">
-          <label className="feedback-label" htmlFor="fullName">
-            Họ và tên
-          </label>
-          <input id="fullName" type="text" className="feedback-input" placeholder="Nhập tên của bạn" />
+          {status.message ? (
+            <div className={`feedback-status feedback-status--${status.type}`}>
+              {status.message}
+            </div>
+          ) : null}
 
-          <label className="feedback-label" htmlFor="email">
-            Email
-          </label>
-          <input id="email" type="email" className="feedback-input" placeholder="Nhập email" />
+          <form className="feedback-form" onSubmit={handleSubmit}>
+            <div className="feedback-form__grid">
+              <div className="feedback-field">
+                <label className="feedback-label" htmlFor="fullName">
+                  Họ và tên
+                </label>
+                <input
+                  id="fullName"
+                  type="text"
+                  className="feedback-input"
+                  placeholder="Nhập tên của bạn"
+                  value={form.fullName}
+                  onChange={handleFieldChange("fullName")}
+                />
+              </div>
 
-          <label className="feedback-label" htmlFor="message">
-            Nội dung góp ý
-          </label>
-          <textarea id="message" className="feedback-textarea" placeholder="Bạn muốn nhắn nhủ gì..." />
+              <div className="feedback-field">
+                <label className="feedback-label" htmlFor="email">
+                  Email
+                </label>
+                <input
+                  id="email"
+                  type="email"
+                  className="feedback-input"
+                  placeholder="Nhập email để nhận phản hồi nếu cần"
+                  value={form.email}
+                  onChange={handleFieldChange("email")}
+                />
+              </div>
+            </div>
 
-          <button type="button" className="feedback-submit">
-            GỬI GÓP Ý
-          </button>
-        </form>
+            <div className="feedback-field">
+              <span className="feedback-label">Đánh giá nhanh</span>
+              <div className="feedback-rating">
+                <div
+                  className="feedback-rating__buttons"
+                  role="radiogroup"
+                  aria-label="Chọn số sao đánh giá"
+                >
+                  {[1, 2, 3, 4, 5].map((rating) => {
+                    const isActive = rating <= activeRating;
+
+                    return (
+                      <button
+                        key={rating}
+                        type="button"
+                        className={"feedback-star" + (isActive ? " is-active" : "")}
+                        onClick={() => {
+                          setSelectedRating(rating);
+                          if (status.message) {
+                            setStatus({ type: "", message: "" });
+                          }
+                        }}
+                        onMouseEnter={() => setHoveredRating(rating)}
+                        onMouseLeave={() => setHoveredRating(0)}
+                        aria-label={`${rating} sao`}
+                        aria-checked={selectedRating === rating}
+                        role="radio"
+                      >
+                        ★
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <p className="feedback-rating__hint">{ratingHint}</p>
+              </div>
+            </div>
+
+            <div className="feedback-field">
+              <label className="feedback-label" htmlFor="message">
+                Nội dung góp ý
+              </label>
+              <textarea
+                id="message"
+                className="feedback-textarea"
+                placeholder="Bạn muốn CineSky cải thiện điều gì? Hãy mô tả càng cụ thể càng tốt."
+                value={form.message}
+                onChange={handleFieldChange("message")}
+              />
+              <div className="feedback-field__meta">
+                <span>
+                  Gợi ý: hãy nhắc tới trang hoặc luồng thao tác bạn đang góp ý.
+                </span>
+                <strong>{messageLength} ký tự</strong>
+              </div>
+            </div>
+
+            <button type="submit" className="feedback-submit" disabled={isSubmitting}>
+              {isSubmitting ? "Đang gửi góp ý..." : "Gửi góp ý"}
+            </button>
+          </form>
+        </section>
+
+        <aside className="feedback-rail">
+          <div className="feedback-rail__header">
+            <span className="feedback-pill">Phản hồi gần đây</span>
+            <h3>Một vài cảm nhận từ người xem</h3>
+          </div>
+
+          <div className="feedback-rail__scroll">
+            {isEntriesLoading ? (
+              <div className="feedback-rail__state">
+                <p>Đang tải phản hồi gần đây...</p>
+              </div>
+            ) : entriesErrorMessage ? (
+              <div className="feedback-rail__state">
+                <p>{entriesErrorMessage}</p>
+              </div>
+            ) : feedbackEntries.length > 0 ? (
+              feedbackEntries.map((review) => (
+                <article key={review.id} className="feedback-review-card">
+                  <div className="feedback-review-card__head">
+                    <strong>{review.fullName}</strong>
+                    <span>{"★".repeat(review.rating)}</span>
+                  </div>
+                  <p className="feedback-review-card__meta">
+                    {formatCreatedAt(review.createdAt) || "Mới ghi nhận"}
+                  </p>
+                  <h4>{review.headline}</h4>
+                  <p className="feedback-review-card__message">{review.message}</p>
+                </article>
+              ))
+            ) : (
+              <div className="feedback-rail__state">
+                <p>Chưa có phản hồi nào được gửi. Bạn có thể là người đầu tiên.</p>
+              </div>
+            )}
+          </div>
+        </aside>
       </div>
     </main>
   );

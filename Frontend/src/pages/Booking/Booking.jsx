@@ -1,60 +1,295 @@
-import { useEffect, useState } from "react";
-import { useSearchParams } from "react-router-dom";
-import { getMovieById } from "../../services/movieService";
+import { useEffect, useMemo, useState } from "react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import {
+  createBooking,
+  getBookingHistory,
+  getMovieShowtimes,
+} from "../../services/movieService";
 import "./Booking.css";
 
-export default function Booking() {
-  const [searchParams] = useSearchParams();
-  const movieId = searchParams.get("movieId");
+const PAYMENT_METHODS = [
+  { id: "bank", label: "ATM nội địa", helper: "Cổng ngân hàng VNPay" },
+  { id: "card", label: "Thẻ quốc tế", helper: "Visa, Mastercard, JCB" },
+  { id: "wallet", label: "Ví điện tử", helper: "VNPay QR, MoMo, ZaloPay" },
+];
 
-  const streets = [
-    "Nguyễn Huệ",
-    "Lê Lợi",
-    "Hai Bà Trưng",
-    "Điện Biên Phủ",
-    "Pasteur",
-    "Cách Mạng Tháng 8",
-    "Lý Tự Trọng",
-    "Trần Hưng Đạo",
-    "Phan Đình Phùng",
-    "Võ Văn Tần",
+const PAYMENT_PROVIDERS = {
+  bank: [
+    "Vietcombank",
+    "VietinBank",
+    "BIDV",
+    "Agribank",
+    "Sacombank",
+    "Techcombank",
+    "MB Bank",
+    "ACB",
+    "VPBank",
+    "TPBank",
+    "NCB",
+    "OCB",
+  ],
+  card: ["Visa", "Mastercard", "JCB", "UnionPay", "Amex"],
+  wallet: ["VNPay QR", "MoMo", "ZaloPay", "ShopeePay"],
+};
+
+const PAYMENT_WINDOW_SECONDS = 15 * 60;
+
+const createSeatPatternRows = (rowBlocks = []) =>
+  rowBlocks.map((blocks, rowIndex) => ({
+    rowKey: String.fromCharCode(65 + rowIndex),
+    left: blocks[0] || 0,
+    center: blocks[1] || 0,
+    right: blocks[2] || 0,
+  }));
+
+const SMALL_HALL_SEAT_PATTERN = createSeatPatternRows([
+  [2, 10, 2],
+  [2, 10, 2],
+  [2, 14, 2],
+  [2, 14, 2],
+  [2, 16, 2],
+  [2, 16, 2],
+  [2, 18, 2],
+  [2, 18, 2],
+  [3, 18, 3],
+  [3, 18, 3],
+]);
+
+const MEDIUM_HALL_SEAT_PATTERN = createSeatPatternRows([
+  [2, 12, 2],
+  [2, 12, 2],
+  [2, 16, 2],
+  [2, 16, 2],
+  [2, 18, 2],
+  [2, 18, 2],
+  [3, 18, 3],
+  [3, 18, 3],
+  [3, 20, 3],
+  [3, 20, 3],
+]);
+
+const LARGE_HALL_SEAT_PATTERN = createSeatPatternRows([
+  [2, 14, 2],
+  [2, 14, 2],
+  [3, 16, 3],
+  [3, 16, 3],
+  [3, 18, 3],
+  [3, 18, 3],
+  [4, 20, 4],
+  [4, 20, 4],
+  [4, 22, 4],
+  [4, 22, 4],
+  [4, 22, 4],
+  [4, 22, 4],
+]);
+
+const ROOM_SEAT_PATTERNS = {
+  "Sky Hall 1": SMALL_HALL_SEAT_PATTERN,
+  "Sky Hall 2": SMALL_HALL_SEAT_PATTERN,
+  "Moon Hall": MEDIUM_HALL_SEAT_PATTERN,
+  "Galaxy Hall": MEDIUM_HALL_SEAT_PATTERN,
+  "Nova Hall": LARGE_HALL_SEAT_PATTERN,
+  "Aurora Hall": LARGE_HALL_SEAT_PATTERN,
+};
+
+const groupSeatsByRow = (seatLabels = []) => {
+  const rowMap = new Map();
+
+  seatLabels.forEach((seatLabel) => {
+    const rowKey = String(seatLabel).replace(/\d+/g, "") || "ROW";
+    const currentSeats = rowMap.get(rowKey) || [];
+    currentSeats.push(seatLabel);
+    rowMap.set(rowKey, currentSeats);
+  });
+
+  return Array.from(rowMap.entries()).map(([rowKey, seats]) => ({
+    rowKey,
+    seats: seats.sort(
+      (first, second) =>
+        Number(String(first).replace(/\D+/g, "")) -
+        Number(String(second).replace(/\D+/g, ""))
+    ),
+  }));
+};
+
+const getFallbackSeatPattern = (seatCount = 0) => {
+  if (seatCount <= 6) {
+    return { left: 0, center: seatCount, right: 0 };
+  }
+
+  const sideCount = seatCount >= 26 ? 3 : 2;
+  const centerCount = Math.max(seatCount - sideCount * 2, 0);
+
+  return {
+    left: sideCount,
+    center: centerCount,
+    right: sideCount,
+  };
+};
+
+const getSeatPatternForRow = (roomName = "", rowKey = "", rowIndex = 0, seatCount = 0) => {
+  const roomPattern = ROOM_SEAT_PATTERNS[roomName] || [];
+  const matchedPattern =
+    roomPattern.find((pattern) => pattern.rowKey === rowKey) || roomPattern[rowIndex];
+
+  if (
+    matchedPattern &&
+    matchedPattern.left + matchedPattern.center + matchedPattern.right === seatCount
+  ) {
+    return matchedPattern;
+  }
+
+  return getFallbackSeatPattern(seatCount);
+};
+
+const splitSeatRowByPattern = (seatLabels = [], seatPattern = { left: 0, center: 0, right: 0 }) => {
+  const leftCount = Math.max(seatPattern.left || 0, 0);
+  const centerCount = Math.max(seatPattern.center || 0, 0);
+
+  return {
+    leftSeats: seatLabels.slice(0, leftCount),
+    centerSeats: seatLabels.slice(leftCount, leftCount + centerCount),
+    rightSeats: seatLabels.slice(leftCount + centerCount),
+  };
+};
+
+const buildSeatSlots = (seatLabels = [], slotCount = 0, align = "center") => {
+  if (slotCount <= seatLabels.length) {
+    return seatLabels;
+  }
+
+  const totalPadding = slotCount - seatLabels.length;
+  const leadingPadding =
+    align === "start" ? 0 : align === "end" ? totalPadding : Math.floor(totalPadding / 2);
+  const trailingPadding = totalPadding - leadingPadding;
+
+  return [
+    ...Array.from({ length: leadingPadding }, () => null),
+    ...seatLabels,
+    ...Array.from({ length: trailingPadding }, () => null),
   ];
+};
+
+const formatCurrency = (value) => Number(value || 0).toLocaleString("vi-VN");
+
+const formatCountdown = (totalSeconds = 0) => {
+  const safeSeconds = Math.max(Number(totalSeconds) || 0, 0);
+  const minutes = Math.floor(safeSeconds / 60);
+  const seconds = safeSeconds % 60;
+
+  return `${String(minutes).padStart(2, "0")} : ${String(seconds).padStart(2, "0")}`;
+};
+
+const getSeatToneForRow = (rowKey = "", totalRows = 0) => {
+  const rowIndex = Math.max(String(rowKey).charCodeAt(0) - 65, 0);
+
+  if (totalRows >= 10 && rowIndex >= totalRows - 2) {
+    return "couple";
+  }
+
+  if (rowIndex >= Math.max(3, Math.floor(totalRows / 3)) && rowIndex <= totalRows - 3) {
+    return "vip";
+  }
+
+  return "standard";
+};
+
+export default function Booking({ showToast }) {
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const movieId = searchParams.get("movieId");
+  const [sessionUser] = useState(() => {
+    if (typeof window === "undefined") {
+      return null;
+    }
+
+    try {
+      const rawUser = sessionStorage.getItem("user");
+      return rawUser ? JSON.parse(rawUser) : null;
+    } catch {
+      return null;
+    }
+  });
 
   const [selectedSeats, setSelectedSeats] = useState([]);
-  const [cinema, setCinema] = useState(streets[0]);
-  const [time, setTime] = useState("09:00");
+  const [selectedCinemaName, setSelectedCinemaName] = useState("");
+  const [selectedShowtimeId, setSelectedShowtimeId] = useState("");
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("bank");
+  const [selectedProvider, setSelectedProvider] = useState(PAYMENT_PROVIDERS.bank[0]);
+  const [providerSearch, setProviderSearch] = useState("");
+  const [paymentForm, setPaymentForm] = useState({
+    ownerName: "",
+    reference: "",
+    expiry: "",
+    secureCode: "",
+    promoCode: "",
+  });
   const [movie, setMovie] = useState(null);
+  const [showtimes, setShowtimes] = useState([]);
+  const [bookingHistory, setBookingHistory] = useState([]);
+  const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [submitMessage, setSubmitMessage] = useState({ type: "", message: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDesktopViewport, setIsDesktopViewport] = useState(
+    typeof window !== "undefined" ? window.innerWidth > 1240 : true
+  );
+  const [isSummaryCollapsed, setIsSummaryCollapsed] = useState(false);
+  const [paymentSecondsLeft, setPaymentSecondsLeft] = useState(PAYMENT_WINDOW_SECONDS);
+  const [seatScale, setSeatScale] = useState(1);
 
   useEffect(() => {
     setSelectedSeats([]);
+    setSubmitMessage({ type: "", message: "" });
   }, [movieId]);
+
+  useEffect(() => {
+    const nextProviders = PAYMENT_PROVIDERS[selectedPaymentMethod];
+    setSelectedProvider(nextProviders[0]);
+    setProviderSearch("");
+  }, [selectedPaymentMethod]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsDesktopViewport(window.innerWidth > 1240);
+    };
+
+    handleResize();
+    window.addEventListener("resize", handleResize);
+
+    return () => {
+      window.removeEventListener("resize", handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     let isMounted = true;
 
-    const fetchMovie = async () => {
+    const fetchBookingData = async () => {
       try {
         setIsLoading(true);
         setErrorMessage("");
 
-        const data = await getMovieById(movieId);
+        const data = await getMovieShowtimes(movieId);
 
-        if (isMounted) {
-          setMovie(data);
-
-          const availableTimes = (data.times || []).filter(
-            (slot) => slot !== "Chưa có lịch"
-          );
-          setTime(availableTimes[0] || "Chưa có lịch");
+        if (!isMounted) {
+          return;
         }
+
+        setMovie(data.movie);
+        setShowtimes(data.showtimes || []);
+
+        const defaultCinema = data.showtimes?.[0]?.cinemaName || "";
+        const defaultShowtimeId = data.showtimes?.[0]?.id || "";
+
+        setSelectedCinemaName(defaultCinema);
+        setSelectedShowtimeId(defaultShowtimeId);
       } catch (error) {
         if (isMounted) {
           setMovie(null);
-          setErrorMessage(
-            error.message || "Không thể tải thông tin phim từ server."
-          );
+          setShowtimes([]);
+          setErrorMessage(error.message || "Không thể tải thông tin đặt vé từ server.");
         }
       } finally {
         if (isMounted) {
@@ -64,9 +299,10 @@ export default function Booking() {
     };
 
     if (movieId) {
-      fetchMovie();
+      fetchBookingData();
     } else {
       setMovie(null);
+      setShowtimes([]);
       setIsLoading(false);
     }
 
@@ -75,133 +311,1025 @@ export default function Booking() {
     };
   }, [movieId]);
 
-  const rows = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
-  const availableTimes = (movie?.times || []).filter(
-    (slot) => slot !== "Chưa có lịch"
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadBookingHistory = async () => {
+      if (!sessionUser?.id && !sessionUser?.email) {
+        if (isMounted) {
+          setBookingHistory([]);
+        }
+        return;
+      }
+
+      try {
+        setIsHistoryLoading(true);
+        const history = await getBookingHistory({
+          userId: sessionUser?.id || "",
+          email: sessionUser?.email || "",
+          limit: 6,
+        });
+
+        if (isMounted) {
+          setBookingHistory(Array.isArray(history) ? history : []);
+        }
+      } catch {
+        if (isMounted) {
+          setBookingHistory([]);
+        }
+      } finally {
+        if (isMounted) {
+          setIsHistoryLoading(false);
+        }
+      }
+    };
+
+    loadBookingHistory();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [sessionUser]);
+
+  const cinemaOptions = useMemo(() => {
+    const cinemaMap = new Map();
+
+    showtimes.forEach((showtime) => {
+      if (!cinemaMap.has(showtime.cinemaName)) {
+        cinemaMap.set(showtime.cinemaName, {
+          cinemaName: showtime.cinemaName,
+          cinemaAddress: showtime.cinemaAddress,
+        });
+      }
+    });
+
+    return Array.from(cinemaMap.values());
+  }, [showtimes]);
+
+  const filteredShowtimes = useMemo(
+    () => showtimes.filter((showtime) => showtime.cinemaName === selectedCinemaName),
+    [showtimes, selectedCinemaName]
   );
-  const isComingSoon = availableTimes.length === 0;
+
+  const selectedShowtime = useMemo(
+    () =>
+      showtimes.find((showtime) => String(showtime.id) === String(selectedShowtimeId)) ||
+      null,
+    [showtimes, selectedShowtimeId]
+  );
+
+  useEffect(() => {
+    setPaymentSecondsLeft(PAYMENT_WINDOW_SECONDS);
+  }, [selectedShowtimeId]);
+
+  useEffect(() => {
+    if (!selectedShowtime || paymentSecondsLeft <= 0) {
+      return undefined;
+    }
+
+    const countdownInterval = window.setInterval(() => {
+      setPaymentSecondsLeft((currentSeconds) => {
+        if (currentSeconds <= 1) {
+          window.clearInterval(countdownInterval);
+          return 0;
+        }
+
+        return currentSeconds - 1;
+      });
+    }, 1000);
+
+    return () => {
+      window.clearInterval(countdownInterval);
+    };
+  }, [selectedShowtime, paymentSecondsLeft]);
+
+  const groupedSeats = useMemo(
+    () => groupSeatsByRow(selectedShowtime?.seats || []),
+    [selectedShowtime]
+  );
+  const preparedSeatRows = useMemo(
+    () =>
+      groupedSeats.map((group, rowIndex) => {
+        const seatPattern = getSeatPatternForRow(
+          selectedShowtime?.roomName || "",
+          group.rowKey,
+          rowIndex,
+          group.seats.length
+        );
+        const seatBlocks = splitSeatRowByPattern(group.seats, seatPattern);
+
+        return {
+          ...group,
+          ...seatPattern,
+          ...seatBlocks,
+        };
+      }),
+    [groupedSeats, selectedShowtime]
+  );
+  const seatLayoutMetrics = useMemo(
+    () =>
+      preparedSeatRows.reduce(
+        (metrics, group) => {
+          return {
+            maxLeft: Math.max(metrics.maxLeft, group.left || 0),
+            maxCenter: Math.max(metrics.maxCenter, group.center || 0),
+            maxRight: Math.max(metrics.maxRight, group.right || 0),
+          };
+        },
+        { maxLeft: 0, maxCenter: 0, maxRight: 0 }
+      ),
+    [preparedSeatRows]
+  );
+  const isDesktopSummaryCollapsed = isDesktopViewport && isSummaryCollapsed;
+
+  const visibleProviders = useMemo(() => {
+    const source = PAYMENT_PROVIDERS[selectedPaymentMethod] || [];
+    if (!providerSearch.trim()) {
+      return source;
+    }
+
+    return source.filter((provider) =>
+      provider.toLowerCase().includes(providerSearch.trim().toLowerCase())
+    );
+  }, [providerSearch, selectedPaymentMethod]);
+
+  const isComingSoon = showtimes.length === 0;
+  const bookedSeats = selectedShowtime?.bookedSeats || [];
+  const isPaymentExpired = Boolean(selectedShowtime) && paymentSecondsLeft <= 0;
+  const paymentCountdownLabel = isPaymentExpired
+    ? "Hết giờ"
+    : formatCountdown(paymentSecondsLeft);
+  const ticketSubtotal = selectedShowtime
+    ? Number(selectedShowtime.price || 0) * selectedSeats.length
+    : 0;
+  const serviceFee = selectedSeats.length > 0 ? selectedSeats.length * 3000 : 0;
+  const finalTotal = ticketSubtotal + serviceFee;
+  const isPaymentFormReady = Boolean(
+    paymentForm.reference.trim() &&
+      paymentForm.ownerName.trim() &&
+      paymentForm.secureCode.trim() &&
+      (selectedPaymentMethod === "wallet" || paymentForm.expiry.trim())
+  );
+  const bookingStepStates = useMemo(() => {
+    const steps = [
+      {
+        id: "cinema",
+        label: "Chọn rạp",
+        helper: selectedCinemaName || "Bắt đầu với cụm rạp phù hợp",
+        complete: Boolean(selectedCinemaName),
+      },
+      {
+        id: "showtime",
+        label: "Suất chiếu",
+        helper: selectedShowtime?.displayTime || "Tiếp theo là giờ chiếu",
+        complete: Boolean(selectedShowtimeId),
+      },
+      {
+        id: "seat",
+        label: "Chọn ghế",
+        helper: selectedSeats.length > 0 ? `${selectedSeats.length} ghế đã chọn` : "Chưa chọn ghế",
+        complete: selectedSeats.length > 0,
+      },
+      {
+        id: "payment",
+        label: "Thanh toán",
+        helper: isPaymentFormReady ? "Đã đủ thông tin xác nhận" : "Điền thông tin để hoàn tất",
+        complete: Boolean(isPaymentFormReady),
+      },
+    ];
+
+    const currentIndex = steps.findIndex((step) => !step.complete);
+
+    return steps.map((step, index) => ({
+      ...step,
+      status:
+        step.complete ? "complete" : index === (currentIndex === -1 ? steps.length - 1 : currentIndex) ? "current" : "upcoming",
+    }));
+  }, [isPaymentFormReady, selectedCinemaName, selectedSeats.length, selectedShowtime, selectedShowtimeId]);
 
   const toggleSeat = (seat) => {
-    setSelectedSeats((prev) =>
-      prev.includes(seat)
-        ? prev.filter((selectedSeat) => selectedSeat !== seat)
-        : [...prev, seat]
+    if (bookedSeats.includes(seat)) {
+      return;
+    }
+
+    setSelectedSeats((previousSeats) =>
+      previousSeats.includes(seat)
+        ? previousSeats.filter((selectedSeat) => selectedSeat !== seat)
+        : [...previousSeats, seat]
     );
   };
 
-  const handleConfirmBooking = () => {
-    alert(
-      `Đặt vé thành công!\n\nPhim: ${movie.title}\nRạp: ${cinema}\nSuất: ${time}\nGhế: ${selectedSeats.join(", ")}`
-    );
+  const handleCinemaChange = (cinemaName) => {
+    setSelectedCinemaName(cinemaName);
+    const nextShowtime = showtimes.find((showtime) => showtime.cinemaName === cinemaName);
+    setSelectedShowtimeId(nextShowtime?.id || "");
+    setSelectedSeats([]);
+    setSubmitMessage({ type: "", message: "" });
+  };
+
+  const handleShowtimeChange = (showtimeId) => {
+    setSelectedShowtimeId(showtimeId);
+    setSelectedSeats([]);
+    setSubmitMessage({ type: "", message: "" });
+  };
+
+  const handlePaymentFieldChange = (field) => (event) => {
+    setPaymentForm((previousState) => ({
+      ...previousState,
+      [field]: event.target.value,
+    }));
+  };
+
+  const handleConfirmBooking = async () => {
+    if (!selectedShowtime || selectedSeats.length === 0) {
+      return;
+    }
+
+    if (!isPaymentFormReady) {
+      showToast?.({
+        type: "error",
+        title: "Payment info missing",
+        message: "Please complete the payment form before confirming your booking.",
+      });
+      setSubmitMessage({
+        type: "error",
+        message: "Vui lòng hoàn thiện thông tin thanh toán trước khi xác nhận đặt vé.",
+      });
+      return;
+    }
+
+    if (isPaymentExpired) {
+      showToast?.({
+        type: "error",
+        title: "Reservation expired",
+        message: "Please pick the showtime again to continue.",
+      });
+      setSubmitMessage({
+        type: "error",
+        message: "Hết thời gian giữ chỗ. Vui lòng chọn lại suất chiếu để tiếp tục thanh toán.",
+      });
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setSubmitMessage({ type: "", message: "" });
+
+      const booking = await createBooking({
+        userId: sessionUser?.id || "",
+        customerName: sessionUser?.fullName || sessionUser?.name || "",
+        customerEmail: sessionUser?.email || "",
+        movieId: movie.id,
+        showtimeId: selectedShowtime.id,
+        seatNumbers: selectedSeats,
+      });
+
+      setShowtimes((currentShowtimes) =>
+        currentShowtimes.map((showtime) =>
+          String(showtime.id) === String(selectedShowtime.id)
+            ? {
+                ...showtime,
+                bookedSeats: [...new Set([...(showtime.bookedSeats || []), ...selectedSeats])],
+              }
+            : showtime
+        )
+      );
+
+      const receipt = {
+        bookingId: booking.id,
+        movieTitle: movie.title,
+        cinemaName: selectedShowtime.cinemaName,
+        roomName: selectedShowtime.roomName,
+        displayDate: selectedShowtime.displayDate,
+        displayTime: selectedShowtime.displayTime,
+        seatNumbers: booking.seatNumbers,
+        paymentLabel: [
+          PAYMENT_METHODS.find((method) => method.id === selectedPaymentMethod)?.label,
+          selectedProvider,
+        ]
+          .filter(Boolean)
+          .join(" • "),
+        totalPrice: finalTotal,
+      };
+
+      sessionStorage.setItem("lastBookingReceipt", JSON.stringify(receipt));
+      setSelectedSeats([]);
+      setSubmitMessage({
+        type: "success",
+        message:
+          "Đặt vé thành công cho " +
+          booking.seatNumbers.join(", ") +
+          ". Tổng tiền: " +
+          formatCurrency(finalTotal) +
+          " VND.",
+      });
+      showToast?.({
+        type: "success",
+        title: "Booking completed",
+        message: `${movie.title} • ${booking.seatNumbers.join(", ")} • ${formatCurrency(finalTotal)} VND`,
+      });
+      navigate("/booking/success", {
+        replace: true,
+        state: { receipt },
+      });
+    } catch (error) {
+      showToast?.({
+        type: "error",
+        title: "Booking failed",
+        message: error.message || "Unable to complete your booking right now.",
+      });
+      setSubmitMessage({
+        type: "error",
+        message: error.message || "Không thể đặt vé lúc này.",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isLoading) {
     return (
-      <h2 className="booking-page booking-page--empty">
-        Đang tải thông tin phim...
-      </h2>
+      <div className="booking-page booking-page--empty">
+        <div className="booking-page__empty-card">
+          <span className="booking-page__eyebrow">Đang tải</span>
+          <h2>Đang tải thông tin đặt vé...</h2>
+          <p>Hệ thống đang chuẩn bị dữ liệu phim, rạp và suất chiếu cho bạn.</p>
+        </div>
+      </div>
     );
   }
 
   if (!movie) {
     return (
-      <h2 className="booking-page booking-page--empty">
-        {errorMessage || "Không tìm thấy phim"}
-      </h2>
+      <div className="booking-page booking-page--empty">
+        <div className="booking-page__empty-card">
+          <span className="booking-page__eyebrow">Không khả dụng</span>
+          <h2>{errorMessage || "Không tìm thấy phim"}</h2>
+          <p>Vui lòng quay lại danh sách phim để chọn một phim khác hoặc thử lại sau.</p>
+          <Link to="/?tab=now" className="booking-page__back-link">
+            Quay lại danh sách phim
+          </Link>
+        </div>
+      </div>
     );
   }
 
   return (
     <div className="booking-page">
-      <h1 className="booking-page__title">Đặt vé</h1>
-      <p className="booking-page__subtitle">
-        Phim: <b>{movie.title}</b>
-      </p>
-
-      <div className="booking-page__section">
-        <h3>Chọn rạp</h3>
-        <div className="booking-page__row">
-          {streets.map((street) => (
-            <button
-              key={street}
-              onClick={() => setCinema(street)}
-              className={`booking-page__option ${
-                cinema === street ? "is-active" : ""
-              }`}
-            >
-              {street}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="booking-page__section">
-        <h3>Chọn suất</h3>
-        <div className="booking-page__row">
-          {availableTimes.length > 0 ? (
-            availableTimes.map((slot) => (
-              <button
-                key={slot}
-                onClick={() => setTime(slot)}
-                className={`booking-page__option ${
-                  time === slot ? "is-active" : ""
-                }`}
-              >
-                {slot}
-              </button>
-            ))
-          ) : (
-            <p className="booking-page__subtitle">Phim này chưa có lịch chiếu.</p>
-          )}
-        </div>
-      </div>
-
-      <div className="booking-page__screening">
-        <div className="booking-page__screen">MÀN HÌNH</div>
-        {rows.map((row) => (
-          <div key={row} className="booking-page__seat-row">
-            {Array.from({ length: 10 }, (_, index) => {
-              const seat = `${row}${index + 1}`;
-              return (
-                <button
-                  key={seat}
-                  onClick={() => toggleSeat(seat)}
-                  className={`booking-page__seat ${
-                    selectedSeats.includes(seat) ? "is-selected" : ""
-                  }`}
-                >
-                  {seat}
-                </button>
-              );
-            })}
+      <section className="booking-page__hero">
+        <div className="booking-page__hero-copy">
+          <span className="booking-page__eyebrow">Đặt vé nhanh</span>
+          <h1 className="booking-page__title">{movie.title}</h1>
+          <p className="booking-page__subtitle">
+            Chọn rạp, suất chiếu, vị trí ghế và phương thức thanh toán phù hợp để hoàn tất
+            trải nghiệm đặt vé theo phong cách CineSky.
+          </p>
+          <div className="booking-page__meta">
+            <span>{movie.duration} phút</span>
+            <span>{movie.genre}</span>
+            <span>{movie.country}</span>
           </div>
-        ))}
-      </div>
+        </div>
 
-      <div className="booking-page__summary">
-        <p>
-          <b>Phim:</b> {movie.title}
-        </p>
-        <p>
-          <b>Rạp:</b> {cinema}
-        </p>
-        <p>
-          <b>Suất:</b> {time}
-        </p>
-        <p>
-          <b>Ghế:</b>{" "}
-          {selectedSeats.length > 0 ? selectedSeats.join(", ") : "Chưa chọn"}
-        </p>
-        <p>
-          <b>Số ghế:</b> {selectedSeats.length}
-        </p>
-        <button
-          disabled={selectedSeats.length === 0 || isComingSoon}
-          onClick={handleConfirmBooking}
-          className="booking-page__confirm"
-        >
-          XÁC NHẬN ĐẶT VÉ
-        </button>
+        <div className="booking-page__hero-card">
+          <span className="booking-page__hero-label">Thông tin nhanh</span>
+          <div className="booking-page__hero-grid">
+            <div>
+              <strong>{cinemaOptions.length}</strong>
+              <span>cụm rạp</span>
+            </div>
+            <div>
+              <strong>{showtimes.length}</strong>
+              <span>suất chiếu</span>
+            </div>
+            <div>
+              <strong>{selectedSeats.length}</strong>
+              <span>ghế đang chọn</span>
+            </div>
+          </div>
+          <Link
+            to={"/movie/" + movie.id + "?tab=" + (movie.status === "coming-soon" ? "soon" : "now")}
+            className="booking-page__back-link"
+          >
+            Xem lại chi tiết phim
+          </Link>
+        </div>
+      </section>
+
+      <section className="booking-page__progress" aria-label="Tiến trình đặt vé">
+        {bookingStepStates.map((step, index) => (
+          <article
+            key={step.id}
+            className={`booking-page__progress-card booking-page__progress-card--${step.status}`}
+          >
+            <span className="booking-page__progress-index">0{index + 1}</span>
+            <div className="booking-page__progress-copy">
+              <strong>{step.label}</strong>
+              <small>{step.helper}</small>
+            </div>
+          </article>
+        ))}
+      </section>
+
+      <div
+        className={
+          "booking-page__layout" + (isDesktopSummaryCollapsed ? " is-summary-collapsed" : "")
+        }
+      >
+        <div className="booking-page__main">
+          <section className="booking-page__panel">
+            <div className="booking-page__panel-header">
+              <div>
+                <span className="booking-page__eyebrow">Bước 1</span>
+                <h2>Chọn rạp</h2>
+              </div>
+              <p>Ưu tiên cụm rạp thuận tiện để tiếp tục chọn suất chiếu nhanh hơn.</p>
+            </div>
+
+            <div className="booking-page__row">
+              {cinemaOptions.length > 0 ? (
+                cinemaOptions.map((cinema) => (
+                  <button
+                    key={cinema.cinemaName}
+                    onClick={() => handleCinemaChange(cinema.cinemaName)}
+                    className={
+                      "booking-page__option" +
+                      (selectedCinemaName === cinema.cinemaName ? " is-active" : "")
+                    }
+                  >
+                    <span>{cinema.cinemaName}</span>
+                    <small>{cinema.cinemaAddress}</small>
+                  </button>
+                ))
+              ) : (
+                <p className="booking-page__hint">Phim này hiện chưa có rạp và lịch chiếu.</p>
+              )}
+            </div>
+          </section>
+
+          <section className="booking-page__panel">
+            <div className="booking-page__panel-header">
+              <div>
+                <span className="booking-page__eyebrow">Bước 2</span>
+                <h2>Chọn suất chiếu</h2>
+              </div>
+              <p>Chọn khung giờ phù hợp với lịch trình của bạn trong rạp đã chọn.</p>
+            </div>
+
+            <div className="booking-page__row">
+              {filteredShowtimes.length > 0 ? (
+                filteredShowtimes.map((showtime) => (
+                  <button
+                    key={showtime.id}
+                    onClick={() => handleShowtimeChange(showtime.id)}
+                    className={
+                      "booking-page__option booking-page__option--showtime" +
+                      (selectedShowtimeId === String(showtime.id) ? " is-active" : "")
+                    }
+                  >
+                    <span>{showtime.displayTime}</span>
+                    <small>{showtime.displayDate + " • " + showtime.roomName}</small>
+                  </button>
+                ))
+              ) : (
+                <p className="booking-page__hint">Phim này hiện chưa có suất chiếu khả dụng.</p>
+              )}
+            </div>
+          </section>
+
+          <section className="booking-page__panel booking-page__panel--screening">
+            <div className="booking-page__panel-header booking-page__panel-header--split">
+              <div>
+                <span className="booking-page__eyebrow">Bước 3</span>
+                <h2>Chọn ghế</h2>
+              </div>
+              <div className="booking-page__screening-meta">
+                <span>{selectedShowtime?.displayDate || "Chưa có lịch"}</span>
+                <span>{selectedShowtime?.displayTime || "Chưa có suất"}</span>
+                <span>{selectedShowtime?.roomName || "Chưa có phòng"}</span>
+              </div>
+            </div>
+
+            <div className="booking-page__screening-toolbar">
+              <div className="booking-page__legend">
+              <span className="booking-page__legend-item">
+                <i className="booking-page__legend-swatch"></i>
+                Còn trống
+              </span>
+              <span className="booking-page__legend-item">
+                <i className="booking-page__legend-swatch booking-page__legend-swatch--vip"></i>
+                Ghế VIP
+              </span>
+              <span className="booking-page__legend-item">
+                <i className="booking-page__legend-swatch booking-page__legend-swatch--couple"></i>
+                Ghế couple
+              </span>
+              <span className="booking-page__legend-item">
+                <i className="booking-page__legend-swatch booking-page__legend-swatch--selected"></i>
+                Đang chọn
+              </span>
+              <span className="booking-page__legend-item">
+                <i className="booking-page__legend-swatch booking-page__legend-swatch--booked"></i>
+                Đã có người đặt
+              </span>
+              </div>
+              <div className="booking-page__zoom-controls">
+                <span>Thu phóng ghế</span>
+                <button type="button" onClick={() => setSeatScale((current) => Math.max(0.9, current - 0.05))}>
+                  -
+                </button>
+                <strong>{Math.round(seatScale * 100)}%</strong>
+                <button type="button" onClick={() => setSeatScale((current) => Math.min(1.2, current + 0.05))}>
+                  +
+                </button>
+              </div>
+            </div>
+
+            <div className="booking-page__screening" style={{ "--booking-seat-size": `${Math.round(30 * seatScale)}px` }}>
+              <div className="booking-page__screen-shell">
+                <span className="booking-page__screen-caption">screen</span>
+                <div className="booking-page__screen"></div>
+              </div>
+
+              {preparedSeatRows.length > 0 ? (
+                preparedSeatRows.map((group) => {
+                  const seatTone = getSeatToneForRow(group.rowKey, preparedSeatRows.length);
+                  const leftSeatSlots = buildSeatSlots(
+                    group.leftSeats,
+                    seatLayoutMetrics.maxLeft,
+                    "start"
+                  );
+                  const centerSeatSlots = buildSeatSlots(
+                    group.centerSeats,
+                    seatLayoutMetrics.maxCenter,
+                    "center"
+                  );
+                  const rightSeatSlots = buildSeatSlots(
+                    group.rightSeats,
+                    seatLayoutMetrics.maxRight,
+                    "end"
+                  );
+
+                  return (
+                    <div key={group.rowKey} className="booking-page__seat-row">
+                      <span className="booking-page__seat-label">{group.rowKey}</span>
+
+                      <div className="booking-page__seat-cluster">
+                        <div
+                          className="booking-page__seat-block booking-page__seat-block--left"
+                          style={{
+                            gridTemplateColumns: `repeat(${Math.max(seatLayoutMetrics.maxLeft, 1)}, var(--booking-seat-size))`,
+                          }}
+                        >
+                          {leftSeatSlots.map((seat, seatIndex) => {
+                            if (!seat) {
+                              return (
+                                <span
+                                  key={`${group.rowKey}-left-empty-${seatIndex}`}
+                                  className="booking-page__seat-placeholder"
+                                  aria-hidden="true"
+                                ></span>
+                              );
+                            }
+
+                            const isBooked = bookedSeats.includes(seat);
+                            const isSelected = selectedSeats.includes(seat);
+
+                            return (
+                              <button
+                                key={seat}
+                                onClick={() => toggleSeat(seat)}
+                                className={
+                                  "booking-page__seat booking-page__seat--" +
+                                  seatTone +
+                                  (isSelected ? " is-selected" : "") +
+                                  (isBooked ? " is-booked" : "")
+                                }
+                                disabled={isBooked}
+                              >
+                                {seat}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <div
+                          className="booking-page__seat-block booking-page__seat-block--center"
+                          style={{
+                            gridTemplateColumns: `repeat(${Math.max(seatLayoutMetrics.maxCenter, 1)}, var(--booking-seat-size))`,
+                          }}
+                        >
+                          {centerSeatSlots.map((seat, seatIndex) => {
+                            if (!seat) {
+                              return (
+                                <span
+                                  key={`${group.rowKey}-center-empty-${seatIndex}`}
+                                  className="booking-page__seat-placeholder"
+                                  aria-hidden="true"
+                                ></span>
+                              );
+                            }
+
+                            const isBooked = bookedSeats.includes(seat);
+                            const isSelected = selectedSeats.includes(seat);
+
+                            return (
+                              <button
+                                key={seat}
+                                onClick={() => toggleSeat(seat)}
+                                className={
+                                  "booking-page__seat booking-page__seat--center booking-page__seat--" +
+                                  seatTone +
+                                  (isSelected ? " is-selected" : "") +
+                                  (isBooked ? " is-booked" : "")
+                                }
+                                disabled={isBooked}
+                              >
+                                {seat}
+                              </button>
+                            );
+                          })}
+                        </div>
+
+                        <div
+                          className="booking-page__seat-block booking-page__seat-block--right"
+                          style={{
+                            gridTemplateColumns: `repeat(${Math.max(seatLayoutMetrics.maxRight, 1)}, var(--booking-seat-size))`,
+                          }}
+                        >
+                          {rightSeatSlots.map((seat, seatIndex) => {
+                            if (!seat) {
+                              return (
+                                <span
+                                  key={`${group.rowKey}-right-empty-${seatIndex}`}
+                                  className="booking-page__seat-placeholder"
+                                  aria-hidden="true"
+                                ></span>
+                              );
+                            }
+
+                            const isBooked = bookedSeats.includes(seat);
+                            const isSelected = selectedSeats.includes(seat);
+
+                            return (
+                              <button
+                                key={seat}
+                                onClick={() => toggleSeat(seat)}
+                                className={
+                                  "booking-page__seat booking-page__seat--" +
+                                  seatTone +
+                                  (isSelected ? " is-selected" : "") +
+                                  (isBooked ? " is-booked" : "")
+                                }
+                                disabled={isBooked}
+                              >
+                                {seat}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <span className="booking-page__seat-label booking-page__seat-label--right">
+                        {group.rowKey}
+                      </span>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="booking-page__hint booking-page__hint--center">
+                  Suất chiếu này chưa có sơ đồ ghế.
+                </p>
+              )}
+            </div>
+          </section>
+
+          <section className="booking-page__panel booking-page__panel--payment">
+            <div className="booking-page__panel-header booking-page__panel-header--split">
+              <div>
+                <span className="booking-page__eyebrow">Bước 4</span>
+                <h2>Chọn thanh toán</h2>
+              </div>
+              <p>Giao diện thử nghiệm mô phỏng luồng chọn cổng thanh toán và thông tin xác nhận.</p>
+            </div>
+
+            <div className="booking-page__payment-methods">
+              {PAYMENT_METHODS.map((method) => (
+                <button
+                  key={method.id}
+                  type="button"
+                  onClick={() => setSelectedPaymentMethod(method.id)}
+                  className={
+                    "booking-page__payment-method" +
+                    (selectedPaymentMethod === method.id ? " is-active" : "")
+                  }
+                >
+                  <span>{method.label}</span>
+                  <small>{method.helper}</small>
+                </button>
+              ))}
+            </div>
+
+            <div className="booking-page__payment-brand-strip">
+              <span>VISA</span>
+              <span>MASTERCARD</span>
+              <span>JCB</span>
+              <span>VNPAY</span>
+              <span>MOMO</span>
+              <span>ZALOPAY</span>
+            </div>
+
+            <div className="booking-page__payment-layout">
+              <div className="booking-page__payment-bank-card">
+                <div className="booking-page__payment-card-header">
+                  <div>
+                    <strong>Chọn nhà cung cấp</strong>
+                    <span>{PAYMENT_METHODS.find((method) => method.id === selectedPaymentMethod)?.helper}</span>
+                  </div>
+                  <span className="booking-page__payment-badge">Test UI</span>
+                </div>
+
+                <div className="booking-page__payment-search">
+                  <input
+                    type="text"
+                    value={providerSearch}
+                    onChange={(event) => setProviderSearch(event.target.value)}
+                    placeholder="Tìm kiếm ngân hàng hoặc ví..."
+                  />
+                </div>
+
+                <div className="booking-page__provider-grid">
+                  {visibleProviders.map((provider) => (
+                    <button
+                      key={provider}
+                      type="button"
+                      onClick={() => setSelectedProvider(provider)}
+                      className={
+                        "booking-page__provider-tile" +
+                        (selectedProvider === provider ? " is-active" : "")
+                      }
+                    >
+                      <span className="booking-page__provider-mark">
+                        {provider.replace(/[^A-Z0-9]/gi, "").slice(0, 3).toUpperCase()}
+                      </span>
+                      <span>{provider}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="booking-page__payment-form-card">
+                <div className="booking-page__payment-card-header">
+                  <div>
+                    <strong>Thông tin thanh toán</strong>
+                    <span>{selectedProvider}</span>
+                  </div>
+                  <span
+                    className={
+                      "booking-page__payment-time" + (isPaymentExpired ? " is-expired" : "")
+                    }
+                    aria-live="polite"
+                  >
+                    {paymentCountdownLabel}
+                  </span>
+                </div>
+
+                <div className="booking-page__payment-form-grid">
+                  <label className="booking-page__field booking-page__field--full">
+                    <span>
+                      {selectedPaymentMethod === "wallet"
+                        ? "Số điện thoại / tài khoản"
+                        : "Số thẻ / số tài khoản"}
+                    </span>
+                    <input
+                      type="text"
+                      value={paymentForm.reference}
+                      onChange={handlePaymentFieldChange("reference")}
+                      placeholder={
+                        selectedPaymentMethod === "wallet"
+                          ? "Nhập số điện thoại ví"
+                          : "Nhập số thẻ hoặc tài khoản"
+                      }
+                    />
+                  </label>
+
+                  <label className="booking-page__field booking-page__field--full">
+                    <span>Tên chủ thẻ / tài khoản</span>
+                    <input
+                      type="text"
+                      value={paymentForm.ownerName}
+                      onChange={handlePaymentFieldChange("ownerName")}
+                      placeholder="Nhập tên chủ thẻ hoặc chủ tài khoản"
+                    />
+                  </label>
+
+                  <label className="booking-page__field">
+                    <span>Ngày hiệu lực</span>
+                    <input
+                      type="text"
+                      value={paymentForm.expiry}
+                      onChange={handlePaymentFieldChange("expiry")}
+                      placeholder="MM/YY"
+                    />
+                  </label>
+
+                  <label className="booking-page__field">
+                    <span>Mã bảo mật</span>
+                    <input
+                      type="text"
+                      value={paymentForm.secureCode}
+                      onChange={handlePaymentFieldChange("secureCode")}
+                      placeholder="CVV / OTP"
+                    />
+                  </label>
+
+                  <label className="booking-page__field booking-page__field--full">
+                    <span>Mã khuyến mãi</span>
+                    <input
+                      type="text"
+                      value={paymentForm.promoCode}
+                      onChange={handlePaymentFieldChange("promoCode")}
+                      placeholder="Nhập mã giảm giá nếu có"
+                    />
+                  </label>
+                </div>
+
+                <div className="booking-page__payment-note">
+                  Thông tin trên chỉ dùng để mô phỏng giao diện thanh toán, không gửi tới cổng
+                  thanh toán thật.
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section className="booking-page__panel booking-page__panel--history">
+            <div className="booking-page__panel-header booking-page__panel-header--split">
+              <div>
+                <span className="booking-page__eyebrow">Bước 5</span>
+                <h2>Vé đã đặt gần đây</h2>
+              </div>
+              <p>Xem lại những giao dịch gần nhất trên tài khoản hiện tại để kiểm tra lịch sử đặt vé.</p>
+            </div>
+
+            {sessionUser?.id || sessionUser?.email ? (
+              isHistoryLoading ? (
+                <p className="booking-page__hint">Đang tải lịch sử đặt vé...</p>
+              ) : bookingHistory.length > 0 ? (
+                <div className="booking-page__history-list">
+                  {bookingHistory.map((booking) => (
+                    <article key={booking.id} className="booking-page__history-card">
+                      <div className="booking-page__history-head">
+                        <div>
+                          <strong>{booking.movieTitle || "Vé xem phim"}</strong>
+                          <span>
+                            {[booking.displayDate, booking.displayTime].filter(Boolean).join(" • ")}
+                          </span>
+                        </div>
+                        <span
+                          className={
+                            "booking-page__history-status " +
+                            (booking.status === "cancelled"
+                              ? "booking-page__history-status--cancelled"
+                              : "booking-page__history-status--booked")
+                          }
+                        >
+                          {booking.status === "cancelled" ? "Đã hủy" : "Đã thanh toán"}
+                        </span>
+                      </div>
+
+                      <div className="booking-page__history-meta">
+                        <span>{booking.cinemaName || "CineSky"}</span>
+                        <span>{booking.roomName || "Chưa rõ phòng"}</span>
+                        <span>{(booking.seatNumbers || []).join(", ") || "Chưa có ghế"}</span>
+                        <span>{formatCurrency(booking.totalPrice)} VND</span>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <p className="booking-page__hint">Bạn chưa có vé đã đặt nào trên tài khoản này.</p>
+              )
+            ) : (
+              <p className="booking-page__hint">
+                Đăng nhập để xem lại vé đã đặt và lịch sử giao dịch của bạn.
+              </p>
+            )}
+          </section>
+        </div>
+
+        <div className="booking-page__summary-shell">
+          {isDesktopViewport ? (
+            <button
+              type="button"
+              className="booking-page__summary-toggle"
+              onClick={() => setIsSummaryCollapsed((current) => !current)}
+              aria-label={
+                isSummaryCollapsed
+                  ? "Hiện bảng xác nhận thanh toán"
+                  : "Ẩn bảng xác nhận thanh toán"
+              }
+              aria-pressed={isSummaryCollapsed}
+            >
+              {isSummaryCollapsed ? "<" : ">"}
+            </button>
+          ) : null}
+
+          <div className="booking-page__summary-stack">
+            <aside className="booking-page__summary">
+              <div className="booking-page__summary-header">
+                <span className="booking-page__eyebrow">Tóm tắt đơn vé</span>
+                <h2>Xác nhận trước khi thanh toán</h2>
+              </div>
+
+              <div className="booking-page__summary-grid">
+                <div className="booking-page__summary-row booking-page__summary-row--wide">
+                  <span>Phim</span>
+                  <strong>{movie.title}</strong>
+                </div>
+                <div className="booking-page__summary-row">
+                  <span>Rạp</span>
+                  <strong>{selectedShowtime?.cinemaName || "Chưa chọn"}</strong>
+                </div>
+                <div className="booking-page__summary-row">
+                  <span>Phòng</span>
+                  <strong>{selectedShowtime?.roomName || "Chưa chọn"}</strong>
+                </div>
+                <div className="booking-page__summary-row booking-page__summary-row--wide">
+                  <span>Lịch chiếu</span>
+                  <strong>
+                    {[selectedShowtime?.displayDate, selectedShowtime?.displayTime]
+                      .filter(Boolean)
+                      .join(" • ") || "Chưa có lịch"}
+                  </strong>
+                </div>
+                <div className="booking-page__summary-row booking-page__summary-row--wide">
+                  <span>Ghế</span>
+                  <strong>{selectedSeats.length > 0 ? selectedSeats.join(", ") : "Chưa chọn"}</strong>
+                </div>
+                <div className="booking-page__summary-row booking-page__summary-row--wide">
+                  <span>Thanh toán</span>
+                  <strong>
+                    {[
+                      PAYMENT_METHODS.find((method) => method.id === selectedPaymentMethod)?.label,
+                      selectedProvider,
+                    ]
+                      .filter(Boolean)
+                      .join(" • ")}
+                  </strong>
+                </div>
+                <div className="booking-page__summary-row">
+                  <span>Tiền vé</span>
+                  <strong>{formatCurrency(ticketSubtotal)} VND</strong>
+                </div>
+                <div className="booking-page__summary-row">
+                  <span>Phí dịch vụ</span>
+                  <strong>{formatCurrency(serviceFee)} VND</strong>
+                </div>
+                <div className="booking-page__summary-row booking-page__summary-row--total booking-page__summary-row--wide">
+                  <span>Tổng thanh toán</span>
+                  <strong>{formatCurrency(finalTotal)} VND</strong>
+                </div>
+              </div>
+            </aside>
+
+            <div className="booking-page__summary-actions">
+              <div className="booking-page__policy-note">
+                <strong>Lưu ý thanh toán</strong>
+                <p>
+                  Vé đã được thanh toán sẽ không hỗ trợ hoàn tiền hoặc đổi trả. Vui lòng
+                  kiểm tra kỹ rạp, suất chiếu và ghế trước khi xác nhận giao dịch.
+                </p>
+              </div>
+
+              {isPaymentExpired && !submitMessage.message ? (
+                <p className="booking-page__status booking-page__status--error">
+                  Hết thời gian giữ chỗ. Vui lòng chọn lại suất chiếu để đặt vé tiếp.
+                </p>
+              ) : null}
+
+              {submitMessage.message ? (
+                <p className={"booking-page__status booking-page__status--" + submitMessage.type}>
+                  {submitMessage.message}
+                </p>
+              ) : null}
+
+              <button
+                disabled={
+                  selectedSeats.length === 0 ||
+                  isComingSoon ||
+                  !selectedShowtime ||
+                  isSubmitting ||
+                  isPaymentExpired ||
+                  !isPaymentFormReady
+                }
+                onClick={handleConfirmBooking}
+                className="booking-page__confirm"
+              >
+                {isSubmitting ? "Đang xử lý thanh toán..." : "Xác nhận đặt vé"}
+              </button>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );

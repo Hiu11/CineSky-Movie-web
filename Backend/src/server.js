@@ -5,10 +5,16 @@ import { ensureMovieSeedData } from "./services/seed.service.js";
 
 dotenv.config();
 
+const shouldSeedOnStart =
+  String(process.env.SEED_ON_START || "").toLowerCase() === "true";
+
 const startServer = async () => {
   try {
     await connectDatabase();
-    await ensureMovieSeedData();
+
+    if (shouldSeedOnStart) {
+      await ensureMovieSeedData();
+    }
 
     const port = Number(process.env.PORT) || 5000;
     app.listen(port, () => {

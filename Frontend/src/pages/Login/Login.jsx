@@ -1,45 +1,142 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import AuthLayout, {
+  AuthDivider,
+  AuthIcon,
+  AuthSocialButtons,
+  AuthSocialFooter,
+} from "../../components/AuthLayout/AuthLayout";
+import { loginUser } from "../../services/authService";
 import "./Login.css";
 
-export default function Login({ onLoginSuccess }) {
+export default function Login({ onLoginSuccess, showToast }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [status, setStatus] = useState({ type: "", message: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const location = useLocation();
   const navigate = useNavigate();
 
-  const handleLogin = () => {
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    const foundUser = users.find((u) => u.email === email);
-
-    if (!foundUser) {
-      alert("Tài khoản chưa đăng ký!");
-      return;
+  useEffect(() => {
+    if (location.state?.email) {
+      setEmail(location.state.email);
     }
 
-    if (foundUser.password !== password) {
-      alert("Sai mật khẩu!");
-      return;
+    if (location.state?.message) {
+      setStatus({
+        type: "success",
+        message: location.state.message,
+      });
     }
+  }, [location.state]);
 
-    sessionStorage.setItem("user", JSON.stringify(foundUser));
+  const handleLogin = async (event) => {
+    event.preventDefault();
 
-    if (onLoginSuccess) onLoginSuccess(foundUser);
+    setStatus({ type: "", message: "" });
+    setIsSubmitting(true);
 
-    alert("Đăng nhập thành công!");
-    navigate("/");
+    try {
+      const user = await loginUser({
+        email,
+        password,
+      });
+
+      sessionStorage.setItem("user", JSON.stringify(user));
+
+      if (onLoginSuccess) {
+        onLoginSuccess(user);
+      }
+
+      showToast?.({
+        type: "success",
+        title: "Welcome back",
+        message: `Signed in as ${user.fullName || user.name || user.email}.`,
+      });
+
+      navigate("/", { replace: true });
+    } catch (error) {
+      showToast?.({
+        type: "error",
+        title: "Sign in failed",
+        message:
+          error.message === "Invalid email or password"
+            ? "Email or password is incorrect."
+            : error.message,
+      });
+
+      setStatus({
+        type: "error",
+        message:
+          error.message === "Invalid email or password"
+            ? "Email or password is incorrect."
+            : error.message,
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="login-modal">
-      <div className="login-modal__card">
-        <button onClick={() => navigate("/")} className="login-modal__close" aria-label="Close">
-          X
-        </button>
-        <h2 className="login-modal__title">Đăng Nhập</h2>
-        <input placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} className="login-modal__input" />
-        <input type="password" placeholder="Mật khẩu" value={password} onChange={(e) => setPassword(e.target.value)} className="login-modal__input" />
-        <button onClick={handleLogin} className="login-modal__submit">ĐĂNG NHẬP</button>
+    <AuthLayout
+      mode="login"
+      subtitle="Sign in to save tickets, view booking history, and continue your cinema journey."
+      topContent={
+        <>
+          <AuthSocialButtons />
+          <AuthDivider label="Or" />
+        </>
+      }
+      onSubmit={handleLogin}
+      submitLabel={isSubmitting ? "SIGNING IN..." : "SIGN IN"}
+      submitDisabled={isSubmitting}
+      footerContent={<AuthSocialFooter />}
+    >
+      {status.message ? (
+        <div className={`auth-form__status auth-form__status--${status.type}`}>{status.message}</div>
+      ) : null}
+
+      <label className="auth-field auth-field--wide">
+        <span className="auth-field__control">
+          <input
+            type="email"
+            placeholder="Email address"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            autoComplete="email"
+            required
+          />
+          <AuthIcon name="mail" />
+        </span>
+      </label>
+
+      <label className="auth-field auth-field--wide">
+        <span className="auth-field__control">
+          <input
+            type={showPassword ? "text" : "password"}
+            placeholder="Password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            autoComplete="current-password"
+            required
+          />
+          <button
+            type="button"
+            className="auth-field__toggle"
+            onClick={() => setShowPassword((current) => !current)}
+          >
+            {showPassword ? "Hide" : "Show"}
+          </button>
+        </span>
+      </label>
+
+      <div className="auth-form__meta">
+        <label className="auth-checkbox">
+          <input type="checkbox" />
+          <span>Remember me on this device</span>
+        </label>
       </div>
-    </div>
+    </AuthLayout>
   );
 }

@@ -20,115 +20,25 @@ body {
     background: var(--background-base); 
     color: var(--text-white);
     line-height: 1.6;
-    padding-top: 190px; 
+    overflow-x: hidden;
 }
 
-.main-header {
-    background-color: var(--header-navy); 
-    position: fixed; 
-    top: 0;
-    left: 0;
-    width: 100%;
-    z-index: 1000; 
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+.App {
+    min-height: 100vh;
+    overflow-x: clip;
 }
 
-.header-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 5%; 
-    border-bottom: none !important;
+.App--site {
+    padding-top: 190px;
 }
 
-.logo-link-clean {
-    text-decoration: none !important;
+.App--immersive {
+    padding-top: 0;
 }
 
-.logo-text-cinestar {
-    color: var(--primary-gold);
-    font-size: 24px;
-    font-weight: bold;
-    margin: 0;
-    border: none !important;
-}
-
-.logo-image {
-    height: 100px;
-    width: auto;
-    display: block;
-}
-
-.search-pill-modern {
-    display: flex;
-    align-items: center;
-    background-color: white;
-    border-radius: 30px;
-    padding: 6px 6px 6px 18px;
-}
-
-.search-pill-modern input {
-    border: none;
-    outline: none;
-    width: 420px;
-    color: #333;
-    font-size: 16px;
-}
-
-.search-pill-btn-inner {
-    background: var(--secondary-purple);
-    color: white;
-    border: none;
-    padding: 8px 24px;
-    border-radius: 25px;
-    cursor: pointer;
-    font-weight: bold;
-    font-size: 14px;
-}
-
-.auth-btns-header {
-    display: flex;
-    gap: 10px;
-}
-
-.btn-action {
-    padding: 8px 18px;
-    border: none;
-    border-radius: 4px;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 13px;
-    text-transform: uppercase;
-}
-
-.btn-gold { background-color: var(--primary-gold); color: #000; }
-.btn-violet { background-color: var(--secondary-purple); color: #fff; }
-
-.movie-tabs-navigation {
-    display: flex;
-    background-color: #181c31;
-    border-bottom: 2px solid #3a3f5a;
-}
-
-.tab-btn {
-    flex: 1;
-    padding: 12px 0;
-    background: transparent;
-    border: none;
-    color: white;
-    font-weight: bold;
-    text-transform: uppercase;
-    cursor: pointer;
-    opacity: 0.7;
-    font-size: 14px;
-    text-decoration: none;
-    text-align: center;
-}
-
-.tab-btn.active {
-    opacity: 1;
-    color: var(--primary-gold);
-    border-bottom: 3px solid var(--primary-gold);
+.App--auth {
+    padding-top: 0;
+    background: #050507;
 }
 
 .filter-view-container {
@@ -271,7 +181,7 @@ body {
     align-items: center;
 }
 
-.btn-trailer { background: none; border: none; color: white; text-decoration: underline; cursor: pointer; font-size: 14px; }
+.btn-trailer { background: none; border: none; color: white; text-decoration: none; cursor: pointer; font-size: 14px; }
 .btn-book { background: var(--primary-gold); color: black; border: none; padding: 8px 25px; font-weight: bold; border-radius: 4px; cursor: pointer; }
 
 .complex-footer {
@@ -405,3 +315,134 @@ body {
 
 .footer-map { margin-top: 30px; text-align: center; }
 .map-container img { width: 100%; max-width: 900px; border-radius: 10px; border: 3px solid #333; }
+
+body .feedback-card {
+  border-radius: 34px;
+  background:
+    linear-gradient(135deg, rgba(240, 243, 255, 0.1), rgba(165, 172, 196, 0.05)),
+    linear-gradient(180deg, rgba(21, 19, 29, 0.78), rgba(12, 11, 18, 0.62));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 26px 60px rgba(0, 0, 0, 0.32),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(26px) saturate(155%);
+  -webkit-backdrop-filter: blur(26px) saturate(155%);
+}
+
+body .feedback-pill {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.82);
+}
+
+body .feedback-input,
+body .feedback-textarea {
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(135deg, rgba(245, 247, 255, 0.08), rgba(169, 177, 203, 0.04)),
+    rgba(10, 11, 17, 0.56);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.03);
+}
+
+body .feedback-submit {
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.96), rgba(139, 92, 246, 0.84));
+  color: #fff;
+  box-shadow:
+    0 18px 36px rgba(124, 58, 237, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+body .filter-options-panel {
+  background: transparent;
+  border-bottom: none;
+  padding: 8px 5% 0;
+  margin-bottom: 26px;
+}
+
+body .filter-row {
+  width: min(940px, 100%);
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+body .filter-row::before {
+  display: none;
+}
+
+body .filter-control {
+  position: relative;
+  border-radius: 24px;
+  background:
+    linear-gradient(135deg, rgba(243, 246, 255, 0.1), rgba(171, 180, 203, 0.05)),
+    linear-gradient(180deg, rgba(18, 17, 26, 0.72), rgba(10, 10, 17, 0.58));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 18px 36px rgba(0, 0, 0, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18),
+    inset 0 -1px 0 rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(24px) saturate(155%);
+  -webkit-backdrop-filter: blur(24px) saturate(155%);
+  overflow: hidden;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+body .filter-control::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  border-radius: inherit;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02) 34%, transparent 60%),
+    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.08), transparent 24%);
+  pointer-events: none;
+}
+
+body .filter-control:hover {
+  transform: translateY(-1px);
+  border-color: rgba(255, 255, 255, 0.22);
+  box-shadow:
+    0 22px 42px rgba(0, 0, 0, 0.22),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+body .custom-select {
+  position: relative;
+  z-index: 1;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  border-radius: 24px;
+}
+
+body .feedback-page {
+  padding: 34px 5% 72px;
+}
+
+body .feedback-card {
+  width: min(860px, 96%);
+  padding: 28px 28px 24px;
+  border-radius: 30px;
+}
+
+body .feedback-textarea {
+  min-height: 128px;
+}
+
+@media (max-width: 960px) {
+  body .filter-row {
+    grid-template-columns: 1fr;
+  }
+}

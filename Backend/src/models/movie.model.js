@@ -1,5 +1,64 @@
 import mongoose from "mongoose";
 
+const castMemberSchema = new mongoose.Schema(
+  {
+    name: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    role: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
+const trailerFactSchema = new mongoose.Schema(
+  {
+    label: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    value: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
+const trailerPanelSchema = new mongoose.Schema(
+  {
+    label: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    title: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    description: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+  },
+  {
+    _id: false,
+  }
+);
+
 const movieSchema = new mongoose.Schema(
   {
     legacyId: {
@@ -51,6 +110,18 @@ const movieSchema = new mongoose.Schema(
       enum: ["now-showing", "coming-soon"],
       default: "now-showing",
     },
+    statusOrder: {
+      type: Number,
+      default: 0,
+    },
+    catalogOrder: {
+      type: Number,
+      default: 999,
+    },
+    heroOrder: {
+      type: Number,
+      default: null,
+    },
     showtimes: {
       type: [String],
       default: [],
@@ -69,6 +140,22 @@ const movieSchema = new mongoose.Schema(
       type: String,
       default: "",
       trim: true,
+    },
+    cast: {
+      type: [castMemberSchema],
+      default: [],
+    },
+    gallery: {
+      type: [String],
+      default: [],
+    },
+    trailerFacts: {
+      type: [trailerFactSchema],
+      default: [],
+    },
+    trailerPanel: {
+      type: trailerPanelSchema,
+      default: null,
     },
   },
   {

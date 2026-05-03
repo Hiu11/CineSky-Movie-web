@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import { getMovies } from "../../services/movieService";
 import "./HomePage.css";
@@ -10,16 +10,214 @@ const normalizeText = (value) =>
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
+const countByValue = (items = []) => {
+  const map = new Map();
+
+  items.forEach((item) => {
+    map.set(item, (map.get(item) || 0) + 1);
+  });
+
+  return Array.from(map.entries())
+    .sort((first, second) => second[1] - first[1] || first[0].localeCompare(second[0], "vi"))
+    .map(([label, count]) => ({ label, count }));
+};
+
+const toBackgroundUrl = (value = "") => encodeURI(value);
+
+const extractReleaseYear = (value = "") => {
+  const matchedYear = String(value).match(/(19|20)\d{2}/);
+  return matchedYear ? matchedYear[0] : value;
+};
+
+const shortenText = (value = "", maxLength = 220) => {
+  if (value.length <= maxLength) {
+    return value;
+  }
+
+  return `${value.slice(0, maxLength).trim()}...`;
+};
+
+const getYoutubeVideoId = (trailer = "") => {
+  const matchedId = String(trailer).match(
+    /(?:youtube\.com\/embed\/|youtube\.com\/watch\?v=|youtu\.be\/)([^?&/]+)/
+  );
+
+  return matchedId?.[1] || "";
+};
+
+const getYoutubeThumbnailCandidates = (trailer = "") => {
+  const videoId = getYoutubeVideoId(trailer);
+
+  if (!videoId) {
+    return [];
+  }
+
+  return [
+    `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`,
+    `https://img.youtube.com/vi/${videoId}/sddefault.jpg`,
+    `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
+  ];
+};
+
+const faqItems = [
+  {
+    question: "CineSky hiện hỗ trợ những bước đặt vé nào?",
+    answer:
+      "Người dùng có thể xem phim, xem trailer, chọn rạp, chọn suất chiếu, chọn ghế và đi tới bước thanh toán mô phỏng ngay trên website.",
+  },
+  {
+    question: "Tôi có cần đăng nhập để đặt vé không?",
+    answer:
+      "Bạn vẫn có thể đi qua luồng chọn phim và chọn ghế. Tuy nhiên, các tính năng như xem lịch sử đặt vé sẽ hoạt động tốt hơn khi có tài khoản.",
+  },
+  {
+    question: "Phần thanh toán trên CineSky là thanh toán thật hay mô phỏng?",
+    answer:
+      "Ở phiên bản hiện tại, bước thanh toán đang được xây dựng theo dạng mô phỏng giao diện để hoàn thiện trải nghiệm và kiểm thử luồng người dùng.",
+  },
+  {
+    question: "Nếu hết thời gian giữ chỗ thì sao?",
+    answer:
+      "Khi đồng hồ đếm ngược kết thúc, hệ thống sẽ khóa nút xác nhận và yêu cầu bạn chọn lại suất chiếu để tiếp tục đặt vé.",
+  },
+  {
+    question: "CineSky có hỗ trợ lọc phim không?",
+    answer:
+      "Có. Bạn có thể dùng trang lọc để duyệt theo thể loại, quốc gia, độ tuổi hoặc tìm nhanh phim phù hợp với nhu cầu xem hiện tại.",
+  },
+  {
+    question: "Tôi có thể góp ý hoặc báo lỗi ở đâu?",
+    answer:
+      "Bạn có thể dùng ngay trang Góp ý trên website để gửi nhận xét về giao diện, trải nghiệm hoặc các vấn đề cần cải thiện trong dự án.",
+  },
+];
+
+const partnerItems = [
+  { name: "IMAX with Laser", type: "Dai canh do net cao - Canada" },
+  { name: "Dolby Atmos", type: "Am thanh vom vat the - USA" },
+  { name: "ScreenX 270", type: "Man hinh ba mat - South Korea" },
+  { name: "4DX Motion", type: "Ghe chuyen dong va hieu ung - South Korea" },
+];
+
+const techShowcase = [
+  "Laser projection HDR",
+  "Premium recliner seating",
+  "Online seat reservation",
+  "QR ticket check-in",
+  "Pre-order snack combo",
+  "Couple seat zone",
+  "Assistive listening support",
+  "Mobile booking reminders",
+];
+
+const preloadImage = (src) =>
+  new Promise((resolve) => {
+    if (!src) {
+      resolve("");
+      return;
+    }
+
+    const image = new Image();
+
+    image.onload = () => {
+      const isUsableImage = image.naturalWidth >= 320 && image.naturalHeight >= 180;
+      resolve(isUsableImage ? src : "");
+    };
+
+    image.onerror = () => resolve("");
+    image.src = src;
+  });
+
+const resolveHeroArtwork = async (movie) => {
+  if (String(movie?.poster || "").startsWith("/assets/")) {
+    return movie.poster;
+  }
+
+  const thumbnailCandidates = getYoutubeThumbnailCandidates(movie?.trailer);
+
+  for (const candidate of thumbnailCandidates) {
+    // Use the sharpest available YouTube artwork before falling back to the poster.
+    const resolvedThumbnail = await preloadImage(candidate);
+
+    if (resolvedThumbnail) {
+      return resolvedThumbnail;
+    }
+  }
+
+  return movie?.poster || "";
+};
+
+const HomeMoviePreviewCard = ({ movie, tab }) => (
+  <Link to={`/movie/${movie.id}?tab=${tab}`} className="home-preview-card">
+    <div
+      className="home-preview-card__poster"
+      style={{
+        backgroundImage: `linear-gradient(180deg, rgba(10, 10, 18, 0.1), rgba(10, 10, 18, 0.82)), url("${toBackgroundUrl(
+          movie.poster
+        )}")`,
+      }}
+    >
+      <span className="home-preview-card__status">{tab === "soon" ? "Sắp chiếu" : "Đang chiếu"}</span>
+      <span className={`home-preview-card__rating ${movie.ratingClass}`}>{movie.rating}</span>
+    </div>
+
+    <div className="home-preview-card__body">
+      <h3>{movie.title}</h3>
+      <p>{movie.genre}</p>
+      <div className="home-preview-card__meta">
+        <span>{movie.duration} phút</span>
+        <span>{movie.release}</span>
+      </div>
+    </div>
+  </Link>
+);
+
+const HomePageSkeleton = () => (
+  <main className="homepage-wrapper homepage-shell homepage-shell--state">
+    <section className="home-hero home-hero--skeleton" aria-hidden="true">
+      <div className="home-skeleton-line home-skeleton-line--eyebrow"></div>
+      <div className="home-skeleton-line home-skeleton-line--title"></div>
+      <div className="home-skeleton-line home-skeleton-line--title home-skeleton-line--short"></div>
+      <div className="home-skeleton-line home-skeleton-line--body"></div>
+      <div className="home-skeleton-line home-skeleton-line--body home-skeleton-line--short"></div>
+    </section>
+
+    <section className="home-hero-stats" aria-hidden="true">
+      {Array.from({ length: 3 }, (_, index) => (
+        <div key={index} className="home-stat-card home-stat-card--skeleton">
+          <div className="home-skeleton-line home-skeleton-line--stat"></div>
+          <div className="home-skeleton-line home-skeleton-line--meta"></div>
+        </div>
+      ))}
+    </section>
+
+    <section className="home-preview-grid" aria-hidden="true">
+      {Array.from({ length: 4 }, (_, index) => (
+        <div key={index} className="home-preview-card home-preview-card--skeleton">
+          <div className="home-preview-card__poster home-preview-card__poster--skeleton"></div>
+          <div className="home-preview-card__body">
+            <div className="home-skeleton-line home-skeleton-line--card-title"></div>
+            <div className="home-skeleton-line home-skeleton-line--meta"></div>
+            <div className="home-skeleton-line home-skeleton-line--meta home-skeleton-line--short"></div>
+          </div>
+        </div>
+      ))}
+    </section>
+  </main>
+);
+
 const HomePage = ({ searchQuery = "" }) => {
   const location = useLocation();
+  const navigate = useNavigate();
   const searchParams = new URLSearchParams(location.search);
-  const tabParam = searchParams.get("tab") || "now";
+  const tabParam = searchParams.get("tab");
 
   const [movies, setMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
-
-  const status = tabParam === "soon" ? "coming-soon" : "now-showing";
+  const [activeHeroIndex, setActiveHeroIndex] = useState(0);
+  const [heroArtworkMap, setHeroArtworkMap] = useState({});
+  const [activeFaqIndex, setActiveFaqIndex] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -29,16 +227,14 @@ const HomePage = ({ searchQuery = "" }) => {
         setIsLoading(true);
         setErrorMessage("");
 
-        const data = await getMovies({ status });
+        const data = await getMovies();
 
         if (isMounted) {
           setMovies(data);
         }
       } catch (error) {
         if (isMounted) {
-          setErrorMessage(
-            error.message || "Không thể tải danh sách phim từ server."
-          );
+          setErrorMessage(error.message || "Không thể tải danh sách phim từ server.");
         }
       } finally {
         if (isMounted) {
@@ -52,35 +248,559 @@ const HomePage = ({ searchQuery = "" }) => {
     return () => {
       isMounted = false;
     };
-  }, [status]);
+  }, []);
 
   const normalizedQuery = normalizeText(searchQuery.trim());
-  const filteredMovies = useMemo(() => {
-    if (normalizedQuery.length === 0) {
-      return movies;
+
+  const nowShowingMovies = useMemo(
+    () => movies.filter((movie) => movie.status === "now-showing"),
+    [movies]
+  );
+  const comingSoonMovies = useMemo(
+    () => movies.filter((movie) => movie.status === "coming-soon"),
+    [movies]
+  );
+
+  const heroMovies = useMemo(() => {
+    const source = nowShowingMovies.length > 0 ? nowShowingMovies : comingSoonMovies;
+    const prioritizedHeroMovies = source
+      .filter((movie) => Number.isFinite(movie.heroOrder))
+      .sort((firstMovie, secondMovie) => firstMovie.heroOrder - secondMovie.heroOrder);
+
+    if (prioritizedHeroMovies.length === 0) {
+      return source.slice(0, 5);
     }
 
-    return movies.filter((movie) =>
-      normalizeText(movie.title).includes(normalizedQuery)
+    const remainingMovies = source.filter(
+      (movie) => !prioritizedHeroMovies.some((heroMovie) => heroMovie.id === movie.id)
     );
+
+    return [...prioritizedHeroMovies, ...remainingMovies].slice(0, 5);
+  }, [nowShowingMovies, comingSoonMovies]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const preloadHeroArtworks = async () => {
+      const artworkEntries = await Promise.all(
+        heroMovies.map(async (movie) => [movie.id, await resolveHeroArtwork(movie)])
+      );
+
+      if (!isMounted) {
+        return;
+      }
+
+      setHeroArtworkMap((currentMap) => {
+        const nextMap = { ...currentMap };
+
+        artworkEntries.forEach(([movieId, artworkUrl]) => {
+          nextMap[movieId] = artworkUrl;
+        });
+
+        return nextMap;
+      });
+    };
+
+    if (heroMovies.length > 0) {
+      preloadHeroArtworks();
+    }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [heroMovies]);
+
+  useEffect(() => {
+    setActiveHeroIndex((currentIndex) => {
+      if (heroMovies.length === 0) {
+        return 0;
+      }
+
+      return Math.min(currentIndex, heroMovies.length - 1);
+    });
+  }, [heroMovies.length]);
+
+  useEffect(() => {
+    if (heroMovies.length <= 1) {
+      return undefined;
+    }
+
+    const slideTimer = window.setTimeout(() => {
+      setActiveHeroIndex((currentIndex) => (currentIndex + 1) % heroMovies.length);
+    }, 6000);
+
+    return () => {
+      window.clearTimeout(slideTimer);
+    };
+  }, [activeHeroIndex, heroMovies.length]);
+
+  const matchedMovies = useMemo(() => {
+    if (normalizedQuery.length === 0) {
+      return [];
+    }
+
+    return movies.filter((movie) => normalizeText(movie.title).includes(normalizedQuery));
   }, [movies, normalizedQuery]);
 
+  const topGenres = useMemo(() => {
+    const genres = movies.flatMap((movie) => movie.genres || []);
+    return countByValue(genres).slice(0, 6);
+  }, [movies]);
+
+  const topCountries = useMemo(() => {
+    const countries = movies.map((movie) => movie.country).filter(Boolean);
+    return countByValue(countries).slice(0, 4);
+  }, [movies]);
+
+  const featuredMovie = heroMovies[activeHeroIndex] || nowShowingMovies[0] || comingSoonMovies[0] || null;
+  const heroSlides =
+    heroMovies.length > 0
+      ? heroMovies
+      : featuredMovie
+        ? [featuredMovie]
+        : [];
+  const previewNowMovies = nowShowingMovies.slice(0, 4);
+  const previewSoonMovies = comingSoonMovies.slice(0, 4);
+  const catalogMovies = tabParam === "soon" ? comingSoonMovies : nowShowingMovies;
+  const filteredCatalogMovies =
+    normalizedQuery.length === 0
+      ? catalogMovies
+      : catalogMovies.filter((movie) =>
+          normalizeText(movie.title).includes(normalizedQuery)
+        );
+
+  const overviewCards = [
+    {
+      label: "PHIM ĐANG CHIẾU",
+      title: `${nowShowingMovies.length} phim đang mở bán`,
+      description: "Xem nhanh các suất chiếu nổi bật và truy cập danh sách phim đang hoạt động trong ngày.",
+      meta: "Lấy trực tiếp từ tab lịch chiếu hiện tại",
+      to: "/?tab=now",
+      cta: "Xem lịch chiếu",
+    },
+    {
+      label: "PHIM SẮP CHIẾU",
+      title: `${comingSoonMovies.length} phim chuẩn bị ra mắt`,
+      description: "Theo dõi các tựa phim sẽ lên rạp để chuẩn bị kế hoạch đặt vé sớm.",
+      meta: "Phù hợp để preview chiến dịch truyền thông",
+      to: "/?tab=soon",
+      cta: "Xem phim sắp chiếu",
+    },
+    {
+      label: "LỌC PHIM",
+      title: `${topGenres.length} nhóm thể loại nổi bật`,
+      description: "Đi tới bộ lọc để phân loại theo thể loại, quốc gia và độ tuổi phù hợp.",
+      meta: "Tóm tắt từ trang lọc phim",
+      to: "/filter",
+      cta: "Mở bộ lọc",
+    },
+    {
+      label: "GIỚI THIỆU",
+      title: "Định hướng của CineSky",
+      description: "Nêu nhanh mục tiêu xây dựng trải nghiệm xem phim hiện đại, trực quan và dễ dùng.",
+      meta: "Rút gọn từ trang giới thiệu",
+      to: "/about",
+      cta: "Tìm hiểu thêm",
+    },
+    {
+      label: "GÓP Ý",
+      title: "Kênh tiếp nhận phản hồi",
+      description: "Mời người dùng để lại đánh giá trải nghiệm để nhóm cải thiện giao diện và dịch vụ.",
+      meta: "Liên kết tới biểu mẫu góp ý",
+      to: "/feedback",
+      cta: "Gửi góp ý",
+    },
+  ];
+
+  const featuredMovieTab = featuredMovie?.status === "coming-soon" ? "soon" : "now";
+  const heroReleaseYear = extractReleaseYear(featuredMovie?.release || "");
+  const heroIsComingSoon = featuredMovie?.status === "coming-soon";
+
+  if (isLoading) {
+    return <HomePageSkeleton />;
+  }
+
+  if (errorMessage) {
+    return (
+      <main className="homepage-wrapper homepage-shell homepage-shell--state">
+        <div className="home-empty-state">{errorMessage}</div>
+      </main>
+    );
+  }
+
+  if (tabParam === "now" || tabParam === "soon") {
+    const isComingSoonTab = tabParam === "soon";
+
+    return (
+      <main className="homepage-wrapper homepage-shell homepage-shell--catalog">
+        <section className="home-catalog-hero">
+          <div className="home-catalog-hero__content">
+            <span className="home-kicker">
+              {isComingSoonTab ? "Bộ sưu tập phim sắp ra mắt" : "Danh sách phim đang mở bán"}
+            </span>
+            <h1>{isComingSoonTab ? "Phim sắp chiếu" : "Phim đang chiếu"}</h1>
+            <p>
+              {isComingSoonTab
+                ? "Theo dõi các tựa phim chuẩn bị lên rạp, xem trước thời điểm phát hành và trailer nổi bật."
+                : "Khám phá nhanh các phim đang hoạt động trên hệ thống, lịch chiếu hiện có và nút đặt vé trực tiếp."}
+            </p>
+
+            <div className="home-catalog-hero__stats">
+              <div>
+                <strong>{catalogMovies.length}</strong>
+                <span>phim</span>
+              </div>
+              <div>
+                <strong>{topGenres.length}</strong>
+                <span>thể loại nổi bật</span>
+              </div>
+              <div>
+                <strong>{topCountries.length}</strong>
+                <span>quốc gia</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="home-catalog-hero__links">
+            <Link to="/" className="home-ghost-link">
+              Về trang chủ tổng quan
+            </Link>
+            <Link to={isComingSoonTab ? "/?tab=now" : "/?tab=soon"} className="home-solid-link">
+              {isComingSoonTab ? "Xem phim đang chiếu" : "Xem phim sắp chiếu"}
+            </Link>
+          </div>
+        </section>
+
+        {normalizedQuery.length > 0 ? (
+          <div className="home-search-banner">
+            Kết quả trong tab này cho từ khóa: <strong>{searchQuery.trim()}</strong>
+          </div>
+        ) : null}
+
+        <div className="movie-grid-container">
+          {filteredCatalogMovies.length > 0 ? (
+            filteredCatalogMovies.map((movie) => <MovieCard key={movie.id} movie={movie} />)
+          ) : (
+            <div className="home-empty-state">Không tìm thấy phim phù hợp.</div>
+          )}
+        </div>
+      </main>
+    );
+  }
+
   return (
-    <div className="homepage-wrapper">
-      <div className="movie-grid-container">
-        {isLoading ? (
-          <div className="home-empty-state">Đang tải danh sách phim...</div>
-        ) : errorMessage ? (
-          <div className="home-empty-state">{errorMessage}</div>
-        ) : filteredMovies.length > 0 ? (
-          filteredMovies.map((movie) => (
-            <MovieCard key={movie.id} movie={movie} />
-          ))
-        ) : (
-          <div className="home-empty-state">Không tìm thấy phim phù hợp.</div>
-        )}
-      </div>
-    </div>
+    <main className="homepage-wrapper homepage-shell homepage-shell--hero">
+      {featuredMovie ? (
+        <section className="home-hero">
+          <div className="home-hero__slides" aria-hidden="true">
+            {heroSlides.map((movie, index) => {
+              const slideArtwork = heroArtworkMap[movie.id] || movie.poster;
+              const isActiveSlide = index === activeHeroIndex;
+
+              return (
+                <div
+                  key={movie.id}
+                  className={isActiveSlide ? "home-hero__slide active" : "home-hero__slide"}
+                >
+                  <img
+                    src={toBackgroundUrl(slideArtwork)}
+                    alt=""
+                    className="home-hero__image"
+                    loading={isActiveSlide ? "eager" : "lazy"}
+                    fetchPriority={isActiveSlide ? "high" : "auto"}
+                  />
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="home-hero__content">
+            <div key={featuredMovie.id} className="home-hero__content-panel">
+            <span className="home-kicker">Trang chủ CineSky</span>
+            <span className="home-hero__year">{heroReleaseYear}</span>
+            <h1 className="home-hero__title">{featuredMovie.title}</h1>
+
+            <div className="home-hero__meta">
+              <span>{featuredMovie.duration} phút</span>
+              <span>{featuredMovie.genre}</span>
+              <span>{featuredMovie.country}</span>
+            </div>
+
+            <p className="home-hero__description">
+              {shortenText(
+                featuredMovie.description ||
+                  "Khám phá phim nổi bật, xem lịch chiếu nhanh và truy cập toàn bộ hệ thống nội dung của CineSky."
+              )}
+            </p>
+
+            <div className="home-hero__actions">
+              {!heroIsComingSoon ? (
+                <button
+                  type="button"
+                  className="home-solid-link home-button-link"
+                  onClick={() => navigate(`/booking?movieId=${featuredMovie.id}`)}
+                >
+                  Đặt vé ngay
+                </button>
+              ) : (
+                <Link to="/?tab=soon" className="home-solid-link">
+                  Xem phim sắp chiếu
+                </Link>
+              )}
+
+              <Link to={`/movie/${featuredMovie.id}?tab=${featuredMovieTab}#trailer`} className="home-ghost-link">
+                Xem trailer
+              </Link>
+              <Link to={`/movie/${featuredMovie.id}?tab=${featuredMovieTab}`} className="home-ghost-link home-ghost-link--accent">
+                Xem chi tiết
+              </Link>
+            </div>
+          </div>
+          </div>
+
+          <div className="home-hero__footer">
+            {heroMovies.length > 1 ? (
+              <div className="home-hero__dots" aria-label="Featured movies">
+                {heroMovies.map((movie, index) => (
+                  <button
+                    key={movie.id}
+                    type="button"
+                    className={index === activeHeroIndex ? "home-hero__dot active" : "home-hero__dot"}
+                    onClick={() => setActiveHeroIndex(index)}
+                    aria-label={`Chọn phim ${movie.title}`}
+                  />
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </section>
+      ) : null}
+
+      <section className="home-hero-stats" aria-label="Movie statistics">
+        <div className="home-stat-card">
+          <strong>{movies.length}</strong>
+          <span>Tổng số phim trong dữ liệu</span>
+        </div>
+        <div className="home-stat-card">
+          <strong>{nowShowingMovies.length}</strong>
+          <span>Tựa phim đang có lịch chiếu</span>
+        </div>
+        <div className="home-stat-card">
+          <strong>{comingSoonMovies.length}</strong>
+          <span>Tựa phim sắp ra mắt</span>
+        </div>
+      </section>
+
+      {normalizedQuery.length > 0 ? (
+        <section className="home-section">
+          <div className="home-section__header">
+            <div>
+              <span className="home-kicker">Kết quả tìm kiếm</span>
+              <h2>Tìm thấy {matchedMovies.length} phim phù hợp với từ khóa của bạn</h2>
+            </div>
+          </div>
+
+          {matchedMovies.length > 0 ? (
+            <div className="home-preview-grid">
+              {matchedMovies.slice(0, 6).map((movie) => (
+                <HomeMoviePreviewCard
+                  key={movie.id}
+                  movie={movie}
+                  tab={movie.status === "coming-soon" ? "soon" : "now"}
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="home-empty-state">
+              <span className="home-kicker">Chưa có kết quả phù hợp</span>
+              <h3>Không tìm thấy phim nào khớp với từ khóa bạn đang nhập.</h3>
+              <p>Thử đổi tên phim, thể loại hoặc quay lại danh sách đang chiếu để khám phá thêm nhé.</p>
+              <div className="home-empty-state__actions">
+                <Link to="/?tab=now" className="home-solid-link">
+                  Xem phim đang chiếu
+                </Link>
+                <Link to="/filter" className="home-ghost-link">
+                  Đi tới bộ lọc
+                </Link>
+              </div>
+            </div>
+          )}
+        </section>
+      ) : null}
+
+      <section className="home-section">
+        <div className="home-section__header">
+          <div>
+            <span className="home-kicker">Điều hướng nhanh</span>
+            <h2>Tóm tắt các trang đang có trên header</h2>
+          </div>
+        </div>
+
+        <div className="home-overview-grid">
+          {overviewCards.map((card) => (
+            <Link key={card.label} to={card.to} className="home-overview-card">
+              <span className="home-overview-card__label">{card.label}</span>
+              <h3>{card.title}</h3>
+              <p>{card.description}</p>
+              <small>{card.meta}</small>
+              <span className="home-overview-card__cta">{card.cta}</span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="home-section">
+        <div className="home-section__header">
+          <div>
+            <span className="home-kicker">Phim nổi bật</span>
+            <h2>Preview nhanh từ mục Phim đang chiếu</h2>
+          </div>
+          <Link to="/?tab=now" className="home-inline-link">
+            Mở toàn bộ danh sách
+          </Link>
+        </div>
+
+        <div className="home-preview-grid">
+          {previewNowMovies.map((movie) => (
+            <HomeMoviePreviewCard key={movie.id} movie={movie} tab="now" />
+          ))}
+        </div>
+      </section>
+
+      <section className="home-section">
+        <div className="home-section__header">
+          <div>
+            <span className="home-kicker">Lịch ra mắt</span>
+            <h2>Preview nhanh từ mục Phim sắp chiếu</h2>
+          </div>
+          <Link to="/?tab=soon" className="home-inline-link">
+            Xem lịch sắp chiếu
+          </Link>
+        </div>
+
+        <div className="home-preview-grid">
+          {previewSoonMovies.map((movie) => (
+            <HomeMoviePreviewCard key={movie.id} movie={movie} tab="soon" />
+          ))}
+        </div>
+      </section>
+
+      <section className="home-insight-grid">
+        <article className="home-insight-card">
+          <span className="home-kicker">Giới thiệu</span>
+          <h2>CineSky hướng tới trải nghiệm xem phim hiện đại và dễ tiếp cận</h2>
+          <p>
+            Phần này rút gọn tinh thần từ trang Giới thiệu: tập trung vào trải nghiệm điện ảnh chân thực, giao diện rõ ràng
+            và hành trình đặt vé đơn giản cho người dùng trẻ.
+          </p>
+          <Link to="/about" className="home-inline-link">
+            Xem trang giới thiệu
+          </Link>
+        </article>
+
+        <article className="home-insight-card">
+          <span className="home-kicker">Lọc phim</span>
+          <h2>Thể loại và quốc gia đang xuất hiện nhiều trong dữ liệu</h2>
+          <div className="home-chip-group">
+            {topGenres.map((genre) => (
+              <span key={genre.label} className="home-chip">
+                {genre.label} · {genre.count}
+              </span>
+            ))}
+          </div>
+          <div className="home-chip-group">
+            {topCountries.map((country) => (
+              <span key={country.label} className="home-chip home-chip--muted">
+                {country.label} · {country.count}
+              </span>
+            ))}
+          </div>
+          <Link to="/filter" className="home-inline-link">
+            Đi tới trang lọc phim
+          </Link>
+        </article>
+
+        <article className="home-insight-card home-insight-card--accent">
+          <span className="home-kicker">Góp ý</span>
+          <h2>Phản hồi của người dùng là phần không thể thiếu trong bài</h2>
+          <p>
+            Trang Góp ý được tóm tắt tại đây như một điểm chạm cuối của luồng trải nghiệm: sau khi xem thông tin, người dùng
+            có thể gửi nhận xét để nhóm cải thiện giao diện và dịch vụ.
+          </p>
+          <Link to="/feedback" className="home-solid-link">
+            Mở biểu mẫu góp ý
+          </Link>
+        </article>
+      </section>
+
+      <section className="home-section home-section--partners">
+        <div className="home-section__header">
+          <div>
+            <span className="home-kicker">Công nghệ rạp nổi bật</span>
+            <h2>Những công nghệ điện ảnh thường thấy tại các cụm rạp hiện đại</h2>
+          </div>
+        </div>
+
+        <div className="home-partner-grid">
+          {partnerItems.map((item) => (
+            <article key={item.name} className="home-partner-card">
+              <strong>{item.name}</strong>
+              <span>{item.type}</span>
+            </article>
+          ))}
+        </div>
+
+        <div className="home-tech-panel">
+          {techShowcase.map((item) => (
+            <span key={item} className="home-tech-badge">
+              {item}
+            </span>
+          ))}
+        </div>
+      </section>
+
+      <section className="home-section home-section--faq">
+        <div className="home-section__header">
+          <div>
+            <span className="home-kicker">Câu hỏi thường gặp</span>
+            <h2>Giải đáp nhanh những điều người dùng dễ thắc mắc khi dùng CineSky</h2>
+          </div>
+          <p>
+            Phần FAQ được đặt gần cuối trang để người xem có thể xem nhanh các câu trả lời quan trọng mà không làm đứt luồng
+            khám phá phim ở phía trên.
+          </p>
+        </div>
+
+        <div className="home-faq-grid">
+          {faqItems.map((item, index) => {
+            const isActive = activeFaqIndex === index;
+
+            return (
+              <article
+                key={item.question}
+                className={"home-faq-card" + (isActive ? " is-active" : "")}
+              >
+                <button
+                  type="button"
+                  className="home-faq-card__button"
+                  onClick={() =>
+                    setActiveFaqIndex((currentIndex) => (currentIndex === index ? -1 : index))
+                  }
+                  aria-expanded={isActive}
+                >
+                  <span>{item.question}</span>
+                  <span className="home-faq-card__icon" aria-hidden="true">
+                    {isActive ? "−" : "+"}
+                  </span>
+                </button>
+
+                {isActive ? <p className="home-faq-card__answer">{item.answer}</p> : null}
+              </article>
+            );
+          })}
+        </div>
+      </section>
+    </main>
   );
 };
 

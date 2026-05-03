@@ -18,6 +18,22 @@ const userSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    phone: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    gender: {
+      type: String,
+      enum: ["", "Nam", "Nữ", "Khác"],
+      default: "",
+      trim: true,
+    },
+    birthday: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     role: {
       type: String,
       enum: ["user", "admin"],
