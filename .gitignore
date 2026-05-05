@@ -1,6 +1,13 @@
 Frontend/node_modules
 Frontend/build
 Backend/node_modules
+.env
+.env.*
 Backend/.env
-Backend/.env.local
+Backend/.env.*
+Frontend/.env
+Frontend/.env.*
+!.env.example
+!Backend/.env.example
+!Frontend/.env.example
 npm-debug.log*
