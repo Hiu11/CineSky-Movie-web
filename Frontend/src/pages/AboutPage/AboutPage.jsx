@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import "./AboutPage.css";
 
@@ -129,8 +129,39 @@ const creatorTimeline = [
 ];
 
 const AboutPage = () => {
+  const pageRef = useRef(null);
+
+  useEffect(() => {
+    const page = pageRef.current;
+    if (!page) return;
+
+    const revealItems = page.querySelectorAll(
+      ".about-page > section, .about-section-heading, .about-highlight-card, .about-stat-card, .about-creator-card, .about-story-card, .about-journey-card, .about-timeline-card, .about-roadmap-card"
+    );
+
+    if (!("IntersectionObserver" in window)) {
+      revealItems.forEach((item) => item.classList.add("about-is-visible"));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("about-is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: "0px 0px -25% 0px", threshold: 0.01 }
+    );
+
+    revealItems.forEach((item) => observer.observe(item));
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <main className="about-page">
+    <main className="about-page" ref={pageRef}>
       <section className="about-hero">
         <div className="about-hero__content">
           <span className="about-kicker">Giới thiệu dự án</span>

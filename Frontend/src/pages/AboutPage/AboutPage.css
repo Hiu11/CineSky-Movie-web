@@ -3,6 +3,130 @@
   color: white;
   display: grid;
   gap: 30px;
+  overflow-x: hidden;
+}
+
+.about-page > section,
+.about-section-heading,
+.about-highlight-card,
+.about-stat-card,
+.about-creator-card,
+.about-story-card,
+.about-journey-card,
+.about-timeline-card,
+.about-roadmap-card {
+  --about-reveal-transform: translateY(34px);
+  opacity: 0;
+  transform: var(--about-reveal-transform);
+  filter: blur(8px);
+  transition:
+    opacity 0.72s ease,
+    transform 0.72s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.72s ease;
+  transition-delay: 0.04s;
+}
+
+.about-page .about-is-visible {
+  opacity: 1;
+  transform: translate(0, 0) scale(1);
+  filter: blur(0);
+}
+
+.about-hero {
+  --about-reveal-transform: translateY(-34px);
+  transition-delay: 0.04s;
+}
+
+.about-stats,
+.about-creator {
+  --about-reveal-transform: translateY(30px) scale(0.98);
+  transition-delay: 0.08s;
+}
+
+.about-story,
+.about-journey {
+  --about-reveal-transform: translateY(30px) scale(0.98);
+  transition-delay: 0.1s;
+}
+
+.about-timeline,
+.about-roadmap,
+.about-cta {
+  --about-reveal-transform: scale(0.94);
+  transition-delay: 0.12s;
+}
+
+.about-section-heading {
+  --about-reveal-transform: translateY(-26px);
+}
+
+.about-stat-card:nth-child(odd),
+.about-story-card:nth-child(odd),
+.about-journey-card:nth-child(odd),
+.about-roadmap-card:nth-child(odd) {
+  --about-reveal-transform: translateY(36px) scale(0.96);
+}
+
+.about-stat-card:nth-child(even),
+.about-story-card:nth-child(even),
+.about-journey-card:nth-child(even),
+.about-roadmap-card:nth-child(even) {
+  --about-reveal-transform: translateY(18px) scale(0.96);
+}
+
+.about-creator-card:nth-child(1),
+.about-timeline-card:nth-child(odd) {
+  --about-reveal-transform: translateY(38px) scale(0.96);
+}
+
+.about-creator-card:nth-child(2),
+.about-timeline-card:nth-child(even) {
+  --about-reveal-transform: translateY(-28px) scale(0.96);
+}
+
+.about-stat-card:nth-child(2),
+.about-creator-card:nth-child(2),
+.about-story-card:nth-child(2),
+.about-journey-card:nth-child(2),
+.about-timeline-card:nth-child(2),
+.about-roadmap-card:nth-child(2) {
+  transition-delay: 0.12s;
+}
+
+.about-stat-card:nth-child(3),
+.about-story-card:nth-child(3),
+.about-timeline-card:nth-child(3),
+.about-roadmap-card:nth-child(3) {
+  transition-delay: 0.18s;
+}
+
+.about-stat-card:nth-child(4),
+.about-journey-card:nth-child(4),
+.about-timeline-card:nth-child(4),
+.about-roadmap-card:nth-child(4) {
+  transition-delay: 0.24s;
+}
+
+.about-roadmap-card:nth-child(5) {
+  --about-reveal-transform: translateY(18px) scale(0.96);
+  transition-delay: 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .about-page > section,
+  .about-section-heading,
+  .about-highlight-card,
+  .about-stat-card,
+  .about-creator-card,
+  .about-story-card,
+  .about-journey-card,
+  .about-timeline-card,
+  .about-roadmap-card {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
 }
 
 .about-kicker {

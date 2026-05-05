@@ -585,6 +585,7 @@ const HomePage = ({ searchQuery = "" }) => {
         ? [featuredMovie]
         : [];
   const previewNowMovies = nowShowingMovies.slice(0, 6);
+  const posterShowcaseMovies = previewNowMovies.slice(0, 3);
   const previewSoonMovies = comingSoonMovies.slice(0, 4);
   const catalogMovies = tabParam === "soon" ? comingSoonMovies : nowShowingMovies;
   const filteredCatalogMovies =
@@ -856,8 +857,7 @@ const HomePage = ({ searchQuery = "" }) => {
       <section className="home-section" data-reveal>
         <div className="home-section__header">
           <div>
-            <span className="home-kicker">Điều hướng nhanh</span>
-            <h2>Tóm tắt các trang đang có trên header</h2>
+            <h2>Tổng quan</h2>
           </div>
         </div>
 
@@ -874,11 +874,48 @@ const HomePage = ({ searchQuery = "" }) => {
         </div>
       </section>
 
+      {posterShowcaseMovies.length > 0 ? (
+        <section className="home-poster-feature" data-reveal>
+          <div className="home-poster-feature__art" aria-label="Poster phim nổi bật">
+            {posterShowcaseMovies.map((movie, index) => (
+              <Link
+                key={movie.id}
+                to={`/movie/${movie.id}?tab=now`}
+                className="home-poster-feature__slice"
+                style={{ "--slice-index": index }}
+              >
+                <img src={toBackgroundUrl(movie.poster)} alt={movie.title} />
+              </Link>
+            ))}
+          </div>
+
+          <div className="home-poster-feature__content">
+            <span className="home-kicker">Phim nổi bật</span>
+            <h2>Những bộ phim đáng chú ý đang chờ bạn chọn suất.</h2>
+            <p>
+              Khám phá nhanh các tựa phim nổi bật tại CineSky, từ poster, trailer đến thông tin cơ bản. Khi đã tìm được bộ phim hợp mood hôm nay, bạn có thể chuyển tiếp đến chi tiết phim hoặc đặt vé trong vài thao tác.
+            </p>
+            <div className="home-poster-feature__points">
+              <span>Suất chiếu rõ ràng</span>
+              <span>Trailer và thông tin dễ xem</span>
+              <span>Đặt vé nhanh sau khi chọn phim</span>
+            </div>
+            <div className="home-poster-feature__actions">
+              <Link to="/?tab=now" className="home-solid-link">
+                Xem phim đang chiếu
+              </Link>
+              <Link to="/filter" className="home-ghost-link">
+                Khám phá tất cả phim
+              </Link>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
       <section className="home-section" data-reveal>
         <div className="home-section__header">
           <div>
-            <span className="home-kicker">Phim nổi bật</span>
-            <h2>Preview nhanh từ mục Phim đang chiếu</h2>
+            <h2>Phim đang chiếu</h2>
           </div>
           <Link to="/?tab=now" className="home-inline-link">
             Mở toàn bộ danh sách
@@ -895,8 +932,7 @@ const HomePage = ({ searchQuery = "" }) => {
       <section className="home-section" data-reveal>
         <div className="home-section__header">
           <div>
-            <span className="home-kicker">Lịch ra mắt</span>
-            <h2>Preview nhanh từ mục Phim sắp chiếu</h2>
+            <h2>Phim sắp chiếu</h2>
           </div>
           <Link to="/?tab=soon" className="home-inline-link">
             Xem lịch sắp chiếu
@@ -961,8 +997,7 @@ const HomePage = ({ searchQuery = "" }) => {
       <section className="home-section home-section--partners">
         <div className="home-section__header">
           <div>
-            <span className="home-kicker">Công nghệ rạp nổi bật</span>
-            <h2>Những công nghệ điện ảnh thường thấy tại các cụm rạp hiện đại</h2>
+            <h2>Công nghệ & Đối tác</h2>
           </div>
         </div>
 
@@ -987,8 +1022,7 @@ const HomePage = ({ searchQuery = "" }) => {
       <section className="home-section home-section--faq" data-reveal>
         <div className="home-section__header">
           <div>
-            <span className="home-kicker">Câu hỏi thường gặp</span>
-            <h2>Giải đáp nhanh những điều người dùng dễ thắc mắc khi dùng CineSky</h2>
+            <h2>Câu hỏi thường gặp</h2>
           </div>
           <p>
             Phần FAQ được đặt gần cuối trang để người xem có thể xem nhanh các câu trả lời quan trọng mà không làm đứt luồng
