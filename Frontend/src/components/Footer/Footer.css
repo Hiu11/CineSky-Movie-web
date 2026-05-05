@@ -1,4 +1,5 @@
 .complex-footer {
+  position: relative;
   background: linear-gradient(135deg, #1a1c2e 0%, #000 100%);
   padding: 60px 5% 30px;
   margin-top: 50px;
@@ -11,8 +12,8 @@
 
 .footer-top-grid {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr 1fr 1.5fr;
-  gap: 30px;
+  grid-template-columns: 1.6fr repeat(4, minmax(120px, 1fr)) 1.45fr;
+  gap: 24px;
   width: min(1320px, 100%);
   margin: 0 auto;
   padding-bottom: 40px;
@@ -67,21 +68,24 @@
 }
 
 .footer-map {
-  margin-top: 30px;
-  text-align: center;
-  width: min(1320px, 100%);
-  margin-left: auto;
-  margin-right: auto;
+  margin-top: 0;
+  text-align: left;
+  width: 100%;
+  margin-left: 0;
+  margin-right: 0;
+  display: grid;
+  justify-items: start;
 }
 
 .footer-map p {
   color: #b0b0b0;
   line-height: 1.7;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
   overflow-wrap: anywhere;
 }
 
 .map-container {
+  width: min(300px, 100%);
   overflow: hidden;
   border-radius: 12px;
 }
@@ -90,6 +94,29 @@
   border: 0;
   border-radius: 12px;
   display: block;
+  height: 168px;
+}
+
+.footer-scroll-top {
+  position: absolute;
+  right: 5%;
+  bottom: 28px;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(247, 180, 0, 0.95);
+  color: #111;
+  font-size: 24px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.28);
+  transition: transform 0.18s ease, filter 0.18s ease;
+}
+
+.footer-scroll-top:hover {
+  transform: translateY(-3px);
+  filter: brightness(1.04);
 }
 
 @media (max-width: 1100px) {
@@ -111,7 +138,12 @@
   }
 
   .footer-map {
-    margin-top: 24px;
+    margin-top: 0;
+  }
+
+  .footer-scroll-top {
+    right: 16px;
+    bottom: 18px;
   }
 }
 

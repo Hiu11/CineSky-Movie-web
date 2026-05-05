@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import { getMovies } from "../../services/movieService";
@@ -35,6 +35,61 @@ const shortenText = (value = "", maxLength = 220) => {
   }
 
   return `${value.slice(0, maxLength).trim()}...`;
+};
+
+const CountUpNumber = ({ value, duration = 3000 }) => {
+  const [displayValue, setDisplayValue] = useState(0);
+  const [hasStarted, setHasStarted] = useState(false);
+  const numberRef = useRef(null);
+
+  useEffect(() => {
+    const node = numberRef.current;
+
+    if (!node) {
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setHasStarted(true);
+          observer.disconnect();
+        }
+      },
+      { threshold: 0.35 }
+    );
+
+    observer.observe(node);
+
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (!hasStarted) {
+      return undefined;
+    }
+
+    const target = Number(value) || 0;
+    const startTime = performance.now();
+    let frameId = 0;
+
+    const tick = (currentTime) => {
+      const progress = Math.min((currentTime - startTime) / duration, 1);
+      const easedProgress = 1 - Math.pow(1 - progress, 3);
+
+      setDisplayValue(Math.round(target * easedProgress));
+
+      if (progress < 1) {
+        frameId = requestAnimationFrame(tick);
+      }
+    };
+
+    frameId = requestAnimationFrame(tick);
+
+    return () => cancelAnimationFrame(frameId);
+  }, [duration, hasStarted, value]);
+
+  return <strong ref={numberRef}>{displayValue}</strong>;
 };
 
 const getYoutubeVideoId = (trailer = "") => {
@@ -110,6 +165,97 @@ const techShowcase = [
   "Mobile booking reminders",
 ];
 
+const requestedMovies = [
+  {
+    id: 204,
+    slug: "mua-do-2025",
+    title: "MƯA ĐỎ",
+    poster: "/assets/images/mua-do-2025.jpg",
+    genres: ["Chiến tranh", "Lịch sử", "Tâm lý"],
+    genre: "Chiến tranh, Lịch sử, Tâm lý",
+    country: "Việt Nam",
+    director: "Đặng Thái Huyền",
+    duration: 124,
+    rating: "T16",
+    ratingClass: "t16",
+    status: "now-showing",
+    statusOrder: 0,
+    catalogOrder: 1,
+    release: "22/08/2025",
+    times: ["09:15", "12:05", "15:10", "18:20", "21:05"],
+    description: "Mưa Đỏ tái hiện một giai đoạn khốc liệt bằng góc nhìn giàu cảm xúc, nơi những con người trẻ tuổi phải đối diện với mất mát, niềm tin và lựa chọn sinh tử.",
+  },
+  {
+    id: 205,
+    slug: "khe-uoc-ban-dau",
+    title: "KHẾ ƯỚC BÁN DÂU",
+    poster: "/assets/images/khe-uoc-ban-dau.jpg",
+    genres: ["Kinh dị", "Tâm lý", "Gia đình"],
+    genre: "Kinh dị, Tâm lý, Gia đình",
+    country: "Việt Nam",
+    director: "Lê Hoàng Nam",
+    duration: 108,
+    rating: "T18",
+    ratingClass: "t18",
+    status: "now-showing",
+    statusOrder: 0,
+    catalogOrder: 2,
+    release: "12/09/2025",
+    times: ["10:20", "13:30", "16:40", "19:50", "22:15"],
+    description: "Khế Ước Bán Dâu xoay quanh một lời hứa cũ trong gia tộc, kéo nhân vật chính vào chuỗi bí mật u ám giữa hôn nhân, nghi lễ và những món nợ không thể gọi tên.",
+  },
+  {
+    id: 206,
+    slug: "cai-ma-2025",
+    title: "CẢI MẢ",
+    poster: "/assets/images/cai-ma-2025.jpg",
+    genres: ["Kinh dị", "Dân gian", "Bí ẩn"],
+    genre: "Kinh dị, Dân gian, Bí ẩn",
+    country: "Việt Nam",
+    director: "Trần Hữu Tấn",
+    duration: 112,
+    rating: "T18",
+    ratingClass: "t18",
+    status: "now-showing",
+    statusOrder: 0,
+    catalogOrder: 3,
+    release: "31/10/2025",
+    times: ["09:50", "12:45", "15:35", "18:35", "21:30"],
+    description: "Cải Mả đưa người xem trở lại một vùng quê nơi nghi thức tâm linh và những bí mật bị chôn vùi dần trỗi dậy sau một biến cố gia đình.",
+  },
+  {
+    id: 207,
+    slug: "bay-tien",
+    title: "BẢY TIỀN",
+    poster: "/assets/images/bay-tien.jpg",
+    genres: ["Hài", "Tâm lý", "Đời sống"],
+    genre: "Hài, Tâm lý, Đời sống",
+    country: "Việt Nam",
+    director: "Vũ Ngọc Đãng",
+    duration: 105,
+    rating: "T16",
+    ratingClass: "t16",
+    status: "now-showing",
+    statusOrder: 0,
+    catalogOrder: 4,
+    release: "21/11/2025",
+    times: ["08:45", "11:20", "14:05", "17:15", "20:25"],
+    description: "Bảy Tiền kể câu chuyện đời thường bằng nhịp phim dí dỏm, xoay quanh những lựa chọn tưởng nhỏ nhưng làm thay đổi cách các nhân vật nhìn về gia đình và giá trị của đồng tiền.",
+  },
+];
+
+const mergeRequestedMovies = (movies = []) => {
+  const movieIds = new Set(movies.map((movie) => movie.id));
+  const missingMovies = requestedMovies.filter((movie) => !movieIds.has(movie.id));
+
+  return [...missingMovies, ...movies].sort(
+    (firstMovie, secondMovie) =>
+      (firstMovie.statusOrder ?? 0) - (secondMovie.statusOrder ?? 0) ||
+      (firstMovie.catalogOrder ?? 999) - (secondMovie.catalogOrder ?? 999) ||
+      firstMovie.id - secondMovie.id
+  );
+};
+
 const preloadImage = (src) =>
   new Promise((resolve) => {
     if (!src) {
@@ -172,6 +318,43 @@ const HomeMoviePreviewCard = ({ movie, tab }) => (
   </Link>
 );
 
+const HomeNowShowcaseCard = ({ movie }) => (
+  <article className="home-now-card">
+    <img src={toBackgroundUrl(movie.poster)} alt={movie.title} className="home-now-card__poster" />
+    <div className="home-now-card__overlay">
+      <span className={`home-preview-card__rating ${movie.ratingClass}`}>{movie.rating}</span>
+      <h3>{movie.title}</h3>
+      <p>{shortenText(movie.description || movie.genre, 112)}</p>
+      <div className="home-now-card__actions">
+        <Link to={`/booking?movieId=${movie.id}`} className="home-solid-link">
+          Đặt vé
+        </Link>
+        <Link to={`/movie/${movie.id}?tab=now`} className="home-ghost-link">
+          Xem thêm
+        </Link>
+      </div>
+    </div>
+  </article>
+);
+
+const HomeSoonShowcaseCard = ({ movie, index }) => (
+  <Link to={`/movie/${movie.id}?tab=soon`} className="home-soon-card" style={{ "--delay": `${index * 110}ms` }}>
+    <div
+      className="home-soon-card__poster"
+      style={{
+        backgroundImage: `linear-gradient(180deg, rgba(7, 8, 14, 0.1), rgba(7, 8, 14, 0.78)), url("${toBackgroundUrl(
+          movie.poster
+        )}")`,
+      }}
+    />
+    <div className="home-soon-card__body">
+      <span>{movie.release}</span>
+      <h3>{movie.title}</h3>
+      <p>{movie.genre}</p>
+    </div>
+  </Link>
+);
+
 const HomePageSkeleton = () => (
   <main className="homepage-wrapper homepage-shell homepage-shell--state">
     <section className="home-hero home-hero--skeleton" aria-hidden="true">
@@ -230,7 +413,7 @@ const HomePage = ({ searchQuery = "" }) => {
         const data = await getMovies();
 
         if (isMounted) {
-          setMovies(data);
+          setMovies(mergeRequestedMovies(data));
         }
       } catch (error) {
         if (isMounted) {
@@ -334,6 +517,48 @@ const HomePage = ({ searchQuery = "" }) => {
     };
   }, [activeHeroIndex, heroMovies.length]);
 
+  useEffect(() => {
+    if (isLoading) {
+      return undefined;
+    }
+
+    const revealItems = Array.from(document.querySelectorAll("[data-reveal]"));
+
+    let scrollTimer = null;
+
+    const checkRevealOnScrollEnd = () => {
+      revealItems.forEach((item) => {
+        if (item.classList.contains("is-visible")) return;
+
+        const rect = item.getBoundingClientRect();
+        const fullyVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+
+        if (fullyVisible) {
+          item.classList.add("is-visible");
+        }
+      });
+    };
+
+    const onScroll = () => {
+      if (scrollTimer) clearTimeout(scrollTimer);
+      scrollTimer = window.setTimeout(() => {
+        checkRevealOnScrollEnd();
+      }, 140);
+    };
+
+    // initial check in case some items are already fully visible
+    window.setTimeout(checkRevealOnScrollEnd, 60);
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+
+    return () => {
+      if (scrollTimer) clearTimeout(scrollTimer);
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+    };
+  }, [isLoading, tabParam]);
+
   const matchedMovies = useMemo(() => {
     if (normalizedQuery.length === 0) {
       return [];
@@ -359,7 +584,7 @@ const HomePage = ({ searchQuery = "" }) => {
       : featuredMovie
         ? [featuredMovie]
         : [];
-  const previewNowMovies = nowShowingMovies.slice(0, 4);
+  const previewNowMovies = nowShowingMovies.slice(0, 6);
   const previewSoonMovies = comingSoonMovies.slice(0, 4);
   const catalogMovies = tabParam === "soon" ? comingSoonMovies : nowShowingMovies;
   const filteredCatalogMovies =
@@ -578,15 +803,15 @@ const HomePage = ({ searchQuery = "" }) => {
 
       <section className="home-hero-stats" aria-label="Movie statistics">
         <div className="home-stat-card">
-          <strong>{movies.length}</strong>
+          <CountUpNumber value={movies.length} />
           <span>Tổng số phim trong dữ liệu</span>
         </div>
         <div className="home-stat-card">
-          <strong>{nowShowingMovies.length}</strong>
+          <CountUpNumber value={nowShowingMovies.length} />
           <span>Tựa phim đang có lịch chiếu</span>
         </div>
         <div className="home-stat-card">
-          <strong>{comingSoonMovies.length}</strong>
+          <CountUpNumber value={comingSoonMovies.length} />
           <span>Tựa phim sắp ra mắt</span>
         </div>
       </section>
@@ -628,7 +853,7 @@ const HomePage = ({ searchQuery = "" }) => {
         </section>
       ) : null}
 
-      <section className="home-section">
+      <section className="home-section" data-reveal>
         <div className="home-section__header">
           <div>
             <span className="home-kicker">Điều hướng nhanh</span>
@@ -649,7 +874,7 @@ const HomePage = ({ searchQuery = "" }) => {
         </div>
       </section>
 
-      <section className="home-section">
+      <section className="home-section" data-reveal>
         <div className="home-section__header">
           <div>
             <span className="home-kicker">Phim nổi bật</span>
@@ -660,14 +885,14 @@ const HomePage = ({ searchQuery = "" }) => {
           </Link>
         </div>
 
-        <div className="home-preview-grid">
+        <div className="home-now-showcase" aria-label="Phim đang chiếu nổi bật">
           {previewNowMovies.map((movie) => (
-            <HomeMoviePreviewCard key={movie.id} movie={movie} tab="now" />
+            <HomeNowShowcaseCard key={movie.id} movie={movie} />
           ))}
         </div>
       </section>
 
-      <section className="home-section">
+      <section className="home-section" data-reveal>
         <div className="home-section__header">
           <div>
             <span className="home-kicker">Lịch ra mắt</span>
@@ -678,14 +903,14 @@ const HomePage = ({ searchQuery = "" }) => {
           </Link>
         </div>
 
-        <div className="home-preview-grid">
-          {previewSoonMovies.map((movie) => (
-            <HomeMoviePreviewCard key={movie.id} movie={movie} tab="soon" />
+        <div className="home-soon-stack" aria-label="Phim sắp chiếu nổi bật">
+          {previewSoonMovies.map((movie, index) => (
+            <HomeSoonShowcaseCard key={movie.id} movie={movie} index={index} />
           ))}
         </div>
       </section>
 
-      <section className="home-insight-grid">
+      <section className="home-insight-grid" data-reveal>
         <article className="home-insight-card">
           <span className="home-kicker">Giới thiệu</span>
           <h2>CineSky hướng tới trải nghiệm xem phim hiện đại và dễ tiếp cận</h2>
@@ -759,7 +984,7 @@ const HomePage = ({ searchQuery = "" }) => {
         </div>
       </section>
 
-      <section className="home-section home-section--faq">
+      <section className="home-section home-section--faq" data-reveal>
         <div className="home-section__header">
           <div>
             <span className="home-kicker">Câu hỏi thường gặp</span>

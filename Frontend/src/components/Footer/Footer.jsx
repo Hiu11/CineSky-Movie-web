@@ -2,6 +2,10 @@ import React from "react";
 import "./Footer.css";
 
 const Footer = ({ flushTop = false }) => {
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
     <footer className={"complex-footer" + (flushTop ? " complex-footer--flush" : "")}>
       <div className="footer-top-grid">
@@ -76,9 +80,8 @@ const Footer = ({ flushTop = false }) => {
             <li>Kiên Giang (An Giang)</li>
           </ul>
         </div>
-      </div>
 
-      <div className="footer-map">
+        <div className="footer-map">
         <p>Địa chỉ: Hàn Thuyên, khu phố 6, Thủ Đức, Thành phố Hồ Chí Minh</p>
 
         <div className="map-container">
@@ -93,7 +96,11 @@ const Footer = ({ flushTop = false }) => {
             referrerPolicy="no-referrer-when-downgrade"
           />
         </div>
+        </div>
       </div>
+      <button type="button" className="footer-scroll-top" onClick={scrollToTop} aria-label="Cuộn lên đầu trang">
+        ↑
+      </button>
     </footer>
   );
 };

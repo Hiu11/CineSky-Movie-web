@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import AuthLayout, {
   AuthDivider,
   AuthIcon,
@@ -136,6 +136,9 @@ export default function Login({ onLoginSuccess, showToast }) {
           <input type="checkbox" />
           <span>Remember me on this device</span>
         </label>
+        <Link to="/forgot-password" className="login-forgot-link">
+          Forgot password?
+        </Link>
       </div>
     </AuthLayout>
   );

@@ -19,18 +19,18 @@
 .feedback-shell {
   position: relative;
   z-index: 1;
-  width: min(1220px, 100%);
+  width: min(1080px, 100%);
   display: grid;
-  grid-template-columns: minmax(0, 820px) minmax(280px, 340px);
+  grid-template-columns: minmax(0, 620px) minmax(260px, 320px);
   justify-content: space-between;
-  gap: 28px;
+  gap: 22px;
   align-items: start;
 }
 
 .feedback-card {
   position: relative;
-  padding: 28px 28px 24px;
-  border-radius: 30px;
+  padding: 22px 22px 20px;
+  border-radius: 26px;
   background:
     linear-gradient(135deg, rgba(240, 243, 255, 0.1), rgba(165, 172, 196, 0.05)),
     linear-gradient(180deg, rgba(21, 19, 29, 0.78), rgba(12, 11, 18, 0.62));
@@ -86,7 +86,7 @@
 .feedback-header h2 {
   margin: 12px 0 6px;
   color: #ffffff;
-  font-size: clamp(28px, 4vw, 36px);
+  font-size: clamp(26px, 3vw, 32px);
   letter-spacing: -0.03em;
 }
 
@@ -120,7 +120,7 @@
 
 .feedback-form {
   display: grid;
-  gap: 12px;
+  gap: 10px;
 }
 
 .feedback-form__grid {
@@ -154,7 +154,7 @@
 .feedback-rating {
   display: grid;
   gap: 10px;
-  padding: 16px 18px;
+  padding: 12px 14px;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.12);
   background:
@@ -172,8 +172,8 @@
 }
 
 .feedback-star {
-  width: 52px;
-  height: 52px;
+  width: 44px;
+  height: 44px;
   border-radius: 16px;
   border: 1px solid rgba(255, 255, 255, 0.14);
   background:
@@ -230,7 +230,7 @@
     linear-gradient(135deg, rgba(245, 247, 255, 0.08), rgba(169, 177, 203, 0.04)),
     rgba(10, 11, 17, 0.56);
   color: #fff;
-  padding: 14px 16px;
+  padding: 12px 14px;
   font-size: 15px;
   outline: none;
   box-shadow:
@@ -264,14 +264,14 @@
 }
 
 .feedback-textarea {
-  min-height: 128px;
+  min-height: 104px;
   resize: vertical;
 }
 
 .feedback-submit {
   margin-top: 4px;
   width: 100%;
-  min-height: 54px;
+  min-height: 48px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   border-radius: 18px;
   padding: 14px 18px;

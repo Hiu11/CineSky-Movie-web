@@ -98,6 +98,11 @@ const roadmapItems = [
       "Mở rộng từ bước chọn ghế sang lưu booking thật, đồng bộ lịch sử giao dịch và cho phép người dùng xem lại thông tin các vé đã đặt.",
   },
   {
+    phase: "Định hướng AI",
+    description:
+      "Tích hợp AI để gợi ý phim theo sở thích, lịch sử đặt vé và khung giờ rảnh của người dùng; hỗ trợ chatbot giải đáp nhanh về phim, suất chiếu, giá vé và đề xuất combo phù hợp trước khi thanh toán.",
+  },
+  {
     phase: "Quản trị nội dung",
     description:
       "Bổ sung lớp quản lý phim, thể loại, suất chiếu và nội dung động để CineSky tiến gần hơn đến một hệ thống hoàn chỉnh và dễ vận hành.",

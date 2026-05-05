@@ -10,11 +10,13 @@ import AboutPage from "./pages/AboutPage/AboutPage";
 import FeedbackPage from "./pages/FeedbackPage/FeedbackPage";
 import Login from "./pages/Login/Login";
 import Register from "./pages/Register/Register";
+import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import Booking from "./pages/Booking/Booking";
 import MovieDetail from "./pages/MovieDetail/MovieDetail";
 import BookingSuccess from "./pages/BookingSuccess/BookingSuccess";
 import BookingHistory from "./pages/BookingHistory/BookingHistory";
 import Profile from "./pages/Profile/Profile";
+import AdminPage from "./pages/AdminPage/AdminPage";
 import NotFound from "./pages/NotFound/NotFound";
 import { normalizeAuthUser } from "./services/authService";
 import "./App.css";
@@ -26,7 +28,10 @@ function AppContent() {
   const [toasts, setToasts] = useState([]);
   const toastTimeoutsRef = useRef(new Map());
   const location = useLocation();
-  const isAuthPage = location.pathname === "/login" || location.pathname === "/register";
+  const isAuthPage =
+    location.pathname === "/login" ||
+    location.pathname === "/register" ||
+    location.pathname === "/forgot-password";
   const isBookingPage =
     location.pathname === "/booking" || location.pathname === "/booking/success";
 
@@ -117,7 +122,9 @@ function AppContent() {
     setSearchQuery("");
   };
 
-  const appClassName = isAuthPage ? "App App--auth" : "App App--site";
+  const appClassName = isAuthPage
+    ? "App App--auth"
+      : "App App--site";
 
   return (
     <div className={appClassName}>
@@ -145,10 +152,12 @@ function AppContent() {
           path="/register"
           element={<Register onRegisterSuccess={handleAuthSuccess} showToast={showToast} />}
         />
+        <Route path="/forgot-password" element={<ForgotPassword showToast={showToast} />} />
         <Route path="/booking" element={<Booking showToast={showToast} />} />
         <Route path="/booking/success" element={<BookingSuccess />} />
         <Route path="/history" element={<BookingHistory />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/admin" element={<AdminPage />} />
         <Route path="/movie/:id" element={<MovieDetail />} />
         <Route path="*" element={<NotFound />} />
       </Routes>

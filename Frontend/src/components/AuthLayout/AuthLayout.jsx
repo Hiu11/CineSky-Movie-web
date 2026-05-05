@@ -158,10 +158,17 @@ export default function AuthLayout({
 }) {
   const navigate = useNavigate();
   const [posterTiles, setPosterTiles] = useState([]);
-  const tabs = [
-    { to: "/login", label: "Login", active: mode === "login" },
-    { to: "/register", label: "Register", active: mode === "register" },
-  ];
+  const tabs =
+    mode === "forgot"
+      ? [
+          { to: "/login", label: "Login", active: false },
+          { to: "/forgot-password", label: "Reset", active: true },
+          { to: "/register", label: "Register", active: false },
+        ]
+      : [
+          { to: "/login", label: "Login", active: mode === "login" },
+          { to: "/register", label: "Register", active: mode === "register" },
+        ];
 
   useEffect(() => {
     let isMounted = true;
@@ -264,7 +271,7 @@ export default function AuthLayout({
                 <Link to={tab.to} className={tab.active ? "auth-card__tab active" : "auth-card__tab"}>
                   {tab.label}
                 </Link>
-                {index === 0 ? <span className="auth-card__separator">|</span> : null}
+                {index < tabs.length - 1 ? <span className="auth-card__separator">|</span> : null}
               </div>
             ))}
           </div>

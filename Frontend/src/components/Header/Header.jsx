@@ -63,6 +63,7 @@ export default function Header({
   const hasMovieTab = searchParams.has("tab");
   const tabParam = searchParams.get("tab") || "now";
   const isMovieDetail = location.pathname.startsWith("/movie/");
+  const isAdminPage = location.pathname === "/admin" || location.pathname.startsWith("/admin/");
   const movieDetailTab = isMovieDetail ? searchParams.get("tab") || "now" : null;
   const normalizedQuery = normalizeText(searchQuery).trim();
   const displayName = user?.name || user?.fullName || "User";
@@ -450,7 +451,8 @@ export default function Header({
         </div>
       </div>
 
-      <div className="movie-tabs-navigation">
+      {!isAdminPage ? (
+        <div className="movie-tabs-navigation">
         {navItems.map((item) => {
           let isActive = false;
 
@@ -478,7 +480,8 @@ export default function Header({
             </NavLink>
           );
         })}
-      </div>
+        </div>
+      ) : null}
 
       {isMobileMenuOpen ? (
         <>
