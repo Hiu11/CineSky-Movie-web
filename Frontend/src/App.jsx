@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
-import { BrowserRouter as Router, Route, Routes, useLocation } from "react-router-dom";
+import { BrowserRouter as Router, Navigate, Route, Routes, useLocation } from "react-router-dom";
 
 import Header from "./components/Header/Header";
 import Footer from "./components/Footer/Footer";
@@ -18,12 +18,26 @@ import BookingHistory from "./pages/BookingHistory/BookingHistory";
 import Profile from "./pages/Profile/Profile";
 import AdminPage from "./pages/AdminPage/AdminPage";
 import NotFound from "./pages/NotFound/NotFound";
-import { normalizeAuthUser } from "./services/authService";
+import { clearAuthSession, normalizeAuthUser } from "./services/authService";
 import "./App.css";
 
+const getInitialSessionUser = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const sessionUser = sessionStorage.getItem("user");
+    return sessionUser ? normalizeAuthUser(JSON.parse(sessionUser)) : null;
+  } catch {
+    clearAuthSession();
+    return null;
+  }
+};
+
 function AppContent() {
-  const [user, setUser] = useState(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [user, setUser] = useState(getInitialSessionUser);
+  const [isLoggedIn, setIsLoggedIn] = useState(() => Boolean(getInitialSessionUser()));
   const [searchQuery, setSearchQuery] = useState("");
   const [toasts, setToasts] = useState([]);
   const toastTimeoutsRef = useRef(new Map());
@@ -34,6 +48,13 @@ function AppContent() {
     location.pathname === "/forgot-password";
   const isBookingPage =
     location.pathname === "/booking" || location.pathname === "/booking/success";
+  const isAdminPage = location.pathname === "/admin";
+
+  useEffect(() => {
+    if ("scrollRestoration" in window.history) {
+      window.history.scrollRestoration = "manual";
+    }
+  }, []);
 
   const dismissToast = useCallback((toastId) => {
     const timeoutId = toastTimeoutsRef.current.get(toastId);
@@ -81,7 +102,7 @@ function AppContent() {
         setUser(normalizeAuthUser(JSON.parse(sessionUser)));
         setIsLoggedIn(true);
       } catch {
-        sessionStorage.removeItem("user");
+        clearAuthSession();
       }
     }
   }, []);
@@ -102,7 +123,10 @@ function AppContent() {
       return;
     }
 
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    window.requestAnimationFrame(() => {
+      window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+    });
   }, [location.pathname, location.search, location.hash]);
 
   const handleAuthSuccess = (userData) => {
@@ -115,7 +139,7 @@ function AppContent() {
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem("user");
+    clearAuthSession();
     sessionStorage.removeItem("lastBookingReceipt");
     setUser(null);
     setIsLoggedIn(false);
@@ -124,6 +148,8 @@ function AppContent() {
 
   const appClassName = isAuthPage
     ? "App App--auth"
+    : isAdminPage
+      ? "App App--admin"
       : "App App--site";
 
   return (
@@ -157,12 +183,15 @@ function AppContent() {
         <Route path="/booking/success" element={<BookingSuccess />} />
         <Route path="/history" element={<BookingHistory />} />
         <Route path="/profile" element={<Profile />} />
-        <Route path="/admin" element={<AdminPage />} />
+        <Route
+          path="/admin"
+          element={user?.role === "admin" ? <AdminPage /> : <Navigate to="/login" replace />}
+        />
         <Route path="/movie/:id" element={<MovieDetail />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {!isAuthPage ? <Footer flushTop={isBookingPage} /> : null}
+      {!isAuthPage ? <Footer flushTop={isBookingPage || isAdminPage} /> : null}
       <ToastViewport toasts={toasts} onDismiss={dismissToast} />
     </div>
   );

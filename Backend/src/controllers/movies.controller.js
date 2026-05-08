@@ -119,8 +119,10 @@ const hasDetailItems = (items) => Array.isArray(items) && items.length > 0;
 const hasTrailerPanelContent = (panel) =>
   Boolean(panel && (panel.label || panel.title || panel.description));
 
+const formatMovieId = (legacyId) => String(legacyId).padStart(3, "0");
+
 const serializeMovie = (movie, timeMap = new Map()) => ({
-  id: movie.legacyId,
+  id: formatMovieId(movie.legacyId),
   slug: movie.slug,
   title: movie.title,
   poster: movie.poster,
@@ -171,7 +173,7 @@ const serializeMovieDetail = (movie, timeMap = new Map()) => {
 
 const serializeShowtime = (showtime) => ({
   id: showtime._id,
-  movieId: showtime.movieLegacyId,
+  movieId: formatMovieId(showtime.movieLegacyId),
   cinemaName: showtime.cinemaName,
   cinemaAddress: showtime.cinemaAddress,
   roomName: showtime.roomName,
@@ -187,7 +189,7 @@ const serializeShowtime = (showtime) => ({
 });
 
 const buildMovieFilter = (query) => {
-  const filter = {};
+  const filter = { deletedAt: null };
 
   if (query.status && query.status !== "all") {
     filter.status = query.status;
@@ -215,15 +217,39 @@ const buildMovieFilter = (query) => {
   return filter;
 };
 
+const allowedSortFields = new Set([
+  "catalogOrder",
+  "title",
+  "releaseDate",
+  "duration",
+  "createdAt",
+]);
+
+const buildMovieSort = (query) => {
+  const sortBy = allowedSortFields.has(String(query.sortBy || ""))
+    ? String(query.sortBy)
+    : "catalogOrder";
+  const sortOrder = String(query.sortOrder || "asc").toLowerCase() === "desc" ? -1 : 1;
+
+  return {
+    statusOrder: 1,
+    [sortBy]: sortOrder,
+    legacyId: 1,
+  };
+};
+
 const moviesController = {
   getMovies: async (req, res) => {
     try {
       const filter = buildMovieFilter(req.query);
-      const movies = await MovieModel.find(filter).sort({
-        statusOrder: 1,
-        catalogOrder: 1,
-        legacyId: 1,
-      });
+      const page = Math.max(Number(req.query.page) || 1, 1);
+      const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 100);
+      const skip = (page - 1) * limit;
+      const sort = buildMovieSort(req.query);
+      const [movies, totalItems] = await Promise.all([
+        MovieModel.find(filter).sort(sort).skip(skip).limit(limit),
+        MovieModel.countDocuments(filter),
+      ]);
       const showtimes = await ShowtimeModel.find({
         movieLegacyId: { $in: movies.map((movie) => movie.legacyId) },
       }).sort({ startTime: 1 });
@@ -233,6 +259,12 @@ const moviesController = {
         success: true,
         message: "Get movies successfully",
         data: movies.map((movie) => serializeMovie(movie, timeMap)),
+        pagination: {
+          page,
+          limit,
+          totalItems,
+          totalPages: Math.max(Math.ceil(totalItems / limit), 1),
+        },
       });
     } catch (error) {
       res.status(500).send({
@@ -255,7 +287,7 @@ const moviesController = {
         });
       }
 
-      const movie = await MovieModel.findOne({ legacyId });
+      const movie = await MovieModel.findOne({ legacyId, deletedAt: null });
 
       if (!movie) {
         return res.status(404).send({
@@ -296,7 +328,7 @@ const moviesController = {
         });
       }
 
-      const movie = await MovieModel.findOne({ legacyId });
+      const movie = await MovieModel.findOne({ legacyId, deletedAt: null });
 
       if (!movie) {
         return res.status(404).send({
@@ -318,7 +350,7 @@ const moviesController = {
         message: "Get movie showtimes successfully",
         data: {
           movie: {
-            id: movie.legacyId,
+            id: formatMovieId(movie.legacyId),
             title: movie.title,
             poster: movie.poster,
             status: movie.status,

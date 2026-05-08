@@ -1,9 +1,13 @@
 import dotenv from "dotenv";
 import mongoose from "mongoose";
+import path from "path";
+import { fileURLToPath } from "url";
 import { connectDatabase } from "../config/database.js";
 import { ensureMovieSeedData } from "../services/seed.service.js";
 
-dotenv.config();
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 const runSeed = async () => {
   try {

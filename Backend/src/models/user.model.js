@@ -17,6 +17,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: true,
+      select: false,
     },
     phone: {
       type: String,
@@ -42,6 +43,12 @@ const userSchema = new mongoose.Schema(
     avatar: {
       type: String,
       default: "",
+      trim: true,
+    },
+    refreshToken: {
+      type: String,
+      default: "",
+      select: false,
       trim: true,
     },
   },

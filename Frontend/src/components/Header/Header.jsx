@@ -12,12 +12,22 @@ const normalizeText = (value = "") =>
     .replace(/[\u0300-\u036f]/g, "");
 
 const navItems = [
+  { to: "/", label: "Trang chủ", id: "home" },
   { to: "/?tab=now", label: "Phim đang chiếu", id: "now" },
   { to: "/?tab=soon", label: "Phim sắp chiếu", id: "soon" },
   { to: "/filter", label: "Lọc phim", id: "filter" },
   { to: "/about", label: "Giới thiệu", id: "about" },
   { to: "/feedback", label: "Góp ý", id: "feedback" },
 ];
+
+const mobileNavIcons = {
+  home: "⌂",
+  now: "▶",
+  soon: "⏱",
+  filter: "⌕",
+  about: "i",
+  feedback: "✎",
+};
 
 const readRecentSearches = () => {
   if (typeof window === "undefined") {
@@ -64,6 +74,7 @@ export default function Header({
   const tabParam = searchParams.get("tab") || "now";
   const isMovieDetail = location.pathname.startsWith("/movie/");
   const isAdminPage = location.pathname === "/admin" || location.pathname.startsWith("/admin/");
+  const isAdminUser = user?.role === "admin";
   const movieDetailTab = isMovieDetail ? searchParams.get("tab") || "now" : null;
   const normalizedQuery = normalizeText(searchQuery).trim();
   const displayName = user?.name || user?.fullName || "User";
@@ -379,6 +390,7 @@ export default function Header({
             <Link to="/feedback" className="user-menu__item">
               Gửi góp ý
             </Link>
+            {isAdminUser ? <Link to="/admin" className="user-menu__item">Quản trị</Link> : null}
             <button type="button" className="user-menu__item user-menu__item--danger" onClick={handleLogoutClick}>
               Đăng xuất
             </button>
@@ -456,7 +468,9 @@ export default function Header({
         {navItems.map((item) => {
           let isActive = false;
 
-          if (item.id === "now") {
+          if (item.id === "home") {
+            isActive = location.pathname === "/" && !hasMovieTab;
+          } else if (item.id === "now") {
             isActive =
               ((location.pathname === "/" && hasMovieTab && tabParam === "now") || movieDetailTab === "now");
           } else if (item.id === "soon") {
@@ -466,7 +480,7 @@ export default function Header({
             isActive = location.pathname === item.to;
           }
 
-          return item.to.startsWith("/?") ? (
+          return item.id === "home" || item.to.startsWith("/?") ? (
             <Link key={item.id} to={item.to} className={isActive ? "tab-btn active" : "tab-btn"}>
               {item.label}
             </Link>
@@ -507,7 +521,8 @@ export default function Header({
             <nav className="mobile-nav">
               {navItems.map((item) => (
                 <Link key={item.id} to={item.to} className="mobile-nav__link">
-                  {item.label}
+                  <span className="mobile-link-icon" aria-hidden="true">{mobileNavIcons[item.id]}</span>
+                  <span>{item.label}</span>
                 </Link>
               ))}
             </nav>
@@ -521,6 +536,7 @@ export default function Header({
                   <Link to="/history" className="mobile-auth-link">
                     Lịch sử đặt vé
                   </Link>
+                  {isAdminUser ? <Link to="/admin" className="mobile-auth-link">Quản trị</Link> : null}
                   <button
                     type="button"
                     className="mobile-auth-link mobile-auth-link--danger"

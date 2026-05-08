@@ -3,6 +3,17 @@ import MovieCard from "../../components/MovieCard/MovieCard";
 import { getMovies } from "../../services/movieService";
 import "./FilterPage.css";
 
+const MOVIES_PER_PAGE = 12;
+
+const filterFilmPosters = [
+  "/assets/images/khe-uoc-ban-dau.jpg",
+  "/assets/images/heo-nam-mong.jpg",
+  "/assets/images/cai-ma-2025.jpg",
+  "/assets/images/Beauty.jpg",
+  "/assets/images/bay-tien.jpg",
+  "/assets/images/phim-super-mario-thien-ha.jpg",
+];
+
 const normalizeText = (value) =>
   (value || "")
     .toLowerCase()
@@ -18,13 +29,16 @@ const FilterPage = ({ searchQuery = "" }) => {
   const [movies, setMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
 
   useEffect(() => {
     let isMounted = true;
 
-    const fetchMovies = async () => {
+    const fetchMovies = async (silent = false) => {
       try {
-        setIsLoading(true);
+        if (!silent) {
+          setIsLoading(true);
+        }
         setErrorMessage("");
 
         const data = await getMovies();
@@ -44,9 +58,11 @@ const FilterPage = ({ searchQuery = "" }) => {
     };
 
     fetchMovies();
+    const movieRefreshId = window.setInterval(() => fetchMovies(true), 30000);
 
     return () => {
       isMounted = false;
+      window.clearInterval(movieRefreshId);
     };
   }, []);
 
@@ -78,6 +94,21 @@ const FilterPage = ({ searchQuery = "" }) => {
 
     return matchesQuery && matchesGenre && matchesCountry && matchesRating;
   });
+  const pageCount = Math.max(1, Math.ceil(filteredMovies.length / MOVIES_PER_PAGE));
+  const safeCurrentPage = Math.min(currentPage, pageCount);
+  const paginatedMovies = filteredMovies.slice(
+    (safeCurrentPage - 1) * MOVIES_PER_PAGE,
+    safeCurrentPage * MOVIES_PER_PAGE
+  );
+
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [normalizedQuery, selectedGenre, selectedCountry, selectedRating]);
+
+  const handlePageChange = (nextPage) => {
+    setCurrentPage(nextPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const activeFilters = [
     searchQuery.trim() ? { key: "query", label: `Từ khóa: ${searchQuery.trim()}` } : null,
@@ -107,8 +138,26 @@ const FilterPage = ({ searchQuery = "" }) => {
     }
   };
 
+  const filmBackgroundMovies =
+    movies.length > 0
+      ? [...movies].reverse().filter((movie) => movie.poster)
+      : filterFilmPosters.map((poster, index) => ({ id: `fallback-${index}`, poster }));
+  const filmBackgroundLoopMovies = Array.from({ length: 3 }).flatMap(() => filmBackgroundMovies);
+
   return (
     <main className="filter-view-container">
+      <div className="cinematic-film-bg" aria-hidden="true">
+        <div className="cinematic-film-bg__strip">
+          <div className="cinematic-film-bg__track">
+            {[...filmBackgroundLoopMovies, ...filmBackgroundLoopMovies].map((movie, index) => (
+              <span className="cinematic-film-bg__frame" key={`${movie.id}-${index}`}>
+                <img src={movie.poster} alt="" />
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <section className="filter-options-panel">
         <div className="filter-toolbar">
           <div className="filter-toolbar__intro">
@@ -192,7 +241,10 @@ const FilterPage = ({ searchQuery = "" }) => {
         </div>
       </section>
 
-      <section className="movie-grid-container">
+      <section
+        className="movie-grid-container"
+        key={`${selectedGenre}-${selectedCountry}-${selectedRating}-${normalizedQuery}-${safeCurrentPage}`}
+      >
         {isLoading ? (
           <>
             {Array.from({ length: 6 }, (_, index) => (
@@ -205,7 +257,7 @@ const FilterPage = ({ searchQuery = "" }) => {
             <span>{errorMessage}</span>
           </div>
         ) : filteredMovies.length > 0 ? (
-          filteredMovies.map((movie) => <MovieCard key={movie.id} movie={movie} />)
+          paginatedMovies.map((movie) => <MovieCard key={movie.id} movie={movie} />)
         ) : (
           <div className="filter-state-message filter-state-message--empty">
             <strong>Chưa có phim khớp với bộ lọc này.</strong>
@@ -216,6 +268,35 @@ const FilterPage = ({ searchQuery = "" }) => {
           </div>
         )}
       </section>
+
+      {!isLoading && !errorMessage && filteredMovies.length > MOVIES_PER_PAGE ? (
+        <nav className="movie-pagination" aria-label="Movie pages">
+          <button
+            type="button"
+            onClick={() => handlePageChange(Math.max(1, safeCurrentPage - 1))}
+            disabled={safeCurrentPage === 1}
+          >
+            &lt;
+          </button>
+          {Array.from({ length: pageCount }, (_, index) => index + 1).map((page) => (
+            <button
+              key={page}
+              type="button"
+              className={page === safeCurrentPage ? "is-active" : ""}
+              onClick={() => handlePageChange(page)}
+            >
+              {page}
+            </button>
+          ))}
+          <button
+            type="button"
+            onClick={() => handlePageChange(Math.min(pageCount, safeCurrentPage + 1))}
+            disabled={safeCurrentPage === pageCount}
+          >
+            &gt;
+          </button>
+        </nav>
+      ) : null}
     </main>
   );
 };

@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import "./Footer.css";
 
 const Footer = ({ flushTop = false }) => {
@@ -25,15 +26,15 @@ const Footer = ({ flushTop = false }) => {
         <div className="footer-links">
           <h4>TÀI KHOẢN</h4>
           <ul>
-            <li>Đăng nhập</li>
-            <li>Đăng ký</li>
-            <li>Membership</li>
+            <li><Link to="/login">Đăng nhập</Link></li>
+            <li><Link to="/register">Đăng ký</Link></li>
+            <li><Link to="/profile">Membership</Link></li>
           </ul>
 
           <h4 className="footer-subheading">XEM PHIM</h4>
           <ul>
-            <li>Phim đang chiếu</li>
-            <li>Phim sắp chiếu</li>
+            <li><Link to="/?tab=now">Phim đang chiếu</Link></li>
+            <li><Link to="/?tab=soon">Phim sắp chiếu</Link></li>
             <li>Suất chiếu đặc biệt</li>
           </ul>
         </div>
@@ -47,8 +48,8 @@ const Footer = ({ flushTop = false }) => {
 
           <h4 className="footer-subheading">CINEMASTAR</h4>
           <ul>
-            <li>Giới thiệu</li>
-            <li>Liên hệ</li>
+            <li><Link to="/about">Giới thiệu</Link></li>
+            <li><Link to="/feedback">Liên hệ</Link></li>
             <li>Tuyển dụng</li>
           </ul>
         </div>
@@ -101,6 +102,9 @@ const Footer = ({ flushTop = false }) => {
       <button type="button" className="footer-scroll-top" onClick={scrollToTop} aria-label="Cuộn lên đầu trang">
         ↑
       </button>
+      <div className="footer-copyright">
+        © 2026 CineSky. Designed and developed by Đỗ Trọng Hiếu.
+      </div>
     </footer>
   );
 };

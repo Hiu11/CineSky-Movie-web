@@ -7,12 +7,6 @@ import {
 } from "../../services/movieService";
 import "./Booking.css";
 
-const PAYMENT_METHODS = [
-  { id: "bank", label: "ATM nội địa", helper: "Cổng ngân hàng VNPay" },
-  { id: "card", label: "Thẻ quốc tế", helper: "Visa, Mastercard, JCB" },
-  { id: "wallet", label: "Ví điện tử", helper: "VNPay QR, MoMo, ZaloPay" },
-];
-
 const PAYMENT_PROVIDERS = {
   bank: [
     "Vietcombank",
@@ -33,6 +27,13 @@ const PAYMENT_PROVIDERS = {
 };
 
 const PAYMENT_WINDOW_SECONDS = 15 * 60;
+const DATE_OPTIONS_DAYS = 7;
+
+const LOCALIZED_PAYMENT_METHODS = [
+  { id: "bank", label: "ATM nội địa", helper: "Cổng ngân hàng VNPay" },
+  { id: "card", label: "Thẻ quốc tế", helper: "Visa, Mastercard, JCB" },
+  { id: "wallet", label: "Ví điện tử", helper: "VNPay QR, MoMo, ZaloPay" },
+];
 
 const createSeatPatternRows = (rowBlocks = []) =>
   rowBlocks.map((blocks, rowIndex) => ({
@@ -180,6 +181,52 @@ const formatCountdown = (totalSeconds = 0) => {
   return `${String(minutes).padStart(2, "0")} : ${String(seconds).padStart(2, "0")}`;
 };
 
+const buildRollingDateOptions = (days = DATE_OPTIONS_DAYS) => {
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  return Array.from({ length: days }, (_, index) => {
+    const date = new Date(today);
+    date.setDate(today.getDate() + index);
+
+    return {
+      iso: `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(
+        date.getDate()
+      ).padStart(2, "0")}`,
+      weekdayLabel: new Intl.DateTimeFormat("vi-VN", {
+        weekday: "short",
+        timeZone: "Asia/Ho_Chi_Minh",
+      }).format(date),
+      dateLabel: new Intl.DateTimeFormat("vi-VN", {
+        day: "2-digit",
+        month: "2-digit",
+        timeZone: "Asia/Ho_Chi_Minh",
+      }).format(date),
+    };
+  });
+};
+
+const formatBookingCreatedAt = (value) => {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    hour: "2-digit",
+    minute: "2-digit",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(date);
+};
+
 const getSeatToneForRow = (rowKey = "", totalRows = 0) => {
   const rowIndex = Math.max(String(rowKey).charCodeAt(0) - 65, 0);
 
@@ -198,6 +245,7 @@ export default function Booking({ showToast }) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const movieId = searchParams.get("movieId");
+  const availableDateOptions = useMemo(() => buildRollingDateOptions(), []);
   const [sessionUser] = useState(() => {
     if (typeof window === "undefined") {
       return null;
@@ -210,7 +258,9 @@ export default function Booking({ showToast }) {
       return null;
     }
   });
+  const isAuthenticated = Boolean(sessionUser?.id || sessionUser?.email);
 
+  const [selectedScreeningDate, setSelectedScreeningDate] = useState(availableDateOptions[0]?.iso || "");
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [selectedCinemaName, setSelectedCinemaName] = useState("");
   const [selectedShowtimeId, setSelectedShowtimeId] = useState("");
@@ -241,8 +291,9 @@ export default function Booking({ showToast }) {
 
   useEffect(() => {
     setSelectedSeats([]);
+    setSelectedScreeningDate(availableDateOptions[0]?.iso || "");
     setSubmitMessage({ type: "", message: "" });
-  }, [movieId]);
+  }, [availableDateOptions, movieId]);
 
   useEffect(() => {
     const nextProviders = PAYMENT_PROVIDERS[selectedPaymentMethod];
@@ -279,12 +330,9 @@ export default function Booking({ showToast }) {
 
         setMovie(data.movie);
         setShowtimes(data.showtimes || []);
-
-        const defaultCinema = data.showtimes?.[0]?.cinemaName || "";
-        const defaultShowtimeId = data.showtimes?.[0]?.id || "";
-
-        setSelectedCinemaName(defaultCinema);
-        setSelectedShowtimeId(defaultShowtimeId);
+        setSelectedCinemaName("");
+        setSelectedShowtimeId("");
+        setSelectedSeats([]);
       } catch (error) {
         if (isMounted) {
           setMovie(null);
@@ -325,8 +373,6 @@ export default function Booking({ showToast }) {
       try {
         setIsHistoryLoading(true);
         const history = await getBookingHistory({
-          userId: sessionUser?.id || "",
-          email: sessionUser?.email || "",
           limit: 6,
         });
 
@@ -370,6 +416,16 @@ export default function Booking({ showToast }) {
     () => showtimes.filter((showtime) => showtime.cinemaName === selectedCinemaName),
     [showtimes, selectedCinemaName]
   );
+  const selectedScreeningDateOption = useMemo(
+    () =>
+      availableDateOptions.find((dateOption) => dateOption.iso === selectedScreeningDate) ||
+      availableDateOptions[0] ||
+      null,
+    [availableDateOptions, selectedScreeningDate]
+  );
+  const selectedScreeningDateLabel = selectedScreeningDateOption
+    ? `${selectedScreeningDateOption.weekdayLabel} • ${selectedScreeningDateOption.dateLabel}`
+    : "";
 
   const selectedShowtime = useMemo(
     () =>
@@ -454,6 +510,12 @@ export default function Booking({ showToast }) {
   }, [providerSearch, selectedPaymentMethod]);
 
   const isComingSoon = showtimes.length === 0;
+  const movieDuration = movie?.duration || movie?.durationMinutes || movie?.runtime || movie?.time;
+  const movieMetaItems = [
+    movieDuration ? `${movieDuration} phút` : "",
+    movie?.genre,
+    movie?.country,
+  ].filter(Boolean);
   const bookedSeats = selectedShowtime?.bookedSeats || [];
   const isPaymentExpired = Boolean(selectedShowtime) && paymentSecondsLeft <= 0;
   const paymentCountdownLabel = isPaymentExpired
@@ -481,7 +543,10 @@ export default function Booking({ showToast }) {
       {
         id: "showtime",
         label: "Suất chiếu",
-        helper: selectedShowtime?.displayTime || "Tiếp theo là giờ chiếu",
+        helper:
+          selectedShowtime?.displayTime && selectedScreeningDateLabel
+            ? `${selectedScreeningDateLabel} • ${selectedShowtime.displayTime}`
+            : "Tiếp theo là ngày và giờ chiếu",
         complete: Boolean(selectedShowtimeId),
       },
       {
@@ -505,7 +570,7 @@ export default function Booking({ showToast }) {
       status:
         step.complete ? "complete" : index === (currentIndex === -1 ? steps.length - 1 : currentIndex) ? "current" : "upcoming",
     }));
-  }, [isPaymentFormReady, selectedCinemaName, selectedSeats.length, selectedShowtime, selectedShowtimeId]);
+  }, [isPaymentFormReady, selectedCinemaName, selectedScreeningDateLabel, selectedSeats.length, selectedShowtime, selectedShowtimeId]);
 
   const toggleSeat = (seat) => {
     if (bookedSeats.includes(seat)) {
@@ -521,14 +586,20 @@ export default function Booking({ showToast }) {
 
   const handleCinemaChange = (cinemaName) => {
     setSelectedCinemaName(cinemaName);
-    const nextShowtime = showtimes.find((showtime) => showtime.cinemaName === cinemaName);
-    setSelectedShowtimeId(nextShowtime?.id || "");
+    setSelectedShowtimeId("");
+    setSelectedSeats([]);
+    setSubmitMessage({ type: "", message: "" });
+  };
+
+  const handleScreeningDateChange = (dateValue) => {
+    setSelectedScreeningDate(dateValue);
+    setSelectedShowtimeId("");
     setSelectedSeats([]);
     setSubmitMessage({ type: "", message: "" });
   };
 
   const handleShowtimeChange = (showtimeId) => {
-    setSelectedShowtimeId(showtimeId);
+    setSelectedShowtimeId(String(showtimeId));
     setSelectedSeats([]);
     setSubmitMessage({ type: "", message: "" });
   };
@@ -542,6 +613,20 @@ export default function Booking({ showToast }) {
 
   const handleConfirmBooking = async () => {
     if (!selectedShowtime || selectedSeats.length === 0) {
+      return;
+    }
+
+    if (!isAuthenticated) {
+      showToast?.({
+        type: "info",
+        title: "Cần đăng nhập",
+        message: "Vui lòng đăng nhập trước khi đặt vé.",
+      });
+      setSubmitMessage({
+        type: "error",
+        message: "Bạn cần đăng nhập trước khi xác nhận đặt vé.",
+      });
+      navigate("/login");
       return;
     }
 
@@ -576,9 +661,8 @@ export default function Booking({ showToast }) {
       setSubmitMessage({ type: "", message: "" });
 
       const booking = await createBooking({
-        userId: sessionUser?.id || "",
-        customerName: sessionUser?.fullName || sessionUser?.name || "",
-        customerEmail: sessionUser?.email || "",
+        screeningDate: selectedScreeningDate,
+        screeningDateLabel: selectedScreeningDateLabel,
         movieId: movie.id,
         showtimeId: selectedShowtime.id,
         seatNumbers: selectedSeats,
@@ -600,11 +684,11 @@ export default function Booking({ showToast }) {
         movieTitle: movie.title,
         cinemaName: selectedShowtime.cinemaName,
         roomName: selectedShowtime.roomName,
-        displayDate: selectedShowtime.displayDate,
+        displayDate: selectedScreeningDateLabel || selectedShowtime.displayDate,
         displayTime: selectedShowtime.displayTime,
         seatNumbers: booking.seatNumbers,
         paymentLabel: [
-          PAYMENT_METHODS.find((method) => method.id === selectedPaymentMethod)?.label,
+          LOCALIZED_PAYMENT_METHODS.find((method) => method.id === selectedPaymentMethod)?.label,
           selectedProvider,
         ]
           .filter(Boolean)
@@ -681,13 +765,13 @@ export default function Booking({ showToast }) {
           <span className="booking-page__eyebrow">Đặt vé nhanh</span>
           <h1 className="booking-page__title">{movie.title}</h1>
           <p className="booking-page__subtitle">
-            Chọn rạp, suất chiếu, vị trí ghế và phương thức thanh toán phù hợp để hoàn tất
+            Chọn rạp, ngày xem, suất chiếu, vị trí ghế và phương thức thanh toán để hoàn tất
             trải nghiệm đặt vé theo phong cách CineSky.
           </p>
           <div className="booking-page__meta">
-            <span>{movie.duration} phút</span>
-            <span>{movie.genre}</span>
-            <span>{movie.country}</span>
+            {movieMetaItems.map((item) => (
+              <span key={item}>{item}</span>
+            ))}
           </div>
         </div>
 
@@ -773,7 +857,24 @@ export default function Booking({ showToast }) {
                 <span className="booking-page__eyebrow">Bước 2</span>
                 <h2>Chọn suất chiếu</h2>
               </div>
-              <p>Chọn khung giờ phù hợp với lịch trình của bạn trong rạp đã chọn.</p>
+              <p>Chọn ngày xem và khung giờ phù hợp với lịch trình của bạn trong rạp đã chọn.</p>
+            </div>
+
+            <div className="booking-page__date-strip" aria-label="Chọn ngày chiếu">
+              {availableDateOptions.map((dateOption) => (
+                <button
+                  key={dateOption.iso}
+                  type="button"
+                  onClick={() => handleScreeningDateChange(dateOption.iso)}
+                  className={
+                    "booking-page__date-option" +
+                    (selectedScreeningDate === dateOption.iso ? " is-active" : "")
+                  }
+                >
+                  <span>{dateOption.weekdayLabel}</span>
+                  <strong>{dateOption.dateLabel}</strong>
+                </button>
+              ))}
             </div>
 
             <div className="booking-page__row">
@@ -788,7 +889,7 @@ export default function Booking({ showToast }) {
                     }
                   >
                     <span>{showtime.displayTime}</span>
-                    <small>{showtime.displayDate + " • " + showtime.roomName}</small>
+                    <small>{selectedScreeningDateLabel + " • " + showtime.roomName}</small>
                   </button>
                 ))
               ) : (
@@ -804,7 +905,7 @@ export default function Booking({ showToast }) {
                 <h2>Chọn ghế</h2>
               </div>
               <div className="booking-page__screening-meta">
-                <span>{selectedShowtime?.displayDate || "Chưa có lịch"}</span>
+                <span>{selectedScreeningDateLabel || selectedShowtime?.displayDate || "Chưa có lịch"}</span>
                 <span>{selectedShowtime?.displayTime || "Chưa có suất"}</span>
                 <span>{selectedShowtime?.roomName || "Chưa có phòng"}</span>
               </div>
@@ -1014,7 +1115,7 @@ export default function Booking({ showToast }) {
             </div>
 
             <div className="booking-page__payment-methods">
-              {PAYMENT_METHODS.map((method) => (
+              {LOCALIZED_PAYMENT_METHODS.map((method) => (
                 <button
                   key={method.id}
                   type="button"
@@ -1044,7 +1145,7 @@ export default function Booking({ showToast }) {
                 <div className="booking-page__payment-card-header">
                   <div>
                     <strong>Chọn nhà cung cấp</strong>
-                    <span>{PAYMENT_METHODS.find((method) => method.id === selectedPaymentMethod)?.helper}</span>
+                    <span>{LOCALIZED_PAYMENT_METHODS.find((method) => method.id === selectedPaymentMethod)?.helper}</span>
                   </div>
                   <span className="booking-page__payment-badge">Test UI</span>
                 </div>
@@ -1182,7 +1283,7 @@ export default function Booking({ showToast }) {
                         <div>
                           <strong>{booking.movieTitle || "Vé xem phim"}</strong>
                           <span>
-                            {[booking.displayDate, booking.displayTime].filter(Boolean).join(" • ")}
+                            {[booking.displayDate, booking.displayTime].filter(Boolean).join(" • ") + (formatBookingCreatedAt(booking.createdAt) ? ` • Đặt lúc ${formatBookingCreatedAt(booking.createdAt)}` : "")}
                           </span>
                         </div>
                         <span
@@ -1257,7 +1358,7 @@ export default function Booking({ showToast }) {
                 <div className="booking-page__summary-row booking-page__summary-row--wide">
                   <span>Lịch chiếu</span>
                   <strong>
-                    {[selectedShowtime?.displayDate, selectedShowtime?.displayTime]
+                    {[selectedScreeningDateLabel || selectedShowtime?.displayDate, selectedShowtime?.displayTime]
                       .filter(Boolean)
                       .join(" • ") || "Chưa có lịch"}
                   </strong>
@@ -1270,7 +1371,7 @@ export default function Booking({ showToast }) {
                   <span>Thanh toán</span>
                   <strong>
                     {[
-                      PAYMENT_METHODS.find((method) => method.id === selectedPaymentMethod)?.label,
+                      LOCALIZED_PAYMENT_METHODS.find((method) => method.id === selectedPaymentMethod)?.label,
                       selectedProvider,
                     ]
                       .filter(Boolean)
@@ -1310,6 +1411,12 @@ export default function Booking({ showToast }) {
               {submitMessage.message ? (
                 <p className={"booking-page__status booking-page__status--" + submitMessage.type}>
                   {submitMessage.message}
+                </p>
+              ) : null}
+
+              {!isAuthenticated ? (
+                <p className="booking-page__status booking-page__status--error">
+                  Vui lòng đăng nhập để hoàn tất đặt vé.
                 </p>
               ) : null}
 

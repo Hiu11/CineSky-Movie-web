@@ -6,7 +6,7 @@ import AuthLayout, {
   AuthSocialButtons,
   AuthSocialFooter,
 } from "../../components/AuthLayout/AuthLayout";
-import { loginUser } from "../../services/authService";
+import { loginUser, storeAuthSession } from "../../services/authService";
 import "./Login.css";
 
 export default function Login({ onLoginSuccess, showToast }) {
@@ -38,12 +38,11 @@ export default function Login({ onLoginSuccess, showToast }) {
     setIsSubmitting(true);
 
     try {
-      const user = await loginUser({
+      const session = await loginUser({
         email,
         password,
       });
-
-      sessionStorage.setItem("user", JSON.stringify(user));
+      const { user } = storeAuthSession(session);
 
       if (onLoginSuccess) {
         onLoginSuccess(user);

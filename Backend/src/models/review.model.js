@@ -28,6 +28,8 @@ const reviewSchema = new mongoose.Schema(
   }
 );
 
+reviewSchema.index({ userId: 1, movieLegacyId: 1 }, { unique: true });
+
 const ReviewModel = mongoose.model("reviews", reviewSchema);
 
 export default ReviewModel;

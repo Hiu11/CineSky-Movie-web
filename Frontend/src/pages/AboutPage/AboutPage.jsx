@@ -1,30 +1,30 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import "./AboutPage.css";
 
 const projectPoints = [
   {
-    title: "Trải nghiệm đặt vé mạch lạc",
+    title: "Luồng xem phim và đặt vé đã liền mạch hơn",
     description:
-      "CineSky tập trung vào luồng thao tác rõ ràng: từ khám phá phim, xem trailer, chọn suất chiếu đến đặt vé trên cùng một trải nghiệm trực quan và dễ theo dõi.",
+      "Người dùng có thể đi từ trang chủ, lọc phim, xem chi tiết, chọn suất chiếu, đặt vé, xem trang thành công và kiểm tra lại lịch sử booking.",
   },
   {
-    title: "Giao diện hiện đại, dễ dùng",
+    title: "Tài khoản người dùng có trạng thái thật",
     description:
-      "Dự án ưu tiên cảm giác điện ảnh nhưng vẫn giữ nhịp đọc thoáng, card rõ ràng và các điểm nhấn đủ mạnh để người dùng mới vẫn thao tác nhanh mà không bị rối.",
+      "Project đã có đăng ký, đăng nhập, quên mật khẩu, hồ sơ cá nhân, token đăng nhập và các route cần tài khoản như đặt vé/lịch sử.",
   },
   {
-    title: "Nền tảng fullstack để mở rộng",
+    title: "Admin Dashboard đã quản lý được dữ liệu chính",
     description:
-      "Toàn bộ dữ liệu phim, thể loại, suất chiếu và booking được tổ chức theo hướng API-driven để dễ phát triển thêm xác thực, lịch sử đặt vé và quản trị nội dung.",
+      "Admin có thể xem overview, quản lý phim, người dùng, booking, thùng rác phim và các dữ liệu phục vụ vận hành mô phỏng.",
   },
 ];
 
 const stats = [
-  { value: "Cá nhân", label: "CineSky được xây dựng như một dự án cá nhân để rèn tư duy sản phẩm và fullstack." },
-  { value: "Frontend", label: "Định hướng chính là tối ưu giao diện, trải nghiệm người dùng và khả năng thao tác nhanh." },
-  { value: "React + Express", label: "Kết nối frontend và backend theo luồng dữ liệu thật thay vì chỉ dựng giao diện tĩnh." },
-  { value: "Responsive", label: "Tối ưu hiển thị trên desktop, tablet và mobile để trải nghiệm đồng nhất hơn." },
+  { value: "Full-stack", label: "React frontend kết nối Express API và MongoDB cho dữ liệu phim, user, booking, feedback." },
+  { value: "Auth", label: "Có đăng ký, đăng nhập, JWT/session, profile và phân quyền user/admin." },
+  { value: "Booking", label: "Có chọn phim, chọn suất chiếu, tạo vé và xem lại lịch sử đặt vé." },
+  { value: "Admin", label: "Có dashboard quản lý phim, user, booking, thùng rác và overview." },
 ];
 
 const creatorHighlights = [
@@ -37,106 +37,232 @@ const creatorHighlights = [
 const journeySteps = [
   {
     step: "01",
-    title: "Khám phá phim",
+    title: "Khám phá và lọc phim",
     description:
-      "Người dùng có thể bắt đầu từ trang chủ, phim đang chiếu, phim sắp chiếu hoặc khu lọc để tiếp cận đúng nội dung mình quan tâm ngay từ đầu.",
+      "Người dùng bắt đầu từ trang chủ, tab phim đang chiếu/sắp chiếu, ô tìm kiếm hoặc trang lọc phim để tìm nội dung phù hợp.",
   },
   {
     step: "02",
-    title: "Xem chi tiết rõ ràng",
+    title: "Xem chi tiết và tương tác",
     description:
-      "Mỗi phim có trang riêng để xem mô tả, trailer, thời lượng, quốc gia, độ tuổi và cân nhắc trước khi đi tiếp đến bước đặt vé.",
+      "Trang chi tiết hiển thị poster, trailer, mô tả, thể loại, thời lượng, độ tuổi; người dùng có thể review/favorite khi đăng nhập.",
   },
   {
     step: "03",
-    title: "Đặt vé nhanh hơn",
+    title: "Đặt vé theo suất chiếu",
     description:
-      "Luồng booking gom các bước chọn rạp, suất chiếu, ghế và thanh toán về một flow mạch lạc để giảm thao tác thừa và tăng cảm giác kiểm soát.",
+      "Luồng booking xử lý chọn rạp, phòng, suất chiếu, ghế và tạo booking; sau đó chuyển sang trang đặt vé thành công.",
   },
   {
     step: "04",
-    title: "Hoàn thiện dần theo sản phẩm thật",
+    title: "Theo dõi sau khi đặt",
     description:
-      "Dự án tiếp tục được mở rộng theo hướng có đăng nhập, lịch sử đặt vé, dữ liệu động và các lớp quản trị gần hơn với một movie web app thực tế.",
+      "Người dùng có thể xem lịch sử đặt vé, cập nhật hồ sơ cá nhân và gửi feedback để góp ý cho trải nghiệm CineSky.",
   },
 ];
 
 const creatorFocus = [
-  "Thiết kế giao diện theo phong cách điện ảnh nhưng vẫn rõ ràng khi thao tác",
-  "Xây dựng luồng đặt vé có chọn rạp, suất chiếu, ghế và thanh toán mô phỏng",
-  "Kết nối frontend với backend qua API phim, thể loại, showtime và booking",
-  "Tối ưu responsive để website giữ được trải nghiệm ổn định trên nhiều kích thước màn hình",
+  "Hoàn thiện trải nghiệm người dùng từ tìm phim đến lịch sử đặt vé",
+  "Kết nối các API auth, movie, booking, feedback, review/favorite và admin",
+  "Làm Admin Dashboard đủ dùng để quản lý phim, user, booking và thùng rác",
+  "Giữ giao diện điện ảnh nhưng vẫn rõ trạng thái, thông báo và thao tác chính",
 ];
 
 const technologies = [
   "ReactJS",
   "React Router",
   "JavaScript",
-  "TypeScript-ready",
+  "React Scripts",
   "ExpressJS",
   "MongoDB",
   "Mongoose",
   "REST API",
+  "bcrypt",
+  "JWT Auth",
+  "Admin Dashboard",
   "Responsive UI",
   "Figma mindset",
 ];
 
+const filmPosters = [
+  "/assets/images/1990.webp",
+  "/assets/images/anh-hung-2026.jpg",
+  "/assets/images/khe-uoc-ban-dau.jpg",
+  "/assets/images/heo-nam-mong.jpg",
+  "/assets/images/cai-ma-2025.jpg",
+  "/assets/images/Beauty.jpg",
+  "/assets/images/bay-tien.jpg",
+  "/assets/images/bau-vat-troi-cho.jpg",
+  "/assets/images/mot-thoi-ta-da-yeu.jpg",
+  "/assets/images/mua-do-2025.jpg",
+  "/assets/images/mui-pho.webp",
+  "/assets/images/Mắt biếc.jpg",
+  "/assets/images/phi-phong-quy-mau-rung-thieng.jpg",
+  "/assets/images/phim-super-mario-thien-ha.jpg",
+  "/assets/images/quy-nhap-trang-main.webp",
+  "/assets/images/running-man.jpg",
+  "/assets/images/song-hy-lam-nguy.jpg",
+  "/assets/images/supergirl-2026.jpg",
+  "/assets/images/tai-2026.jpg",
+  "/assets/images/te-le-quy-linh-nhi.webp",
+  "/assets/images/tham-my-vien-am-phu.jpg",
+  "/assets/images/Thor.jpg",
+  "/assets/images/thỏ ơi.jpg",
+  "/assets/images/tiểu yêu quái núi lãng lãng.jpg",
+  "/assets/images/Tử chiến.jpg",
+  "/assets/images/Đào.jpg",
+  "/assets/images/Đảo.jpg",
+];
+
+const completedFeatures = [
+  {
+    title: "Authentication và hồ sơ người dùng",
+    description:
+      "CineSky hiện có đăng ký, đăng nhập, quên mật khẩu, JWT/session, route private và trang profile để người dùng xem/cập nhật thông tin cá nhân.",
+  },
+  {
+    title: "Movie booking flow có lịch sử",
+    description:
+      "Người dùng có thể xem phim, tìm/lọc phim, vào chi tiết, chọn suất chiếu, tạo booking, xem trang thành công và tra lại lịch sử đặt vé.",
+  },
+  {
+    title: "Admin Dashboard đã có nghiệp vụ chính",
+    description:
+      "Admin có overview, danh sách users, bookings, quản lý phim, cập nhật role, xóa/khôi phục phim trong thùng rác và theo dõi dữ liệu mô phỏng.",
+  },
+  {
+    title: "Có lớp tương tác và phản hồi",
+    description:
+      "Project đã có feedback, review/favorite, toast thông báo, tìm kiếm gợi ý, lưu tìm kiếm gần đây và các trạng thái UI giúp trải nghiệm thật hơn.",
+  },
+];
+
+const projectPros = [
+  "Luồng người dùng khá đầy đủ: tìm phim, xem chi tiết, đăng nhập, đặt vé, xem lịch sử và gửi feedback.",
+  "Có backend Express/MongoDB, JWT auth, dữ liệu movie/showtime/booking và các API riêng cho admin.",
+  "Admin Dashboard có các phần quan trọng như movies, users, orders/bookings, trash và overview.",
+];
+
+const projectCons = [
+  "Thanh toán vẫn là mô phỏng, chưa tích hợp cổng thanh toán thật hoặc quy trình hoàn/hủy vé đầy đủ.",
+  "Một số module admin như showtimes, cinemas, payments, activity hiện thiên về hiển thị hơn là CRUD hoàn chỉnh.",
+  "Dự án cần thêm kiểm thử, deploy production, bảo mật nâng cao và tối ưu hiệu năng khi dữ liệu lớn hơn.",
+];
+
 const roadmapItems = [
   {
-    phase: "Dữ liệu & nội dung",
+    phase: "Thanh toán & vé",
     description:
-      "Tiếp tục chuẩn hóa dữ liệu phim, thể loại, showtime và booking để các trang hiển thị hoàn toàn từ backend thay vì phụ thuộc vào dữ liệu tĩnh.",
+      "Nâng từ thanh toán mô phỏng sang trạng thái giao dịch rõ hơn, có mã vé/QR, hủy vé, hoàn tiền và kiểm tra vé tại rạp.",
   },
   {
-    phase: "Tài khoản & xác thực",
+    phase: "Admin CRUD sâu hơn",
     description:
-      "Hoàn thiện đăng ký, đăng nhập, hồ sơ người dùng và các quyền truy cập cơ bản để những luồng cần trạng thái tài khoản hoạt động chặt chẽ hơn.",
+      "Mở rộng quản lý showtimes, cinemas, payments và activity log để admin vận hành dữ liệu chủ động hơn thay vì chỉ xem overview.",
   },
   {
-    phase: "Booking & lịch sử",
+    phase: "Bảo mật & phân quyền",
     description:
-      "Mở rộng từ bước chọn ghế sang lưu booking thật, đồng bộ lịch sử giao dịch và cho phép người dùng xem lại thông tin các vé đã đặt.",
+      "Bổ sung refresh token flow chặt hơn, phân quyền chi tiết theo hành động admin, validate dữ liệu và bảo vệ các endpoint quan trọng.",
   },
   {
-    phase: "Định hướng AI",
+    phase: "Gợi ý phim thông minh",
     description:
-      "Tích hợp AI để gợi ý phim theo sở thích, lịch sử đặt vé và khung giờ rảnh của người dùng; hỗ trợ chatbot giải đáp nhanh về phim, suất chiếu, giá vé và đề xuất combo phù hợp trước khi thanh toán.",
+      "Dựa trên lịch sử đặt vé, favorite, review và thể loại yêu thích để gợi ý phim phù hợp hơn cho từng người dùng.",
   },
   {
-    phase: "Quản trị nội dung",
+    phase: "Deploy & kiểm thử",
     description:
-      "Bổ sung lớp quản lý phim, thể loại, suất chiếu và nội dung động để CineSky tiến gần hơn đến một hệ thống hoàn chỉnh và dễ vận hành.",
+      "Chuẩn hóa môi trường production, thêm test cho auth/booking/admin và kiểm tra responsive để project sẵn sàng demo ổn định.",
   },
 ];
 
 const creatorTimeline = [
   {
-    phase: "Research",
-    detail: "Phác thảo luồng người dùng, các trang chính và cảm giác điện ảnh mà CineSky muốn truyền tải.",
+    phase: "UI & Catalog",
+    detail: "Dựng trang chủ, tab phim, movie card, filter/search và trang chi tiết để người dùng khám phá nội dung.",
   },
   {
-    phase: "UI Design",
-    detail: "Dựng layout card, hero, movie detail và booking theo hướng tối, rõ và dễ thao tác.",
+    phase: "Auth & Profile",
+    detail: "Bổ sung đăng ký, đăng nhập, quên mật khẩu, lưu session/token và trang hồ sơ cá nhân.",
   },
   {
-    phase: "Frontend",
-    detail: "Kết nối route, search, filter, movie detail, feedback và các trạng thái giao diện chính.",
+    phase: "Booking",
+    detail: "Kết nối showtime, chọn ghế, tạo booking, trang thành công và lịch sử đặt vé cho user.",
   },
   {
-    phase: "Backend",
-    detail: "Tổ chức dữ liệu phim, showtime, booking và các API cần thiết để website chạy theo luồng thật.",
+    phase: "Admin",
+    detail: "Hoàn thiện dashboard quản lý phim, user, booking, trash và các số liệu overview.",
   },
 ];
 
+const cinemaMission = [
+  {
+    number: "01",
+    title: "Tìm phim nhanh",
+    description: "Trang chủ, tab phim, search gợi ý và filter giúp người dùng tiếp cận đúng phim mình muốn xem.",
+  },
+  {
+    number: "02",
+    title: "Đặt vé có tài khoản",
+    description: "Luồng booking gắn với user để lưu lịch sử, kiểm tra lại vé và tạo cảm giác như sản phẩm thật.",
+  },
+  {
+    number: "03",
+    title: "Quản trị nội dung",
+    description: "Admin quản lý phim, user, booking và thùng rác để dữ liệu phía người dùng có thể vận hành đồng bộ.",
+  },
+];
+
+const cinemaLocations = [
+  {
+    name: "CineSky Nguyen Hue",
+    rooms: "2 phòng chiếu",
+    seats: "392 ghế",
+    address: "12 Nguyen Hue, Quan 1, TP.HCM",
+    halls: "Sky Hall 1, Sky Hall 2",
+  },
+  {
+    name: "CineSky Hai Ba Trung",
+    rooms: "2 phòng chiếu",
+    seats: "432 ghế",
+    address: "98 Hai Ba Trung, Quan 3, TP.HCM",
+    halls: "Moon Hall, Galaxy Hall",
+  },
+  {
+    name: "CineSky Dien Bien Phu",
+    rooms: "2 phòng chiếu",
+    seats: "608 ghế",
+    address: "215 Dien Bien Phu, Binh Thanh, TP.HCM",
+    halls: "Nova Hall, Aurora Hall",
+  },
+];
+
+const cinemaServices = [
+  "Trang chủ, phim đang chiếu, phim sắp chiếu, tìm kiếm gợi ý và lọc phim",
+  "Trang chi tiết phim có trailer, mô tả, thông tin nhanh, review/favorite",
+  "Đặt vé theo suất chiếu, chọn ghế, trang thành công và lịch sử booking",
+  "Đăng ký, đăng nhập, quên mật khẩu, profile và phân quyền user/admin",
+  "Admin Dashboard quản lý phim, user, booking, thùng rác và overview",
+];
+
+const aboutNoteText =
+  "Trang About được chia rõ 2 phần: phía trên giới thiệu CineSky như một hệ thống rạp phim/website đặt vé để người dùng hiểu dịch vụ; phía dưới mới là phần nói về dự án cá nhân, công nghệ và người thực hiện. CineSky hiện vẫn là sản phẩm mô phỏng phục vụ học tập và portfolio, nhưng đã có thêm auth, booking, history, feedback và admin dashboard; thanh toán và một số module vận hành vẫn ở mức mô phỏng.";
+
 const AboutPage = () => {
   const pageRef = useRef(null);
+  const noteRef = useRef(null);
+  const noteCardRef = useRef(null);
+  const [isNotePopupOpen, setIsNotePopupOpen] = useState(true);
+  const [isNoteClosing, setIsNoteClosing] = useState(false);
+  const [isNoteLanding, setIsNoteLanding] = useState(false);
 
   useEffect(() => {
     const page = pageRef.current;
     if (!page) return;
 
     const revealItems = page.querySelectorAll(
-      ".about-page > section, .about-section-heading, .about-highlight-card, .about-stat-card, .about-creator-card, .about-story-card, .about-journey-card, .about-timeline-card, .about-roadmap-card"
+      ".about-page > section, .about-section-heading, .about-highlight-card, .about-stat-card, .about-creator-card, .about-story-card, .about-journey-card, .about-timeline-card, .about-roadmap-card, .about-pros-cons-card"
     );
 
     if (!("IntersectionObserver" in window)) {
@@ -160,17 +286,65 @@ const AboutPage = () => {
     return () => observer.disconnect();
   }, []);
 
+  const closeNotePopup = () => {
+    const noteRect = noteRef.current?.getBoundingClientRect();
+    const cardRect = noteCardRef.current?.getBoundingClientRect();
+
+    if (noteRect && cardRect) {
+      noteCardRef.current.style.setProperty("--about-note-close-x", `${noteRect.left - cardRect.left}px`);
+      noteCardRef.current.style.setProperty("--about-note-close-y", `${noteRect.top - cardRect.top}px`);
+      noteCardRef.current.style.setProperty(
+        "--about-note-close-scale",
+        String(Math.min(noteRect.width / cardRect.width, 1))
+      );
+    }
+
+    setIsNoteClosing(true);
+
+    window.setTimeout(() => {
+      setIsNotePopupOpen(false);
+      setIsNoteClosing(false);
+      setIsNoteLanding(true);
+    }, 620);
+
+    window.setTimeout(() => {
+      setIsNoteLanding(false);
+    }, 1700);
+  };
+
   return (
     <main className="about-page" ref={pageRef}>
+      {isNotePopupOpen ? (
+        <div className={`about-note-modal${isNoteClosing ? " about-note-modal--closing" : ""}`} role="dialog" aria-modal="true" aria-labelledby="about-note-title">
+          <div ref={noteCardRef} className="about-note-modal__card">
+            <div className="about-note-modal__icon">!</div>
+            <div>
+              <span className="about-kicker" id="about-note-title">Ghi chú nhanh</span>
+              <p>{aboutNoteText}</p>
+            </div>
+            <button type="button" onClick={closeNotePopup} aria-label="Đóng ghi chú">
+              Đã hiểu
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <section className="about-hero">
         <div className="about-hero__content">
-          <span className="about-kicker">Giới thiệu dự án</span>
-          <h1>CineSky là dự án cá nhân được xây dựng để mô phỏng một trải nghiệm đặt vé xem phim hiện đại, gọn và dễ dùng.</h1>
+          <span className="about-kicker">Về rạp CineSky</span>
+          <h1>CineSky là website đặt vé xem phim full-stack với luồng tìm phim, đặt vé, tài khoản người dùng và admin dashboard.</h1>
           <p>
-            Đây không chỉ là một website hiển thị danh sách phim. CineSky được mình phát triển theo hướng có luồng sản phẩm rõ
-            ràng: khám phá phim, xem thông tin chi tiết, chọn rạp, chọn suất chiếu, chọn ghế và tiến đến bước thanh toán trên
-            cùng một hệ giao diện có điểm nhấn và dễ thao tác.
+            Phiên bản hiện tại không chỉ dừng ở giao diện xem phim. Người dùng có thể tìm kiếm/lọc phim, xem chi tiết,
+            đăng nhập, đặt vé, xem lịch sử booking, cập nhật profile và gửi feedback; admin có khu vực riêng để quản lý dữ liệu chính.
           </p>
+
+          <div ref={noteRef} className={`about-project-note${isNoteLanding ? " about-project-note--landing" : ""}`}>
+            <strong>Ghi chú nhanh</strong>
+            <p>{aboutNoteText}</p>
+          </div>
+
+          <div className="about-film-reel" aria-label="Poster phim CineSky chuyển động">
+          </div>
 
           <div className="about-hero__actions">
             <Link to="/?tab=now" className="about-solid-link">
@@ -197,12 +371,11 @@ const AboutPage = () => {
 
         <div className="about-hero__panel">
           <div className="about-highlight-card">
-            <span className="about-highlight-card__label">Chủ dự án</span>
-            <h2>Đỗ Trọng Hiếu</h2>
+            <span className="about-highlight-card__label">Trải nghiệm tại CineSky</span>
+            <h2>Tìm phim, đặt vé, lưu lịch sử và quản trị dữ liệu trong cùng một project.</h2>
             <p>
-              Mình là sinh viên Kỹ thuật Phần mềm tại UEH, định hướng Frontend Developer. CineSky được phát triển như một dự
-              án cá nhân để rèn khả năng thiết kế giao diện, tổ chức luồng trải nghiệm và kết nối frontend - backend theo mô
-              hình fullstack.
+              CineSky hiện kết nối React frontend với Express API và MongoDB. Các phần auth, movie, booking, feedback,
+              review/favorite và admin được tổ chức thành một luồng sản phẩm mô phỏng khá đầy đủ cho portfolio.
             </p>
 
             <div className="about-creator-facts">
@@ -217,6 +390,88 @@ const AboutPage = () => {
         </div>
       </section>
 
+      <section className="about-film-reel" aria-label="Poster phim CineSky chuyển động">
+        <div className="about-film-reel__track">
+          {[...filmPosters, ...filmPosters].map((poster, index) => (
+            <div className="about-film-frame" key={`${poster}-${index}`}>
+              <img src={poster} alt="" />
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section className="about-cinema-block">
+        <div className="about-section-heading about-section-heading--center">
+          <span className="about-kicker">Hệ thống rạp</span>
+          <h2>CineSky mô phỏng một hệ thống đặt vé phim có dữ liệu rạp, phòng chiếu, suất chiếu và ghế.</h2>
+          <p>
+            Phần này nói về lớp trải nghiệm dành cho người xem: xem phim đang chiếu/sắp chiếu, lọc nội dung, vào chi tiết,
+            chọn suất chiếu và hoàn tất booking với tài khoản đã đăng nhập.
+          </p>
+        </div>
+
+        <div className="about-mission-grid">
+          {cinemaMission.map((item) => (
+            <article key={item.number} className="about-mission-card">
+              <strong>{item.number}</strong>
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="about-location-system">
+        <div className="about-section-heading">
+          <span className="about-kicker">Cụm rạp mô phỏng</span>
+          <h2>Dữ liệu rạp và phòng chiếu đang phục vụ trực tiếp cho luồng booking.</h2>
+          <p>
+            Các cụm rạp mô phỏng giúp người dùng hình dung nơi xem, phòng chiếu và số ghế. Dữ liệu này là nền để mở rộng
+            quản lý cinema/showtime sâu hơn trong Admin Dashboard.
+          </p>
+        </div>
+
+        <div className="about-location-layout">
+          <div className="about-cinema-summary" aria-label="Tổng quan cụm rạp CineSky">
+            <span className="about-highlight-card__label">Dữ liệu hiện tại</span>
+            <strong>3</strong>
+            <p>cụm rạp trong hệ thống booking</p>
+            <div>
+              <span>6 phòng chiếu</span>
+              <span>1.432 ghế mô phỏng</span>
+              <span>TP.HCM</span>
+            </div>
+          </div>
+
+          <div className="about-location-list">
+            {cinemaLocations.map((item) => (
+              <article key={item.name} className="about-location-card">
+                <h3>{item.name}</h3>
+                <p>{item.rooms} • {item.seats}</p>
+                <span>{item.address}</span>
+                <small>{item.halls}</small>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="about-service-system">
+        <div className="about-section-heading about-section-heading--center">
+          <span className="about-kicker">Dịch vụ & tiện ích</span>
+          <h2>CineSky tập trung vào những việc người xem cần nhất khi chuẩn bị đi xem phim.</h2>
+        </div>
+
+        <div className="about-service-list">
+          {cinemaServices.map((item) => (
+            <div key={item} className="about-service-item">
+              <span></span>
+              <p>{item}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
       <section className="about-stats">
         {stats.map((item) => (
           <article key={item.value} className="about-stat-card">
@@ -226,13 +481,22 @@ const AboutPage = () => {
         ))}
       </section>
 
+      <section className="about-project-divider">
+        <span className="about-kicker">Phần 2</span>
+        <h2>Giới thiệu dự án cá nhân</h2>
+        <p>
+          Từ đây trở xuống là phần nhìn CineSky như một project học tập/portfolio: đã có những chức năng nào, điểm mạnh/yếu ra sao
+          và những phần nào còn có thể nâng cấp tiếp.
+        </p>
+      </section>
+
       <section className="about-creator">
         <div className="about-section-heading">
-          <span className="about-kicker">Người thực hiện</span>
-          <h2>Phần giới thiệu này phản ánh đúng tinh thần dự án cá nhân mà mình đang theo đuổi với CineSky.</h2>
+          <span className="about-kicker">Về dự án cá nhân</span>
+          <h2>CineSky hiện là project full-stack tập trung vào trải nghiệm đặt vé, tài khoản người dùng và quản trị dữ liệu.</h2>
           <p>
-            Mục tiêu của mình không chỉ là hoàn thành một website xem phim đẹp mắt, mà còn là từng bước biến CineSky thành một
-            bài tập fullstack nghiêm túc, có giao diện rõ, dữ liệu thật và đủ nền để mở rộng thêm nghiệp vụ sau này.
+            Project được phát triển để rèn cả tư duy frontend lẫn backend: routing, UI state, form, API, auth, database,
+            protected route, booking flow và dashboard admin.
           </p>
         </div>
 
@@ -279,11 +543,11 @@ const AboutPage = () => {
 
       <section className="about-story">
         <div className="about-section-heading">
-          <span className="about-kicker">Điểm nổi bật</span>
-          <h2>Ba lớp giá trị mình đang ưu tiên khi phát triển CineSky.</h2>
+          <span className="about-kicker">Điểm nổi bật của website</span>
+          <h2>Ba điểm nổi bật đúng với trạng thái CineSky hiện tại.</h2>
           <p>
-            Phiên bản hiện tại được định hình quanh ba mục tiêu: nội dung phim dễ theo dõi hơn, luồng thao tác gọn hơn và nền
-            backend đủ sạch để tiếp tục mở rộng thành sản phẩm hoàn chỉnh hơn ở các bước sau.
+            CineSky hiện có đầy đủ hơn một trang giới thiệu phim tĩnh: có luồng đặt vé, tài khoản người dùng và khu vực admin
+            để quản lý dữ liệu vận hành mô phỏng.
           </p>
         </div>
 
@@ -321,10 +585,9 @@ const AboutPage = () => {
       <section className="about-timeline">
         <div className="about-section-heading">
           <span className="about-kicker">Timeline dự án</span>
-          <h2>CineSky được hoàn thiện theo từng lớp từ ý tưởng, giao diện đến dữ liệu và booking flow.</h2>
+          <h2>CineSky được hoàn thiện theo từng lớp từ catalog phim đến auth, booking và admin.</h2>
           <p>
-            Phần này giúp người xem hiểu rõ dự án cá nhân không chỉ là một giao diện đơn lẻ, mà là
-            chuỗi bước phát triển có mục tiêu rõ ràng.
+            Timeline dưới đây phản ánh các lớp chức năng hiện có trong project thay vì chỉ mô tả ý tưởng ban đầu.
           </p>
         </div>
 
@@ -341,13 +604,63 @@ const AboutPage = () => {
         </div>
       </section>
 
+      <section className="about-completed">
+        <div className="about-section-heading">
+          <span className="about-kicker">Phiên bản hoàn thiện</span>
+          <h2>CineSky hiện đã có nền full-stack đủ rõ để demo như một movie booking app học tập.</h2>
+          <p>
+            Các phần quan trọng như backend API, authentication, booking, review/favorite, search/filter, profile, feedback
+            và Admin Dashboard đã được đưa vào cùng một trải nghiệm.
+          </p>
+        </div>
+
+        <div className="about-roadmap__grid">
+          {completedFeatures.map((item) => (
+            <article key={item.title} className="about-roadmap-card">
+              <h3>{item.title}</h3>
+              <p>{item.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="about-pros-cons">
+        <div className="about-section-heading">
+          <span className="about-kicker">Ưu & nhược điểm</span>
+          <h2>Nhìn nhanh điểm mạnh và giới hạn hiện tại của project.</h2>
+          <p>
+            Project đã có nhiều chức năng chính, nhưng vẫn còn vài phần mô phỏng cần nâng cấp nếu muốn tiến gần sản phẩm thật.
+          </p>
+        </div>
+
+        <div className="about-pros-cons__grid">
+          <article className="about-pros-cons-card about-pros-cons-card--good">
+            <h3>Ưu điểm</h3>
+            <ul>
+              {projectPros.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </article>
+
+          <article className="about-pros-cons-card about-pros-cons-card--limit">
+            <h3>Nhược điểm</h3>
+            <ul>
+              {projectCons.map((item) => (
+                <li key={item}>{item}</li>
+              ))}
+            </ul>
+          </article>
+        </div>
+      </section>
+
       <section className="about-roadmap">
         <div className="about-section-heading">
           <span className="about-kicker">Lộ trình phát triển</span>
-          <h2>CineSky vẫn đang được hoàn thiện từng lớp để tiến gần hơn tới một movie web app đầy đủ.</h2>
+          <h2>Các bước tiếp theo nên tập trung vào vận hành thật, bảo mật và deploy ổn định.</h2>
           <p>
-            Hiện tại dự án đã có nền dữ liệu phim, trang hiển thị nội dung và luồng booking cơ bản. Các bước tiếp theo sẽ tập
-            trung mạnh hơn vào xác thực, booking thật, lịch sử giao dịch và quản trị nội dung.
+            Vì auth, booking, history, feedback và admin đã có nền tảng, giai đoạn tiếp theo nên làm sâu hơn phần thanh toán,
+            quản trị showtime/cinema, kiểm thử và triển khai production.
           </p>
         </div>
 
@@ -364,10 +677,9 @@ const AboutPage = () => {
       <section className="about-cta">
         <div className="about-section-heading">
           <span className="about-kicker">Tiếp tục khám phá</span>
-          <h2>Nếu muốn xem trực tiếp trải nghiệm mình đang xây dựng, bạn có thể đi tiếp từ đây.</h2>
+          <h2>Bạn có thể thử trực tiếp các luồng chính của CineSky.</h2>
           <p>
-            Mỗi góp ý từ người dùng sẽ giúp CineSky tiến gần hơn tới một sản phẩm mượt hơn, rõ hơn và có cảm giác điện ảnh đồng
-            nhất hơn trong toàn bộ hành trình đặt vé.
+            Hãy thử lọc phim, vào chi tiết, đăng nhập để đặt vé, xem lịch sử hoặc gửi feedback để kiểm tra project theo đúng luồng hiện tại.
           </p>
         </div>
 

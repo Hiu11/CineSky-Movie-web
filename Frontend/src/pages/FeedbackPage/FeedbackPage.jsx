@@ -6,6 +6,17 @@ import {
 } from "../../services/feedbackService";
 import "./FeedbackPage.css";
 
+const feedbackFilmPosters = [
+  "/assets/images/khe-uoc-ban-dau.jpg",
+  "/assets/images/heo-nam-mong.jpg",
+  "/assets/images/cai-ma-2025.jpg",
+  "/assets/images/Beauty.jpg",
+  "/assets/images/bay-tien.jpg",
+  "/assets/images/phim-super-mario-thien-ha.jpg",
+  "/assets/images/quy-nhap-trang-main.webp",
+  "/assets/images/running-man.jpg",
+];
+
 const ratingLabelMap = {
   1: "Rất chưa hài lòng",
   2: "Chưa hài lòng",
@@ -161,7 +172,6 @@ const FeedbackPage = ({ showToast }) => {
       setIsSubmitting(true);
 
       const createdEntry = await createFeedbackEntry({
-        userId: sessionUser?.id || "",
         fullName: form.fullName,
         email: form.email,
         rating: selectedRating,
@@ -203,6 +213,18 @@ const FeedbackPage = ({ showToast }) => {
 
   return (
     <main className="feedback-page">
+      <div className="cinematic-film-bg" aria-hidden="true">
+        <div className="cinematic-film-bg__strip">
+          <div className="cinematic-film-bg__track">
+            {[...feedbackFilmPosters, ...feedbackFilmPosters, ...feedbackFilmPosters, ...feedbackFilmPosters].map((poster, index) => (
+              <span className="cinematic-film-bg__frame" key={`${poster}-${index}`}>
+                <img src={poster} alt="" />
+              </span>
+            ))}
+          </div>
+        </div>
+      </div>
+
       <div className="feedback-shell">
         <section className="feedback-card">
           <div className="feedback-header">

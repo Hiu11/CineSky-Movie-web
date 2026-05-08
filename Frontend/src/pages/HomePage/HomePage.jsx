@@ -4,6 +4,8 @@ import MovieCard from "../../components/MovieCard/MovieCard";
 import { getMovies } from "../../services/movieService";
 import "./HomePage.css";
 
+const MOVIES_PER_PAGE = 12;
+
 const normalizeText = (value) =>
   (value || "")
     .toLowerCase()
@@ -244,11 +246,32 @@ const requestedMovies = [
   },
 ];
 
-const mergeRequestedMovies = (movies = []) => {
-  const movieIds = new Set(movies.map((movie) => movie.id));
-  const missingMovies = requestedMovies.filter((movie) => !movieIds.has(movie.id));
+const getMovieDuplicateKeys = (movie = {}) =>
+  [movie.slug, movie.title, movie.poster]
+    .map((value) => normalizeText(value || "").trim())
+    .filter(Boolean);
 
-  return [...missingMovies, ...movies].sort(
+const mergeRequestedMovies = (movies = []) => {
+  const movieKeys = new Set(movies.flatMap(getMovieDuplicateKeys));
+  const missingMovies = requestedMovies.filter((movie) => {
+    const duplicateKeys = getMovieDuplicateKeys(movie);
+    return !duplicateKeys.some((key) => movieKeys.has(key));
+  });
+
+  const mergedMovies = [...missingMovies, ...movies].reduce((uniqueMovies, movie) => {
+    const duplicateKeys = getMovieDuplicateKeys(movie);
+    const duplicateMovie = uniqueMovies.some(
+      (currentMovie) => duplicateKeys.some((key) => getMovieDuplicateKeys(currentMovie).includes(key))
+    );
+
+    if (!duplicateMovie) {
+      uniqueMovies.push(movie);
+    }
+
+    return uniqueMovies;
+  }, []);
+
+  return mergedMovies.sort(
     (firstMovie, secondMovie) =>
       (firstMovie.statusOrder ?? 0) - (secondMovie.statusOrder ?? 0) ||
       (firstMovie.catalogOrder ?? 999) - (secondMovie.catalogOrder ?? 999) ||
@@ -401,13 +424,16 @@ const HomePage = ({ searchQuery = "" }) => {
   const [activeHeroIndex, setActiveHeroIndex] = useState(0);
   const [heroArtworkMap, setHeroArtworkMap] = useState({});
   const [activeFaqIndex, setActiveFaqIndex] = useState(0);
+  const [catalogPage, setCatalogPage] = useState(1);
 
   useEffect(() => {
     let isMounted = true;
 
-    const fetchMovies = async () => {
+    const fetchMovies = async (silent = false) => {
       try {
-        setIsLoading(true);
+        if (!silent) {
+          setIsLoading(true);
+        }
         setErrorMessage("");
 
         const data = await getMovies();
@@ -427,9 +453,11 @@ const HomePage = ({ searchQuery = "" }) => {
     };
 
     fetchMovies();
+    const movieRefreshId = window.setInterval(() => fetchMovies(true), 30000);
 
     return () => {
       isMounted = false;
+      window.clearInterval(movieRefreshId);
     };
   }, []);
 
@@ -531,7 +559,8 @@ const HomePage = ({ searchQuery = "" }) => {
         if (item.classList.contains("is-visible")) return;
 
         const rect = item.getBoundingClientRect();
-        const fullyVisible = rect.top >= 0 && rect.bottom <= window.innerHeight;
+        const revealOffset = window.innerHeight * 0.85;
+        const fullyVisible = rect.top <= revealOffset && rect.bottom >= 0;
 
         if (fullyVisible) {
           item.classList.add("is-visible");
@@ -543,11 +572,11 @@ const HomePage = ({ searchQuery = "" }) => {
       if (scrollTimer) clearTimeout(scrollTimer);
       scrollTimer = window.setTimeout(() => {
         checkRevealOnScrollEnd();
-      }, 140);
+      }, 45);
     };
 
     // initial check in case some items are already fully visible
-    window.setTimeout(checkRevealOnScrollEnd, 60);
+    window.setTimeout(checkRevealOnScrollEnd, 20);
 
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", onScroll);
@@ -586,14 +615,32 @@ const HomePage = ({ searchQuery = "" }) => {
         : [];
   const previewNowMovies = nowShowingMovies.slice(0, 6);
   const posterShowcaseMovies = previewNowMovies.slice(0, 3);
-  const previewSoonMovies = comingSoonMovies.slice(0, 4);
+  const previewSoonMovies = [...comingSoonMovies].reverse();
   const catalogMovies = tabParam === "soon" ? comingSoonMovies : nowShowingMovies;
+  const catalogFilmMovies =
+    catalogMovies.length > 0 ? [...catalogMovies].reverse().filter((movie) => movie.poster) : requestedMovies;
+  const catalogFilmLoopMovies = Array.from({ length: 4 }).flatMap(() => catalogFilmMovies);
   const filteredCatalogMovies =
     normalizedQuery.length === 0
       ? catalogMovies
       : catalogMovies.filter((movie) =>
           normalizeText(movie.title).includes(normalizedQuery)
         );
+  const catalogPageCount = Math.max(1, Math.ceil(filteredCatalogMovies.length / MOVIES_PER_PAGE));
+  const safeCatalogPage = Math.min(catalogPage, catalogPageCount);
+  const paginatedCatalogMovies = filteredCatalogMovies.slice(
+    (safeCatalogPage - 1) * MOVIES_PER_PAGE,
+    safeCatalogPage * MOVIES_PER_PAGE
+  );
+
+  useEffect(() => {
+    setCatalogPage(1);
+  }, [tabParam, normalizedQuery]);
+
+  const handleCatalogPageChange = (nextPage) => {
+    setCatalogPage(nextPage);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
 
   const overviewCards = [
     {
@@ -659,6 +706,18 @@ const HomePage = ({ searchQuery = "" }) => {
 
     return (
       <main className="homepage-wrapper homepage-shell homepage-shell--catalog">
+        <div className="cinematic-film-bg" aria-hidden="true">
+          <div className="cinematic-film-bg__strip">
+            <div className="cinematic-film-bg__track">
+              {[...catalogFilmLoopMovies, ...catalogFilmLoopMovies].map((movie, index) => (
+                <span className="cinematic-film-bg__frame" key={`${movie.id}-${index}`}>
+                  <img src={toBackgroundUrl(movie.poster)} alt="" />
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
         <section className="home-catalog-hero">
           <div className="home-catalog-hero__content">
             <span className="home-kicker">
@@ -703,13 +762,42 @@ const HomePage = ({ searchQuery = "" }) => {
           </div>
         ) : null}
 
-        <div className="movie-grid-container">
+        <div className={`movie-grid-container movie-grid-container--${isComingSoonTab ? "soon" : "now"}`}>
           {filteredCatalogMovies.length > 0 ? (
-            filteredCatalogMovies.map((movie) => <MovieCard key={movie.id} movie={movie} />)
+            paginatedCatalogMovies.map((movie) => <MovieCard key={movie.id} movie={movie} />)
           ) : (
             <div className="home-empty-state">Không tìm thấy phim phù hợp.</div>
           )}
         </div>
+
+        {filteredCatalogMovies.length > MOVIES_PER_PAGE ? (
+          <nav className="movie-pagination" aria-label="Movie pages">
+            <button
+              type="button"
+              onClick={() => handleCatalogPageChange(Math.max(1, safeCatalogPage - 1))}
+              disabled={safeCatalogPage === 1}
+            >
+              &lt;
+            </button>
+            {Array.from({ length: catalogPageCount }, (_, index) => index + 1).map((page) => (
+              <button
+                key={page}
+                type="button"
+                className={page === safeCatalogPage ? "is-active" : ""}
+                onClick={() => handleCatalogPageChange(page)}
+              >
+                {page}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={() => handleCatalogPageChange(Math.min(catalogPageCount, safeCatalogPage + 1))}
+              disabled={safeCatalogPage === catalogPageCount}
+            >
+              &gt;
+            </button>
+          </nav>
+        ) : null}
       </main>
     );
   }
@@ -895,11 +983,7 @@ const HomePage = ({ searchQuery = "" }) => {
             <p>
               Khám phá nhanh các tựa phim nổi bật tại CineSky, từ poster, trailer đến thông tin cơ bản. Khi đã tìm được bộ phim hợp mood hôm nay, bạn có thể chuyển tiếp đến chi tiết phim hoặc đặt vé trong vài thao tác.
             </p>
-            <div className="home-poster-feature__points">
-              <span>Suất chiếu rõ ràng</span>
-              <span>Trailer và thông tin dễ xem</span>
-              <span>Đặt vé nhanh sau khi chọn phim</span>
-            </div>
+
             <div className="home-poster-feature__actions">
               <Link to="/?tab=now" className="home-solid-link">
                 Xem phim đang chiếu
@@ -940,13 +1024,20 @@ const HomePage = ({ searchQuery = "" }) => {
         </div>
 
         <div className="home-soon-stack" aria-label="Phim sắp chiếu nổi bật">
-          {previewSoonMovies.map((movie, index) => (
-            <HomeSoonShowcaseCard key={movie.id} movie={movie} index={index} />
+          {[...previewSoonMovies, ...previewSoonMovies].map((movie, index) => (
+            <HomeSoonShowcaseCard key={`${movie.id}-${index}`} movie={movie} index={index} />
           ))}
         </div>
       </section>
 
-      <section className="home-insight-grid" data-reveal>
+      <section className="home-section home-section--insights">
+        <div className="home-section__header">
+          <div>
+            <h2>Khám phá CineSky</h2>
+          </div>
+        </div>
+
+        <div className="home-insight-grid" data-reveal>
         <article className="home-insight-card">
           <span className="home-kicker">Giới thiệu</span>
           <h2>CineSky hướng tới trải nghiệm xem phim hiện đại và dễ tiếp cận</h2>
@@ -992,6 +1083,7 @@ const HomePage = ({ searchQuery = "" }) => {
             Mở biểu mẫu góp ý
           </Link>
         </article>
+        </div>
       </section>
 
       <section className="home-section home-section--partners">
@@ -1031,32 +1123,39 @@ const HomePage = ({ searchQuery = "" }) => {
         </div>
 
         <div className="home-faq-grid">
-          {faqItems.map((item, index) => {
-            const isActive = activeFaqIndex === index;
+          {[0, 1].map((columnIndex) => (
+            <div key={columnIndex} className="home-faq-column">
+              {faqItems
+                .map((item, index) => ({ item, index }))
+                .filter(({ index }) => index % 2 === columnIndex)
+                .map(({ item, index }) => {
+                  const isActive = activeFaqIndex === index;
 
-            return (
-              <article
-                key={item.question}
-                className={"home-faq-card" + (isActive ? " is-active" : "")}
-              >
-                <button
-                  type="button"
-                  className="home-faq-card__button"
-                  onClick={() =>
-                    setActiveFaqIndex((currentIndex) => (currentIndex === index ? -1 : index))
-                  }
-                  aria-expanded={isActive}
-                >
-                  <span>{item.question}</span>
-                  <span className="home-faq-card__icon" aria-hidden="true">
-                    {isActive ? "−" : "+"}
-                  </span>
-                </button>
+                  return (
+                    <article
+                      key={item.question}
+                      className={"home-faq-card" + (isActive ? " is-active" : "")}
+                    >
+                      <button
+                        type="button"
+                        className="home-faq-card__button"
+                        onClick={() =>
+                          setActiveFaqIndex((currentIndex) => (currentIndex === index ? -1 : index))
+                        }
+                        aria-expanded={isActive}
+                      >
+                        <span>{item.question}</span>
+                        <span className="home-faq-card__icon" aria-hidden="true">
+                          {isActive ? "−" : "+"}
+                        </span>
+                      </button>
 
-                {isActive ? <p className="home-faq-card__answer">{item.answer}</p> : null}
-              </article>
-            );
-          })}
+                      <p className="home-faq-card__answer">{item.answer}</p>
+                    </article>
+                  );
+                })}
+            </div>
+          ))}
         </div>
       </section>
     </main>

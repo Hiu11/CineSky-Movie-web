@@ -158,6 +158,7 @@ export default function AuthLayout({
 }) {
   const navigate = useNavigate();
   const [posterTiles, setPosterTiles] = useState([]);
+  const [posterOffset, setPosterOffset] = useState(0);
   const tabs =
     mode === "forgot"
       ? [
@@ -181,9 +182,26 @@ export default function AuthLayout({
           return;
         }
 
-        const posters = movies
+        const sortedMovies = movies
           .filter((movie) => movie.poster)
-          .slice(0, 12)
+          .reverse()
+          .sort((firstMovie, secondMovie) => {
+            const firstHeroOrder = firstMovie.heroOrder ?? 999;
+            const secondHeroOrder = secondMovie.heroOrder ?? 999;
+            const firstStatusOrder = firstMovie.status === "now-showing" ? 0 : 1;
+            const secondStatusOrder = secondMovie.status === "now-showing" ? 0 : 1;
+
+            return (
+              firstHeroOrder - secondHeroOrder ||
+              firstStatusOrder - secondStatusOrder ||
+              (firstMovie.catalogOrder ?? 999) - (secondMovie.catalogOrder ?? 999)
+            );
+          })
+          .slice(0, 18);
+        const hotPosters = sortedMovies.slice(0, 4);
+        const otherPosters = sortedMovies.slice(4);
+        const centeredMovies = [...otherPosters.slice(0, 6), ...hotPosters, ...otherPosters.slice(6)];
+        const posters = centeredMovies
           .map((movie, index) => ({
             src: movie.poster,
             variant: index % 5 === 0 ? "wide" : index % 3 === 0 ? "tall" : "",
@@ -198,15 +216,29 @@ export default function AuthLayout({
     };
 
     fetchPosterTiles();
+    const posterRefreshId = window.setInterval(fetchPosterTiles, 30000);
+    const posterShuffleId = window.setInterval(() => {
+      setPosterOffset((currentOffset) => currentOffset + 1);
+    }, 10000);
 
     return () => {
       isMounted = false;
+      window.clearInterval(posterRefreshId);
+      window.clearInterval(posterShuffleId);
     };
   }, []);
 
   const wallTiles = useMemo(
-    () => (posterTiles.length > 0 ? [...posterTiles, ...posterTiles.slice(0, 8)] : []),
-    [posterTiles]
+    () => {
+      if (posterTiles.length === 0) {
+        return [];
+      }
+
+      const offset = posterOffset % posterTiles.length;
+      const shiftedPosters = [...posterTiles.slice(offset), ...posterTiles.slice(0, offset)];
+      return [...shiftedPosters, ...shiftedPosters.slice(0, 8)];
+    },
+    [posterOffset, posterTiles]
   );
 
   return (

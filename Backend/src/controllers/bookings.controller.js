@@ -3,14 +3,18 @@ import BookingModel from "../models/booking.model.js";
 import MovieModel from "../models/movie.model.js";
 import ShowtimeModel from "../models/showtime.model.js";
 
+const formatMovieId = (legacyId) => String(legacyId).padStart(3, "0");
+
 const serializeBooking = (booking, showtime, movie) => ({
   id: booking._id,
-  movieId: booking.movieLegacyId,
+  movieId: formatMovieId(booking.movieLegacyId),
   movieTitle: movie?.title || "",
   showtimeId: booking.showtimeId,
   cinemaName: showtime?.cinemaName || "",
   roomName: showtime?.roomName || "",
-  displayDate: showtime?.displayDate || "",
+  screeningDate: booking.screeningDate || "",
+  screeningDateLabel: booking.screeningDateLabel || "",
+  displayDate: booking.screeningDateLabel || showtime?.displayDate || "",
   displayTime: showtime?.displayTime || "",
   seatNumbers: booking.seatNumbers,
   totalPrice: booking.totalPrice,
@@ -23,12 +27,12 @@ const serializeBooking = (booking, showtime, movie) => ({
 const bookingsController = {
   getBookingHistory: async (req, res) => {
     try {
-      const { userId = "", email = "", limit = "6" } = req.query || {};
-      const trimmedUserId = String(userId).trim();
-      const trimmedEmail = String(email).trim().toLowerCase();
+      const { limit = "6" } = req.query || {};
+      const authUserId = String(req.authUser?._id || "").trim();
+      const authUserEmail = String(req.authUser?.email || "").trim().toLowerCase();
       const safeLimit = Math.min(Math.max(Number(limit) || 6, 1), 20);
 
-      if (!trimmedUserId && !trimmedEmail) {
+      if (!authUserId && !authUserEmail) {
         return res.status(200).send({
           success: true,
           message: "Get booking history successfully",
@@ -38,22 +42,12 @@ const bookingsController = {
 
       const filters = [];
 
-      if (trimmedUserId) {
-        if (!mongoose.Types.ObjectId.isValid(trimmedUserId)) {
-          if (!trimmedEmail) {
-            return res.status(400).send({
-              success: false,
-              message: "userId is invalid",
-              data: null,
-            });
-          }
-        } else {
-          filters.push({ userId: trimmedUserId });
-        }
+      if (mongoose.Types.ObjectId.isValid(authUserId)) {
+        filters.push({ userId: authUserId });
       }
 
-      if (trimmedEmail) {
-        filters.push({ customerEmail: trimmedEmail });
+      if (authUserEmail) {
+        filters.push({ customerEmail: authUserEmail });
       }
 
       const bookingFilter = filters.length === 1 ? filters[0] : { $or: filters };
@@ -100,15 +94,25 @@ const bookingsController = {
   createBooking: async (req, res) => {
     try {
       const {
-        userId = null,
-        customerName = "",
-        customerEmail = "",
         movieId,
         showtimeId,
+        screeningDate = "",
+        screeningDateLabel = "",
         seatNumbers = [],
       } = req.body || {};
+      const authUser = req.authUser;
+      const customerName = String(authUser?.fullName || "").trim();
+      const customerEmail = String(authUser?.email || "").trim().toLowerCase();
 
       const legacyId = Number(movieId);
+
+      if (!authUser?._id || !customerEmail) {
+        return res.status(401).send({
+          success: false,
+          message: "Authentication is required to create a booking",
+          data: null,
+        });
+      }
 
       if (
         Number.isNaN(legacyId) ||
@@ -123,8 +127,16 @@ const bookingsController = {
         });
       }
 
+      if (new Set(seatNumbers).size !== seatNumbers.length) {
+        return res.status(400).send({
+          success: false,
+          message: "seatNumbers must not contain duplicated seats",
+          data: null,
+        });
+      }
+
       const [movie, showtime] = await Promise.all([
-        MovieModel.findOne({ legacyId }),
+        MovieModel.findOne({ legacyId, deletedAt: null }),
         ShowtimeModel.findById(showtimeId),
       ]);
 
@@ -155,36 +167,53 @@ const bookingsController = {
         });
       }
 
-      const duplicatedSeat = seatNumbers.find((seat) =>
-        showtime.bookedSeats.includes(seat)
+      const reservedShowtime = await ShowtimeModel.findOneAndUpdate(
+        {
+          _id: showtime._id,
+          movieLegacyId: legacyId,
+          seats: { $all: seatNumbers },
+          bookedSeats: { $nin: seatNumbers },
+        },
+        {
+          $addToSet: { bookedSeats: { $each: seatNumbers } },
+        },
+        { new: true }
       );
-      if (duplicatedSeat) {
+
+      if (!reservedShowtime) {
         return res.status(409).send({
           success: false,
-          message: `Seat ${duplicatedSeat} has already been booked`,
+          message: "One or more selected seats have already been booked",
           data: null,
         });
       }
 
-      showtime.bookedSeats = [
-        ...new Set([...showtime.bookedSeats, ...seatNumbers]),
-      ];
-      await showtime.save();
+      let booking;
 
-      const booking = await BookingModel.create({
-        userId: userId || null,
-        customerName: customerName.trim(),
-        customerEmail: customerEmail.trim().toLowerCase(),
-        movieLegacyId: legacyId,
-        showtimeId: showtime._id,
-        seatNumbers,
-        totalPrice: showtime.price * seatNumbers.length,
-      });
+      try {
+        booking = await BookingModel.create({
+          userId: authUser._id,
+          customerName,
+          customerEmail,
+          movieLegacyId: legacyId,
+          showtimeId: reservedShowtime._id,
+          screeningDate: String(screeningDate).trim(),
+          screeningDateLabel: String(screeningDateLabel).trim(),
+          seatNumbers,
+          totalPrice: reservedShowtime.price * seatNumbers.length,
+        });
+      } catch (error) {
+        await ShowtimeModel.updateOne(
+          { _id: reservedShowtime._id },
+          { $pull: { bookedSeats: { $in: seatNumbers } } }
+        );
+        throw error;
+      }
 
       return res.status(201).send({
         success: true,
         message: "Create booking successfully",
-        data: serializeBooking(booking, showtime, movie),
+        data: serializeBooking(booking, reservedShowtime, movie),
       });
     } catch (error) {
       return res.status(500).send({

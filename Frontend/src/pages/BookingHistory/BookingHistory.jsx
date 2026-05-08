@@ -17,6 +17,27 @@ const getSessionUser = () => {
   }
 };
 
+const formatBookedAt = (value) => {
+  if (!value) {
+    return "";
+  }
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  return new Intl.DateTimeFormat("vi-VN", {
+    timeZone: "Asia/Ho_Chi_Minh",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+};
+
 export default function BookingHistory() {
   const [user] = useState(() => getSessionUser());
   const [bookings, setBookings] = useState([]);
@@ -33,8 +54,6 @@ export default function BookingHistory() {
       try {
         setIsLoading(true);
         const history = await getBookingHistory({
-          userId: user?.id || "",
-          email: user?.email || "",
           limit: 20,
         });
 
@@ -123,7 +142,8 @@ export default function BookingHistory() {
               <div className="history-card__head">
                 <div>
                   <strong>{booking.movieTitle || "Movie ticket"}</strong>
-                  <span>{[booking.displayDate, booking.displayTime].filter(Boolean).join(" • ")}</span>
+                  <span>{[booking.displayDate, booking.displayTime].filter(Boolean).join(" • ") || "Showtime updating"}</span>
+                  <small>{formatBookedAt(booking.createdAt) ? `Booked at ${formatBookedAt(booking.createdAt)}` : ""}</small>
                 </div>
                 <span
                   className={
@@ -150,3 +170,4 @@ export default function BookingHistory() {
     </main>
   );
 }
+

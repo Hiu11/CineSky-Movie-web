@@ -38,9 +38,11 @@ export default function MovieDetail() {
   useEffect(() => {
     let isMounted = true;
 
-    const fetchMovie = async () => {
+    const fetchMovie = async (silent = false) => {
       try {
-        setIsLoading(true);
+        if (!silent) {
+          setIsLoading(true);
+        }
         setErrorMessage("");
 
         const [movieData, moviesData] = await Promise.all([getMovieById(id), getMovies()]);
@@ -61,9 +63,11 @@ export default function MovieDetail() {
     };
 
     fetchMovie();
+    const movieRefreshId = window.setInterval(() => fetchMovie(true), 30000);
 
     return () => {
       isMounted = false;
+      window.clearInterval(movieRefreshId);
     };
   }, [id]);
 
@@ -166,14 +170,14 @@ export default function MovieDetail() {
     }
 
     return catalogMovies
-      .filter((item) => item.id !== movie.id)
-      .map((item) => {
-        const sharedGenres = (item.genres || []).filter((genre) => (movie.genres || []).includes(genre)).length;
-        const score = sharedGenres * 2 + (item.country === movie.country ? 1 : 0);
-        return { ...item, score };
+      .filter((item) => {
+        if (item.id === movie.id) {
+          return false;
+        }
+
+        return (item.genres || []).some((genre) => (movie.genres || []).includes(genre));
       })
-      .filter((item) => item.score > 0)
-      .sort((first, second) => second.score - first.score)
+      .sort(() => Math.random() - 0.5)
       .slice(0, 3);
   }, [catalogMovies, movie]);
 
@@ -384,6 +388,7 @@ export default function MovieDetail() {
                 <img src={item.poster} alt={item.title} />
                 <div className="md-related-card__body">
                   <strong>{item.title}</strong>
+                  <span className="md-related-card__cta">Xem thêm</span>
                   <span>{[item.genre, `${item.duration} phút`].filter(Boolean).join(" • ")}</span>
                 </div>
               </button>

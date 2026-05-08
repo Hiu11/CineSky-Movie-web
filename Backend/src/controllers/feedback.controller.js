@@ -1,4 +1,3 @@
-import mongoose from "mongoose";
 import FeedbackModel from "../models/feedback.model.js";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -56,7 +55,6 @@ const feedbackController = {
   createFeedbackEntry: async (req, res) => {
     try {
       const {
-        userId = null,
         fullName = "",
         email = "",
         rating = 0,
@@ -93,16 +91,8 @@ const feedbackController = {
         });
       }
 
-      if (userId && !mongoose.Types.ObjectId.isValid(String(userId))) {
-        return res.status(400).send({
-          success: false,
-          message: "userId is invalid",
-          data: null,
-        });
-      }
-
       const feedback = await FeedbackModel.create({
-        userId: userId || null,
+        userId: req.authUser?._id || null,
         fullName: trimmedFullName,
         email: normalizedEmail,
         rating: safeRating,

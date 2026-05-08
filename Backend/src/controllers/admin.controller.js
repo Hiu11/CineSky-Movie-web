@@ -1,0 +1,968 @@
+import mongoose from "mongoose";
+import fs from "fs/promises";
+import path from "path";
+import { fileURLToPath } from "url";
+import AdminActivityModel from "../models/adminActivity.model.js";
+import BookingModel from "../models/booking.model.js";
+import FavoriteModel from "../models/favorite.model.js";
+import FeedbackModel from "../models/feedback.model.js";
+import MovieModel from "../models/movie.model.js";
+import ReviewModel from "../models/review.model.js";
+import ShowtimeModel from "../models/showtime.model.js";
+import UserModel from "../models/user.model.js";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const posterUploadDir = path.resolve(__dirname, "../../../Frontend/public/assets/images");
+const adminSeedMoviesPath = path.resolve(__dirname, "../data/adminSeedMovies.js");
+
+const serializeAdminUser = (user, stats = {}) => ({
+  id: user._id,
+  fullName: user.fullName,
+  email: user.email,
+  phone: user.phone || "",
+  gender: user.gender || "",
+  birthday: user.birthday || "",
+  role: user.role,
+  avatar: user.avatar || "",
+  createdAt: user.createdAt,
+  stats: {
+    bookings: stats.bookings || 0,
+    reviews: stats.reviews || 0,
+    favorites: stats.favorites || 0,
+    feedbackEntries: stats.feedbackEntries || 0,
+  },
+});
+
+const serializeBooking = (booking, movie, showtime) => ({
+  id: booking._id,
+  userId: booking.userId || null,
+  movieId: formatMovieId(booking.movieLegacyId),
+  movieTitle: movie?.title || "",
+  showtimeId: booking.showtimeId,
+  screeningDate: booking.screeningDate || "",
+  screeningDateLabel: booking.screeningDateLabel || "",
+  displayDate: booking.screeningDateLabel || showtime?.displayDate || "",
+  displayTime: showtime?.displayTime || "",
+  cinemaName: showtime?.cinemaName || "",
+  roomName: showtime?.roomName || "",
+  seatNumbers: booking.seatNumbers || [],
+  totalPrice: booking.totalPrice || 0,
+  status: booking.status,
+  customerName: booking.customerName || "",
+  customerEmail: booking.customerEmail || "",
+  createdAt: booking.createdAt,
+});
+
+const serializeReview = (review, movie) => ({
+  id: review._id,
+  movieId: formatMovieId(review.movieLegacyId),
+  movieTitle: movie?.title || "",
+  rating: review.rating,
+  content: review.content,
+  createdAt: review.createdAt,
+});
+
+const serializeFavorite = (favorite, movie) => ({
+  id: favorite._id,
+  movieId: formatMovieId(favorite.movieLegacyId),
+  movieTitle: movie?.title || "",
+  movieSlug: movie?.slug || "",
+  createdAt: favorite.createdAt,
+});
+
+const serializeFeedback = (feedback) => ({
+  id: feedback._id,
+  rating: feedback.rating,
+  headline: feedback.headline || "",
+  message: feedback.message,
+  source: feedback.source || "",
+  createdAt: feedback.createdAt,
+});
+
+const slugify = (value = "") =>
+  String(value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/đ/gi, "d")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "");
+
+const normalizeStringList = (value) => {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
+  }
+
+  return String(value || "")
+    .split(/,|\n/)
+    .map((item) => item.trim())
+    .filter(Boolean);
+};
+
+const normalizeKeyValueList = (value) => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => ({
+        label: String(item?.label || "").trim(),
+        value: String(item?.value || "").trim(),
+      }))
+      .filter((item) => item.label || item.value);
+  }
+
+  return String(value || "")
+    .split("\n")
+    .map((line) => {
+      const [label, ...rest] = line.split(":");
+      return {
+        label: String(label || "").trim(),
+        value: rest.join(":").trim(),
+      };
+    })
+    .filter((item) => item.label || item.value);
+};
+
+const normalizeCast = (value) => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => ({
+        name: String(item?.name || "").trim(),
+        role: String(item?.role || "").trim(),
+      }))
+      .filter((item) => item.name || item.role);
+  }
+
+  return String(value || "")
+    .split("\n")
+    .map((line) => {
+      const [name, ...rest] = line.split(":");
+      return {
+        name: String(name || "").trim(),
+        role: rest.join(":").trim(),
+      };
+    })
+    .filter((item) => item.name || item.role);
+};
+
+const normalizeYoutubeTrailer = (value = "") => {
+  const trailer = String(value).trim();
+
+  if (!trailer) {
+    return "";
+  }
+
+  let videoId = "";
+
+  try {
+    const url = new URL(trailer);
+    const host = url.hostname.replace(/^www\./, "");
+
+    if (host === "youtu.be") {
+      videoId = url.pathname.split("/").filter(Boolean)[0] || "";
+    } else if (host.endsWith("youtube.com")) {
+      videoId =
+        url.searchParams.get("v") ||
+        url.pathname.match(/\/(?:embed|shorts)\/([^/?]+)/i)?.[1] ||
+        "";
+    }
+  } catch {
+    videoId = trailer.match(/(?:v=|youtu\.be\/|embed\/|shorts\/)([^?&/]+)/i)?.[1] || "";
+  }
+
+  return videoId ? `https://www.youtube.com/embed/${videoId}` : trailer;
+};
+
+const formatMovieId = (legacyId) => String(legacyId).padStart(3, "0");
+
+const serializeAdminActivity = (activity) => ({
+  id: activity._id,
+  name: activity.name,
+  status: activity.action,
+  time: activity.createdAt,
+  value: activity.value || "",
+  entityType: activity.entityType || "",
+  entityId: activity.entityId || "",
+  adminName: activity.adminName || "",
+});
+
+const createAdminActivity = async (req, activity) => {
+  const adminUser = req.authUser;
+
+  try {
+    return await AdminActivityModel.create({
+      action: activity.action,
+      name: activity.name,
+      value: activity.value || "",
+      entityType: activity.entityType || "",
+      entityId: activity.entityId ? String(activity.entityId) : "",
+      adminId: adminUser?._id || null,
+      adminName: adminUser?.fullName || adminUser?.email || "",
+    });
+  } catch {
+    return null;
+  }
+};
+
+const serializeAdminMovie = (movie) => ({
+  id: formatMovieId(movie.legacyId),
+  slug: movie.slug,
+  title: movie.title,
+  poster: movie.poster,
+  genres: movie.genres || [],
+  country: movie.country || "",
+  director: movie.director || "",
+  duration: movie.duration || 0,
+  rating: movie.rating || "P",
+  status: movie.status,
+  statusOrder: movie.statusOrder ?? 0,
+  catalogOrder: movie.catalogOrder ?? 999,
+  heroOrder: movie.heroOrder ?? null,
+  showtimes: movie.showtimes || [],
+  releaseDate: movie.releaseDate || "",
+  trailer: movie.trailer || "",
+  description: movie.description || "",
+  cast: movie.cast || [],
+  gallery: movie.gallery || [],
+  trailerFacts: movie.trailerFacts || [],
+  trailerPanel: movie.trailerPanel || null,
+});
+
+const serializeMovieForSeed = (movie) => ({
+  legacyId: movie.legacyId,
+  slug: movie.slug,
+  title: movie.title,
+  poster: movie.poster,
+  genres: movie.genres || [],
+  country: movie.country || "",
+  director: movie.director || "",
+  duration: movie.duration || 0,
+  rating: movie.rating || "P",
+  status: movie.status,
+  showtimes: movie.showtimes || [],
+  releaseDate: movie.releaseDate || "",
+  trailer: movie.trailer || "",
+  description: movie.description || "",
+  cast: movie.cast || [],
+  gallery: movie.gallery || [],
+  trailerFacts: movie.trailerFacts || [],
+  trailerPanel: movie.trailerPanel || null,
+  catalogOrder: movie.catalogOrder ?? 999,
+  heroOrder: movie.heroOrder ?? null,
+});
+
+const writeAdminSeedMovies = async (movies = []) => {
+  const seedContent = `const adminSeedMovies = ${JSON.stringify(movies, null, 2)};\n\nexport default adminSeedMovies;\n`;
+  await fs.writeFile(adminSeedMoviesPath, seedContent, "utf8");
+};
+
+const syncAdminSeedMovie = async (movie) => {
+  const adminMovies = await MovieModel.find({
+    deletedAt: null,
+    legacyId: { $gte: 107 },
+  }).sort({ legacyId: 1 });
+  const seedMovies = adminMovies.map(serializeMovieForSeed);
+  const shouldIncludeMovie = movie && !movie.deletedAt && Number(movie.legacyId) >= 107;
+  const nextSeedMovies = !shouldIncludeMovie || seedMovies.some((item) => item.legacyId === movie.legacyId)
+    ? seedMovies
+    : [...seedMovies, serializeMovieForSeed(movie)];
+
+  await writeAdminSeedMovies(nextSeedMovies);
+};
+
+const buildMoviePayload = (body = {}) => {
+  const title = String(body.title || body.name || "").trim();
+  const slug = slugify(body.slug || title);
+
+  return {
+    legacyId: Number(body.legacyId || body.id) || undefined,
+    slug,
+    title,
+    poster: String(body.poster || "").trim(),
+    genres: normalizeStringList(body.genres),
+    country: String(body.country || "").trim(),
+    director: String(body.director || "").trim(),
+    duration: Math.max(Number(body.duration) || 0, 0),
+    rating: String(body.rating || "P").trim().toUpperCase(),
+    status: ["now-showing", "coming-soon"].includes(body.status) ? body.status : "now-showing",
+    statusOrder: Number(body.statusOrder) || 0,
+    catalogOrder: Number(body.catalogOrder) || 999,
+    heroOrder: body.heroOrder === "" || body.heroOrder === null ? null : Number(body.heroOrder),
+    showtimes: normalizeStringList(body.showtimes),
+    releaseDate: String(body.releaseDate || body.release || "").trim(),
+    trailer: normalizeYoutubeTrailer(body.trailer),
+    description: String(body.description || "").trim(),
+    cast: normalizeCast(body.cast),
+    gallery: normalizeStringList(body.gallery),
+    trailerFacts: normalizeKeyValueList(body.trailerFacts),
+    trailerPanel: body.trailerPanel
+      ? {
+          label: String(body.trailerPanel.label || "").trim(),
+          title: String(body.trailerPanel.title || "").trim(),
+          description: String(body.trailerPanel.description || "").trim(),
+        }
+      : null,
+  };
+};
+
+const validateMoviePayload = (payload) => {
+  const requiredFields = [
+    ["title", "title"],
+    ["poster", "poster"],
+    ["slug", "slug"],
+    ["trailer", "trailer link"],
+    ["description", "description"],
+    ["country", "country"],
+    ["director", "director"],
+    ["releaseDate", "release date"],
+  ];
+  const missingField = requiredFields.find(([key]) => !payload[key]);
+
+  if (missingField) {
+    return `${missingField[1]} is required`;
+  }
+
+  if (!payload.genres.length) {
+    return "At least one genre is required";
+  }
+
+  if (payload.duration <= 0) {
+    return "Duration must be greater than 0";
+  }
+
+  return "";
+};
+
+const getImageExtension = (mimeType = "") => {
+  const extensionMap = {
+    "image/jpeg": ".jpg",
+    "image/png": ".png",
+    "image/webp": ".webp",
+    "image/gif": ".gif",
+  };
+
+  return extensionMap[mimeType] || "";
+};
+
+const buildPosterFileName = async (rawName = "", mimeType = "") => {
+  const parsedName = path.parse(String(rawName || "poster"));
+  const safeBaseName = slugify(parsedName.name || "poster") || `poster-${Date.now()}`;
+  const safeExtension = getImageExtension(mimeType) || parsedName.ext.toLowerCase() || ".jpg";
+  let fileName = `${safeBaseName}${safeExtension}`;
+  let targetPath = path.join(posterUploadDir, fileName);
+  let suffix = 1;
+
+  while (true) {
+    try {
+      await fs.access(targetPath);
+      fileName = `${safeBaseName}-${suffix}${safeExtension}`;
+      targetPath = path.join(posterUploadDir, fileName);
+      suffix += 1;
+    } catch {
+      return { fileName, targetPath };
+    }
+  }
+};
+
+const findDuplicateMovie = async (payload, currentLegacyId = null) => {
+  const duplicateMovie = await MovieModel.findOne({
+    $or: [
+      { legacyId: payload.legacyId },
+      { slug: payload.slug },
+      { title: { $regex: `^${payload.title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`, $options: "i" } },
+    ].filter((condition) => Object.values(condition)[0] !== undefined),
+  });
+
+  if (!duplicateMovie || Number(duplicateMovie.legacyId) === Number(currentLegacyId)) {
+    return "";
+  }
+
+  return "Movie already exists";
+};
+
+const buildSearchFilter = (search = "") => {
+  const trimmedSearch = String(search).trim();
+
+  if (!trimmedSearch) {
+    return {};
+  }
+
+  return {
+    $or: [
+      { fullName: { $regex: trimmedSearch, $options: "i" } },
+      { email: { $regex: trimmedSearch, $options: "i" } },
+      { phone: { $regex: trimmedSearch, $options: "i" } },
+    ],
+  };
+};
+
+const adminController = {
+  uploadPoster: async (req, res) => {
+    try {
+      const { fileName = "", fileData = "" } = req.body || {};
+      const matchedDataUrl = String(fileData).match(/^data:(image\/(?:jpeg|png|webp|gif));base64,(.+)$/);
+
+      if (!matchedDataUrl) {
+        return res.status(400).send({
+          success: false,
+          message: "Poster image data is invalid",
+          data: null,
+        });
+      }
+
+      const [, mimeType, base64Data] = matchedDataUrl;
+      const imageBuffer = Buffer.from(base64Data, "base64");
+
+      if (!imageBuffer.length || imageBuffer.length > 2 * 1024 * 1024) {
+        return res.status(400).send({
+          success: false,
+          message: "Poster image must be smaller than 2MB",
+          data: null,
+        });
+      }
+
+      await fs.mkdir(posterUploadDir, { recursive: true });
+      const posterFile = await buildPosterFileName(fileName, mimeType);
+      await fs.writeFile(posterFile.targetPath, imageBuffer);
+
+      return res.status(201).send({
+        success: true,
+        message: "Upload poster successfully",
+        data: {
+          poster: `/assets/images/${posterFile.fileName}`,
+          fileName: posterFile.fileName,
+        },
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  getDashboardOverview: async (req, res) => {
+    try {
+      const [users, bookings, reviews, favorites, feedbackEntries] = await Promise.all([
+        UserModel.countDocuments(),
+        BookingModel.countDocuments(),
+        ReviewModel.countDocuments(),
+        FavoriteModel.countDocuments(),
+        FeedbackModel.countDocuments(),
+      ]);
+
+      return res.status(200).send({
+        success: true,
+        message: "Get admin overview successfully",
+        data: {
+          users,
+          bookings,
+          reviews,
+          favorites,
+          feedbackEntries,
+        },
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  getUsers: async (req, res) => {
+    try {
+      const page = Math.max(Number(req.query.page) || 1, 1);
+      const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 50);
+      const skip = (page - 1) * limit;
+      const filter = buildSearchFilter(req.query.search);
+
+      const [users, totalItems] = await Promise.all([
+        UserModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+        UserModel.countDocuments(filter),
+      ]);
+
+      const userIds = users.map((user) => user._id);
+
+      const [bookingCounts, reviewCounts, favoriteCounts, feedbackCounts] = await Promise.all([
+        BookingModel.aggregate([
+          { $match: { userId: { $in: userIds } } },
+          { $group: { _id: "$userId", count: { $sum: 1 } } },
+        ]),
+        ReviewModel.aggregate([
+          { $match: { userId: { $in: userIds } } },
+          { $group: { _id: "$userId", count: { $sum: 1 } } },
+        ]),
+        FavoriteModel.aggregate([
+          { $match: { userId: { $in: userIds } } },
+          { $group: { _id: "$userId", count: { $sum: 1 } } },
+        ]),
+        FeedbackModel.aggregate([
+          { $match: { userId: { $in: userIds } } },
+          { $group: { _id: "$userId", count: { $sum: 1 } } },
+        ]),
+      ]);
+
+      const bookingMap = new Map(bookingCounts.map((item) => [String(item._id), item.count]));
+      const reviewMap = new Map(reviewCounts.map((item) => [String(item._id), item.count]));
+      const favoriteMap = new Map(favoriteCounts.map((item) => [String(item._id), item.count]));
+      const feedbackMap = new Map(feedbackCounts.map((item) => [String(item._id), item.count]));
+
+      return res.status(200).send({
+        success: true,
+        message: "Get users successfully",
+        data: users.map((user) =>
+          serializeAdminUser(user, {
+            bookings: bookingMap.get(String(user._id)),
+            reviews: reviewMap.get(String(user._id)),
+            favorites: favoriteMap.get(String(user._id)),
+            feedbackEntries: feedbackMap.get(String(user._id)),
+          })
+        ),
+        pagination: {
+          page,
+          limit,
+          totalItems,
+          totalPages: Math.max(Math.ceil(totalItems / limit), 1),
+        },
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  getBookings: async (req, res) => {
+    try {
+      const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 50);
+      const bookings = await BookingModel.find({})
+        .sort({ createdAt: -1 })
+        .limit(limit);
+
+      const movieLegacyIds = [...new Set(bookings.map((booking) => booking.movieLegacyId))];
+      const showtimeIds = [...new Set(bookings.map((booking) => String(booking.showtimeId)))];
+
+      const [movies, showtimes] = await Promise.all([
+        MovieModel.find({ legacyId: { $in: movieLegacyIds } }),
+        ShowtimeModel.find({ _id: { $in: showtimeIds } }),
+      ]);
+
+      const movieMap = new Map(movies.map((movie) => [movie.legacyId, movie]));
+      const showtimeMap = new Map(showtimes.map((showtime) => [String(showtime._id), showtime]));
+
+      return res.status(200).send({
+        success: true,
+        message: "Get bookings successfully",
+        data: bookings.map((booking) =>
+          serializeBooking(
+            booking,
+            movieMap.get(booking.movieLegacyId),
+            showtimeMap.get(String(booking.showtimeId))
+          )
+        ),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  getDeletedMovies: async (req, res) => {
+    try {
+      const movies = await MovieModel.find({ deletedAt: { $ne: null } }).sort({ deletedAt: -1 });
+
+      return res.status(200).send({
+        success: true,
+        message: "Get deleted movies successfully",
+        data: movies.map(serializeAdminMovie),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  getActivity: async (req, res) => {
+    try {
+      const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 100);
+      const activities = await AdminActivityModel.find().sort({ createdAt: -1 }).limit(limit);
+
+      return res.status(200).send({
+        success: true,
+        message: "Get admin activity successfully",
+        data: activities.map(serializeAdminActivity),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  createMovie: async (req, res) => {
+    try {
+      const payload = buildMoviePayload(req.body);
+      const validationMessage = validateMoviePayload(payload);
+
+      if (validationMessage) {
+        return res.status(400).send({
+          success: false,
+          message: validationMessage,
+          data: null,
+        });
+      }
+
+      if (!payload.legacyId) {
+        const latestMovie = await MovieModel.findOne().sort({ legacyId: -1 });
+        payload.legacyId = (latestMovie?.legacyId || 0) + 1;
+      }
+
+      const duplicateMessage = await findDuplicateMovie(payload);
+
+      if (duplicateMessage) {
+        return res.status(409).send({
+          success: false,
+          message: duplicateMessage,
+          data: null,
+        });
+      }
+
+      const movie = await MovieModel.create(payload);
+      await syncAdminSeedMovie(movie);
+      createAdminActivity(req, {
+        action: "CREATE",
+        name: movie.title,
+        value: `ID ${formatMovieId(movie.legacyId)}`,
+        entityType: "movie",
+        entityId: formatMovieId(movie.legacyId),
+      });
+
+      return res.status(201).send({
+        success: true,
+        message: "Create movie successfully",
+        data: serializeAdminMovie(movie),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  updateMovie: async (req, res) => {
+    try {
+      const legacyId = Number(req.params.movieId);
+
+      if (Number.isNaN(legacyId)) {
+        return res.status(400).send({
+          success: false,
+          message: "Movie id is invalid",
+          data: null,
+        });
+      }
+
+      const payload = buildMoviePayload({ ...req.body, legacyId });
+      const validationMessage = validateMoviePayload(payload);
+
+      if (validationMessage) {
+        return res.status(400).send({
+          success: false,
+          message: validationMessage,
+          data: null,
+        });
+      }
+
+      const duplicateMessage = await findDuplicateMovie(payload, legacyId);
+
+      if (duplicateMessage) {
+        return res.status(409).send({
+          success: false,
+          message: duplicateMessage,
+          data: null,
+        });
+      }
+
+      const movie = await MovieModel.findOneAndUpdate({ legacyId, deletedAt: null }, payload, {
+        new: true,
+        runValidators: true,
+      });
+
+      if (!movie) {
+        return res.status(404).send({
+          success: false,
+          message: "Movie not found",
+          data: null,
+        });
+      }
+
+      await syncAdminSeedMovie(movie);
+      createAdminActivity(req, {
+        action: "UPDATE",
+        name: movie.title,
+        value: `ID ${formatMovieId(movie.legacyId)}`,
+        entityType: "movie",
+        entityId: formatMovieId(movie.legacyId),
+      });
+
+      return res.status(200).send({
+        success: true,
+        message: "Update movie successfully",
+        data: serializeAdminMovie(movie),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  deleteMovie: async (req, res) => {
+    try {
+      const legacyId = Number(req.params.movieId);
+
+      if (Number.isNaN(legacyId)) {
+        return res.status(400).send({
+          success: false,
+          message: "Movie id is invalid",
+          data: null,
+        });
+      }
+
+      const movie = await MovieModel.findOneAndUpdate(
+        { legacyId, deletedAt: null },
+        { deletedAt: new Date() },
+        { new: true }
+      );
+
+      if (!movie) {
+        return res.status(404).send({
+          success: false,
+          message: "Movie not found",
+          data: null,
+        });
+      }
+
+      await syncAdminSeedMovie(movie);
+      createAdminActivity(req, {
+        action: "DELETE",
+        name: movie.title,
+        value: `ID ${formatMovieId(movie.legacyId)}`,
+        entityType: "movie",
+        entityId: formatMovieId(movie.legacyId),
+      });
+
+      return res.status(200).send({
+        success: true,
+        message: "Delete movie successfully",
+        data: serializeAdminMovie(movie),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  restoreMovie: async (req, res) => {
+    try {
+      const legacyId = Number(req.params.movieId);
+
+      if (Number.isNaN(legacyId)) {
+        return res.status(400).send({
+          success: false,
+          message: "Movie id is invalid",
+          data: null,
+        });
+      }
+
+      const movie = await MovieModel.findOneAndUpdate(
+        { legacyId, deletedAt: { $ne: null } },
+        { deletedAt: null },
+        { new: true, runValidators: true }
+      );
+
+      if (!movie) {
+        return res.status(404).send({
+          success: false,
+          message: "Deleted movie not found",
+          data: null,
+        });
+      }
+
+      await syncAdminSeedMovie(movie);
+      createAdminActivity(req, {
+        action: "RESTORE",
+        name: movie.title,
+        value: `ID ${formatMovieId(movie.legacyId)}`,
+        entityType: "movie",
+        entityId: formatMovieId(movie.legacyId),
+      });
+
+      return res.status(200).send({
+        success: true,
+        message: "Restore movie successfully",
+        data: serializeAdminMovie(movie),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  getUserActivity: async (req, res) => {
+    try {
+      const { userId } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).send({
+          success: false,
+          message: "userId is invalid",
+          data: null,
+        });
+      }
+
+      const user = await UserModel.findById(userId);
+
+      if (!user) {
+        return res.status(404).send({
+          success: false,
+          message: "User not found",
+          data: null,
+        });
+      }
+
+      const [bookings, reviews, favorites, feedbackEntries] = await Promise.all([
+        BookingModel.find({ userId }).sort({ createdAt: -1 }).limit(10),
+        ReviewModel.find({ userId }).sort({ createdAt: -1 }).limit(10),
+        FavoriteModel.find({ userId }).sort({ createdAt: -1 }).limit(10),
+        FeedbackModel.find({ userId }).sort({ createdAt: -1 }).limit(10),
+      ]);
+
+      const movieLegacyIds = [
+        ...new Set([
+          ...bookings.map((booking) => booking.movieLegacyId),
+          ...reviews.map((review) => review.movieLegacyId),
+          ...favorites.map((favorite) => favorite.movieLegacyId),
+        ]),
+      ];
+      const showtimeIds = [...new Set(bookings.map((booking) => String(booking.showtimeId)))];
+
+      const [movies, showtimes] = await Promise.all([
+        MovieModel.find({ legacyId: { $in: movieLegacyIds } }),
+        ShowtimeModel.find({ _id: { $in: showtimeIds } }),
+      ]);
+
+      const movieMap = new Map(movies.map((movie) => [movie.legacyId, movie]));
+      const showtimeMap = new Map(
+        showtimes.map((showtime) => [String(showtime._id), showtime])
+      );
+
+      return res.status(200).send({
+        success: true,
+        message: "Get user activity successfully",
+        data: {
+          user: serializeAdminUser(user),
+          bookings: bookings.map((booking) =>
+            serializeBooking(
+              booking,
+              movieMap.get(booking.movieLegacyId),
+              showtimeMap.get(String(booking.showtimeId))
+            )
+          ),
+          reviews: reviews.map((review) =>
+            serializeReview(review, movieMap.get(review.movieLegacyId))
+          ),
+          favorites: favorites.map((favorite) =>
+            serializeFavorite(favorite, movieMap.get(favorite.movieLegacyId))
+          ),
+          feedbackEntries: feedbackEntries.map(serializeFeedback),
+        },
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  updateUserRole: async (req, res) => {
+    try {
+      const { userId } = req.params;
+      const nextRole = String(req.body?.role || "").trim().toLowerCase();
+
+      if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).send({
+          success: false,
+          message: "userId is invalid",
+          data: null,
+        });
+      }
+
+      if (!["user", "admin"].includes(nextRole)) {
+        return res.status(400).send({
+          success: false,
+          message: "Role must be user or admin",
+          data: null,
+        });
+      }
+
+      const user = await UserModel.findById(userId);
+
+      if (!user) {
+        return res.status(404).send({
+          success: false,
+          message: "User not found",
+          data: null,
+        });
+      }
+
+      user.role = nextRole;
+      await user.save();
+      createAdminActivity(req, {
+        action: "ROLE",
+        name: user.fullName || user.email,
+        value: `Role: ${user.role}`,
+        entityType: "user",
+        entityId: user._id,
+      });
+
+      return res.status(200).send({
+        success: true,
+        message: "Update user role successfully",
+        data: serializeAdminUser(user),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+};
+
+export default adminController;

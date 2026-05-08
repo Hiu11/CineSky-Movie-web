@@ -545,6 +545,7 @@
 .mobile-auth-link {
   display: flex;
   align-items: center;
+  gap: 12px;
   min-height: 58px;
   padding: 0 16px;
   border-radius: 18px;
@@ -554,6 +555,50 @@
   text-decoration: none;
   font-weight: 700;
   font-size: 15px;
+}
+
+.mobile-link-icon {
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--primary-gold);
+  font-weight: 900;
+}
+
+.mobile-drawer__footer .mobile-auth-link::before {
+  content: "•";
+  width: 30px;
+  height: 30px;
+  flex: 0 0 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+  color: var(--primary-gold);
+  font-weight: 900;
+}
+
+.mobile-drawer__footer .mobile-auth-link:nth-child(1)::before {
+  content: "♙";
+}
+
+.mobile-drawer__footer .mobile-auth-link:nth-child(2)::before {
+  content: "▤";
+}
+
+.mobile-drawer__footer .mobile-auth-link:nth-child(3)::before {
+  content: "⚙";
+}
+
+.mobile-drawer__footer .mobile-auth-link--danger::before {
+  content: "↩";
+  color: #ffb3b3;
 }
 
 .mobile-auth-link {
@@ -677,6 +722,19 @@
   .search-pill-modern {
     min-height: 58px;
   }
+
+  .movie-tabs-navigation {
+    gap: 10px;
+    padding: 8px 5% 12px;
+  }
+
+  .tab-btn {
+    min-width: 145px;
+    padding: 13px 14px;
+    border-radius: 18px;
+    font-size: 12px;
+    line-height: 1.35;
+  }
 }
 
 @media (max-width: 900px) {
@@ -749,14 +807,14 @@
   }
 
   .mobile-drawer {
-    top: 88px;
-    left: 16px;
-    right: 16px;
-    width: auto;
-    height: auto;
-    max-height: calc(100dvh - 108px);
-    padding: 18px 16px 18px;
-    border-radius: 28px;
+    top: 0;
+    right: 0;
+    left: auto;
+    width: min(66.666vw, 420px);
+    height: 100dvh;
+    max-height: none;
+    padding: 22px 18px 24px;
+    border-radius: 28px 0 0 28px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     border-left: 1px solid rgba(255, 255, 255, 0.12);
   }
@@ -849,13 +907,14 @@
   }
 
   .mobile-drawer {
-    top: 12px;
-    right: 12px;
+    top: 0;
+    right: 0;
     left: auto;
-    width: min(320px, calc(100vw - 24px));
-    max-height: calc(100dvh - 24px);
-    padding: 18px 16px 18px;
-    border-radius: 24px;
+    width: min(66.666vw, 420px);
+    height: 100dvh;
+    max-height: none;
+    padding: 20px 16px 22px;
+    border-radius: 24px 0 0 24px;
   }
 }
 

@@ -66,10 +66,10 @@
   position: absolute;
   inset: 0;
   background:
-    radial-gradient(circle at 0% 0%, rgba(4, 4, 8, 0.52), transparent 24%),
-    radial-gradient(circle at 100% 0%, rgba(4, 4, 8, 0.48), transparent 24%),
-    radial-gradient(circle at 0% 100%, rgba(4, 4, 8, 0.62), transparent 28%),
-    radial-gradient(circle at 100% 100%, rgba(4, 4, 8, 0.6), transparent 28%),
+    radial-gradient(circle at 0% 0%, rgba(4, 4, 8, 0.82), transparent 32%),
+    radial-gradient(circle at 100% 0%, rgba(4, 4, 8, 0.78), transparent 32%),
+    radial-gradient(circle at 0% 100%, rgba(4, 4, 8, 0.86), transparent 34%),
+    radial-gradient(circle at 100% 100%, rgba(4, 4, 8, 0.84), transparent 34%),
     linear-gradient(90deg, rgba(7, 7, 11, 0.78) 0%, rgba(8, 8, 12, 0.6) 34%, rgba(10, 10, 15, 0.38) 56%, rgba(7, 7, 11, 0.74) 100%),
     linear-gradient(180deg, rgba(3, 3, 5, 0.12), rgba(3, 3, 5, 0.44));
 }
@@ -552,7 +552,8 @@
   color: #ffffff;
   font-size: 14px;
   font-weight: 800;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.02em;
+  text-transform: none;
   cursor: pointer;
   transition: transform 0.16s ease, filter 0.18s ease, box-shadow 0.18s ease;
   box-shadow: 0 18px 34px rgba(124, 58, 237, 0.28);

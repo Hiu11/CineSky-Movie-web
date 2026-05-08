@@ -1,5 +1,21 @@
 .filter-view-container {
+  position: relative;
+  overflow: hidden;
   padding-top: 34px;
+}
+
+.filter-view-container > * {
+  position: relative;
+  z-index: 1;
+}
+
+.filter-view-container > .cinematic-film-bg {
+  position: fixed;
+  z-index: 0;
+}
+
+.filter-view-container .cinematic-film-bg__track {
+  animation-duration: 300s;
 }
 
 .filter-view-container .movie-grid-container {
@@ -7,6 +23,63 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
   gap: 30px;
+}
+
+.filter-view-container .movie-grid-container .movie-card-container {
+  opacity: 0;
+  transform: translateY(28px) scale(0.97);
+  filter: blur(12px);
+  visibility: hidden;
+  animation: filterMovieLightIn 2.05s cubic-bezier(0.19, 1, 0.22, 1) both;
+  will-change: transform, opacity, filter;
+}
+
+.filter-view-container .movie-grid-container .movie-card-container:nth-child(1) {
+  animation-delay: 0.18s;
+}
+
+.filter-view-container .movie-grid-container .movie-card-container:nth-child(2) {
+  animation-delay: 0.44s;
+}
+
+.filter-view-container .movie-grid-container .movie-card-container:nth-child(3) {
+  animation-delay: 0.7s;
+}
+
+.filter-view-container .movie-grid-container .movie-card-container:nth-child(4) {
+  animation-delay: 0.96s;
+}
+
+.filter-view-container .movie-grid-container .movie-card-container:nth-child(5) {
+  animation-delay: 1.22s;
+}
+
+.filter-view-container .movie-grid-container .movie-card-container:nth-child(6) {
+  animation-delay: 1.48s;
+}
+
+.filter-view-container .movie-grid-container .movie-card-container:nth-child(7) {
+  animation-delay: 1.74s;
+}
+
+.filter-view-container .movie-grid-container .movie-card-container:nth-child(8) {
+  animation-delay: 2s;
+}
+
+.filter-view-container .movie-grid-container .movie-card-container:nth-child(9) {
+  animation-delay: 2.26s;
+}
+
+.filter-view-container .movie-grid-container .movie-card-container:nth-child(10) {
+  animation-delay: 2.52s;
+}
+
+.filter-view-container .movie-grid-container .movie-card-container:nth-child(11) {
+  animation-delay: 2.78s;
+}
+
+.filter-view-container .movie-grid-container .movie-card-container:nth-child(12) {
+  animation-delay: 3.04s;
 }
 
 .filter-options-panel {
@@ -269,6 +342,45 @@
 
   to {
     background-position: -20% 0, 0 0;
+  }
+}
+
+@keyframes filterMovieLightIn {
+  0%,
+  32% {
+    visibility: hidden;
+    opacity: 0;
+    transform: translateY(30px) scale(0.96);
+    filter: blur(14px) brightness(0.72);
+    box-shadow: 0 0 0 rgba(247, 180, 0, 0), 0 0 0 rgba(124, 58, 237, 0);
+  }
+
+  58% {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0) scale(1.01);
+    filter: blur(2px) brightness(1.2);
+    box-shadow:
+      0 0 34px rgba(247, 180, 0, 0.36),
+      0 0 68px rgba(124, 58, 237, 0.32);
+  }
+
+  100% {
+    visibility: visible;
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0) brightness(1);
+    box-shadow: 0 0 0 rgba(247, 180, 0, 0), 0 0 0 rgba(124, 58, 237, 0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .filter-view-container .movie-grid-container .movie-card-container {
+    visibility: visible;
+    opacity: 1;
+    transform: none;
+    filter: none;
+    animation: none;
   }
 }
 

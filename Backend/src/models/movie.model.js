@@ -157,6 +157,10 @@ const movieSchema = new mongoose.Schema(
       type: trailerPanelSchema,
       default: null,
     },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
   },
   {
     timestamps: true,

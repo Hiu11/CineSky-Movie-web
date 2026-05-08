@@ -1,5 +1,5 @@
 const detailOverridesByLegacyId = {
-  1: {
+  15: {
     cast: [
       { name: "Sam Worthington", role: "Jake Sully" },
       { name: "Zoe Saldana", role: "Neytiri" },
@@ -7,7 +7,7 @@ const detailOverridesByLegacyId = {
       { name: "Stephen Lang", role: "Quaritch" },
     ],
   },
-  2: {
+  16: {
     cast: [
       { name: "Mark Wahlberg", role: "Air Marshal" },
       { name: "Michelle Dockery", role: "Madolyn Harris" },
@@ -15,7 +15,7 @@ const detailOverridesByLegacyId = {
       { name: "Leah Remini", role: "Caroline Van Sant" },
     ],
   },
-  3: {
+  17: {
     cast: [
       { name: "Chris Hemsworth", role: "Thor" },
       { name: "Natalie Portman", role: "Jane Foster" },
@@ -23,7 +23,7 @@ const detailOverridesByLegacyId = {
       { name: "Christopher Eccleston", role: "Malekith" },
     ],
   },
-  4: {
+  18: {
     cast: [
       { name: "Doan Quoc Dam", role: "Chien si tre" },
       { name: "Cao Thi Thuy Linh", role: "Nu chinh" },
@@ -31,7 +31,7 @@ const detailOverridesByLegacyId = {
       { name: "Trong Trinh", role: "Vai phu noi bat" },
     ],
   },
-  5: {
+  19: {
     cast: [
       { name: "Nha Phuong", role: "Nha Van" },
       { name: "Diem My 9x", role: "Linh Lan" },
@@ -39,7 +39,7 @@ const detailOverridesByLegacyId = {
       { name: "Duc Phuc", role: "Guest cameo" },
     ],
   },
-  6: {
+  20: {
     cast: [
       { name: "Tran Nghia", role: "Ngan" },
       { name: "Truc Anh", role: "Ha Lan" },
@@ -47,7 +47,7 @@ const detailOverridesByLegacyId = {
       { name: "Trong Khang", role: "Dung" },
     ],
   },
-  301: {
+  5: {
     cast: [
       { name: "MisThy", role: "Nhan vat trung tam" },
       { name: "Dustin Nguyen", role: "Nguoi than trong gia dinh" },
@@ -55,7 +55,7 @@ const detailOverridesByLegacyId = {
       { name: "Jun Vu", role: "Co dau bi cuon vao bien co" },
     ],
   },
-  302: {
+  6: {
     cast: [
       { name: "Kieu Minh Tuan", role: "Nguoi dan duong vao rung thieng" },
       { name: "Hanh Thuy", role: "Nguoi giu bi mat co xua" },
@@ -63,7 +63,7 @@ const detailOverridesByLegacyId = {
       { name: "Nina Nutthacha", role: "Vi khach la mat" },
     ],
   },
-  303: {
+  7: {
     cast: [
       { name: "Thai Hoa", role: "Nguoi cha ganh vac bien co" },
       { name: "Vo Tan Phat", role: "Nguoi dong hanh tre tuoi" },
@@ -71,7 +71,7 @@ const detailOverridesByLegacyId = {
       { name: "Hong Anh", role: "Tru cot gia dinh" },
     ],
   },
-  304: {
+  8: {
     cast: [
       { name: "Vo Tan Phat", role: "Nhan vat bi cuon vao loi don" },
       { name: "Tran Ngoc Vang", role: "Nguoi truy tim su that" },
@@ -79,7 +79,7 @@ const detailOverridesByLegacyId = {
       { name: "Thanh Thuy", role: "Nguoi chung kien qua khu" },
     ],
   },
-  305: {
+  9: {
     cast: [
       { name: "Phuong Anh Dao", role: "Nhan vat nu chinh" },
       { name: "Tuan Tran", role: "Nguoi thay doi nhiep song gia dinh" },
@@ -87,7 +87,7 @@ const detailOverridesByLegacyId = {
       { name: "Trung Dan", role: "Nguoi ket noi cac the he" },
     ],
   },
-  306: {
+  10: {
     cast: [
       { name: "Mai Tai Phen", role: "Tai" },
       { name: "Vinh Rau", role: "Ban than cua Tai" },
@@ -95,7 +95,7 @@ const detailOverridesByLegacyId = {
       { name: "Hong Anh", role: "Nguoi than quan trong" },
     ],
   },
-  307: {
+  11: {
     cast: [
       { name: "Chris Pratt", role: "Mario" },
       { name: "Anya Taylor-Joy", role: "Princess Peach" },
@@ -103,7 +103,7 @@ const detailOverridesByLegacyId = {
       { name: "Keegan-Michael Key", role: "Toad" },
     ],
   },
-  308: {
+  101: {
     cast: [
       { name: "Cao Thai Ha", role: "Nhan vat chinh" },
       { name: "Le Be La", role: "Nhan vat nua tin nua so" },
@@ -111,7 +111,7 @@ const detailOverridesByLegacyId = {
       { name: "Ngoc Lan", role: "Chu nhan co so lam dep" },
     ],
   },
-  309: {
+  102: {
     cast: [
       { name: "Quoc Truong", role: "Nguoi tro ve tu qua khu" },
       { name: "Quoc Huy", role: "Ban trai cu con day dut" },
@@ -119,7 +119,7 @@ const detailOverridesByLegacyId = {
       { name: "Le Khanh", role: "Nguoi dan duong cho su hoa giai" },
     ],
   },
-  310: {
+  103: {
     cast: [
       { name: "Milly Alcock", role: "Kara Zor-El / Supergirl" },
       { name: "Matthias Schoenaerts", role: "Phan dien chinh" },

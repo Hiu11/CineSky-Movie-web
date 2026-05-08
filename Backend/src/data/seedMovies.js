@@ -1,3 +1,5 @@
+import adminSeedMovies from "./adminSeedMovies.js";
+
 const movieDisplayConfigBySlug = {
   "mua-do-2025": { catalogOrder: 1 },
   "khe-uoc-ban-dau": { catalogOrder: 2 },
@@ -28,9 +30,9 @@ const movieDisplayConfigBySlug = {
   "te-le-quy-linh-nhi": { catalogOrder: 6 },
 };
 
-const rawSeedMovies = [
+const baseSeedMovies = [
   {
-    legacyId: 201,
+    legacyId: 12,
     slug: "tho-oi",
     title: "THỎ ƠI!!",
     poster: "/assets/images/thỏ ơi.jpg",
@@ -46,7 +48,7 @@ const rawSeedMovies = [
     description: "Thỏ Ơi!! là một bộ phim tình cảm tâm lý đặt trong bối cảnh đô thị hiện đại, nơi những mối quan hệ tưởng như đã quen thuộc lại âm thầm đầy lên nhiều vết xước cảm xúc. Nhân vật chính bước vào hành trình nhìn lại những điều mình từng né tránh: sự cô đơn trong tình yêu, kỳ vọng của gia đình và áp lực phải trưởng thành nhanh hơn cảm xúc thực sự bên trong. \n\nPhim không chọn cách đẩy kịch tính bằng các biến cố quá lớn, mà chạm vào người xem bằng những chi tiết đời thường, những lần im lặng sau tranh cãi và những khoảnh khắc con người bắt đầu học cách yêu thương lành mạnh hơn. Tinh thần của tác phẩm nằm ở việc chữa lành, tha thứ và chấp nhận rằng trưởng thành đôi khi không phải là bước đi tiếp, mà là dám quay lại đối diện với vết thương của chính mình.",
   },
   {
-    legacyId: 202,
+    legacyId: 13,
     slug: "tieu-yeu-quai-nui-lang-lang",
     title: "TIỂU YÊU QUÁI NÚI LÃNG LÃNG",
     poster: "/assets/images/tiểu yêu quái núi lãng lãng.jpg",
@@ -62,7 +64,7 @@ const rawSeedMovies = [
     description: "Bốn tiểu yêu quái tinh nghịch vô tình cuốn vào một chuyến phiêu lưu ngoài sức tưởng tượng khi giả dạng đoàn thỉnh kinh để kiếm sống. Từ một kế hoạch đơn giản đầy ngẫu hứng, cả nhóm bị đẩy vào thế giới của những quy tắc kỳ lạ, những nhân vật dị dị và những tình huống vừa hài hước vừa hoang đường như truyện cổ tích hiện đại. \n\nẨn dưới lớp vỏ hoạt hình vui nhộn là câu chuyện về tình bạn, sự khác biệt và quyền được sống đúng với bản chất của mình. Mỗi thành viên trong nhóm đều có một sợ hãi riêng, một điều muốn che giấu, và chính hành trình đó giúp họ học cách tin nhau, dũng cảm và lớn lên theo cách rất ngọt ngào.",
   },
   {
-    legacyId: 203,
+    legacyId: 14,
     slug: "running-man-viet-nam-mua-3-con-roi-tu-do",
     title: "RUNNING MAN VIỆT NAM MÙA 3: CON RỐI TỰ DO",
     poster: "/assets/images/running-man.jpg",
@@ -78,7 +80,7 @@ const rawSeedMovies = [
     description: "Phiên bản điện ảnh của Running Man Việt Nam mùa 3 mở rộng tinh thần giải trí quen thuộc thành một câu chuyện ẩn dụ về tự do, danh vọng và bản lĩnh cá nhân. Các nhân vật bị cuốn vào chuỗi thử thách liên tiếp, nơi mỗi lựa chọn không chỉ quyết định kết quả trò chơi mà còn bóc tách những mặt tối trong tâm lý, niềm tin và mối quan hệ giữa con người với con người. \n\nBộ phim vẫn giữ được nhịp điệu nhanh, nhiều màn va chạm và tình huống giải trí, nhưng đồng thời thêm vào đó là cảm giác ngột ngạt của một cuộc đua mà ở đó ai cũng phải chọn giữa lợi ích và sự tự tôn. Đây là một tác phẩm vừa có tính đại chúng, vừa có tham vọng kể câu chuyện lớn hơn một format truyền hình thông thường.",
   },
   {
-    legacyId: 204,
+    legacyId: 1,
     slug: "mua-do-2025",
     title: "MƯA ĐỎ",
     poster: "/assets/images/mua-do-2025.jpg",
@@ -95,7 +97,7 @@ const rawSeedMovies = [
       "Mưa Đỏ tái hiện một giai đoạn khốc liệt bằng góc nhìn giàu cảm xúc, nơi những con người trẻ tuổi phải đối diện với mất mát, niềm tin và lựa chọn sinh tử. Bộ phim đặt trọng tâm vào tinh thần đồng đội, ký ức chiến trường và sự hy sinh thầm lặng phía sau từng khoảnh khắc bình yên.",
   },
   {
-    legacyId: 205,
+    legacyId: 2,
     slug: "khe-uoc-ban-dau",
     title: "KHẾ ƯỚC BÁN DÂU",
     poster: "/assets/images/khe-uoc-ban-dau.jpg",
@@ -112,7 +114,7 @@ const rawSeedMovies = [
       "Khế Ước Bán Dâu xoay quanh một lời hứa cũ trong gia tộc, kéo nhân vật chính vào chuỗi bí mật u ám giữa hôn nhân, nghi lễ và những món nợ không thể gọi tên. Không khí phim nghiêng về kinh dị tâm lý, khai thác nỗi sợ đến từ truyền thống bị bóp méo và áp lực gia đình.",
   },
   {
-    legacyId: 206,
+    legacyId: 3,
     slug: "cai-ma-2025",
     title: "CẢI MẢ",
     poster: "/assets/images/cai-ma-2025.jpg",
@@ -129,7 +131,7 @@ const rawSeedMovies = [
       "Cải Mả đưa người xem trở lại một vùng quê nơi nghi thức tâm linh và những bí mật bị chôn vùi dần trỗi dậy sau một biến cố gia đình. Bộ phim sử dụng chất liệu dân gian để tạo cảm giác lạnh gáy, chậm rãi nhưng dai dẳng.",
   },
   {
-    legacyId: 207,
+    legacyId: 4,
     slug: "bay-tien",
     title: "BẢY TIỀN",
     poster: "/assets/images/bay-tien.jpg",
@@ -146,7 +148,7 @@ const rawSeedMovies = [
       "Bảy Tiền kể câu chuyện đời thường bằng nhịp phim dí dỏm, xoay quanh những lựa chọn tưởng nhỏ nhưng làm thay đổi cách các nhân vật nhìn về gia đình, tình bạn và giá trị của đồng tiền. Tác phẩm hướng tới cảm giác gần gũi, dễ xem và giàu màu sắc Việt.",
   },
   {
-    legacyId: 1,
+    legacyId: 15,
     slug: "avatar-lua-va-tro-tan",
     title: "AVATAR: LỬA VÀ TRO TÀN",
     poster: "https://upload.wikimedia.org/wikipedia/en/5/54/Avatar_The_Way_of_Water_poster.jpg",
@@ -162,7 +164,7 @@ const rawSeedMovies = [
     description: "Jake Sully và gia đình tiếp tục đối mặt với những biến động dữ dội trên Pandora khi một bộ tộc Na'vi mới xuất hiện cùng mối đe dọa ngày càng tàn bạo từ loài người. Cuộc xung đột không còn dừng lại ở việc phòng thủ lãnh thổ, mà đã mở rộng thành trận chiến giữa những hệ giá trị đối nghịch: bảo vệ sự sống, bảo vệ gia đình và giữ lấy linh hồn của cả hành tinh. \n\nPhim đào sâu hơn vào tâm lý của từng thành viên trong gia đình Jake, để mỗi cuộc chia ly, mỗi lựa chọn và mỗi vết nứt đều trở thành động lực của câu chuyện. Quy mô thế giới vẫn hoành tráng, nhưng điểm mạnh lớn nhất nằm ở cảm xúc gia đình, sự sinh tồn và cách con người đứng trước hậu quả của lòng tham. Tác phẩm giữ tinh thần sử thi của Avatar nhưng mang màu sắc trầm hơn, gắt hơn và đầy sức nặng tình cảm.",
   },
   {
-    legacyId: 2,
+    legacyId: 16,
     slug: "tu-chien-tren-khong",
     title: "TỬ CHIẾN TRÊN KHÔNG",
     poster: "/assets/images/Tử chiến.jpg",
@@ -178,7 +180,7 @@ const rawSeedMovies = [
     description: "Một chuyến bay thương mại bất ngờ bị khủng bố ở độ cao hơn 10.000 mét, biến khoang máy bay thành một chiến trường sinh tồn nghẹt thở. Trong không gian khép kín, mỗi phút trôi qua đều đẩy thêm áp lực, khi hành khách hoảng loạn, nguy cơ nổ tung tăng và không ai biết ai đang thực sự nắm thế chủ động. \n\nNhân vật trung tâm buộc phải đứng lên không chỉ để bảo vệ gia đình, mà còn để giữ lấy niềm tin của những người xa lạ đang mắc kẹt cùng mình. Bộ phim đẩy cao trào bằng tiết tấu gấp, hành động sát sườn và bài toán tâm lý về lòng can đảm trong tình thế không còn đường lùi. Cảm giác bị giam chặt giữa trời cao chính là điều khiến tác phẩm trở nên căng thẳng từ đầu đến cuối.",
   },
   {
-    legacyId: 3,
+    legacyId: 17,
     slug: "thor-the-gioi-bong-toi",
     title: "THOR: THẾ GIỚI BÓNG TỐI",
     poster: "/assets/images/Thor.jpg",
@@ -194,7 +196,7 @@ const rawSeedMovies = [
     description: "Thor trở lại trong một chương truyện đậm màu sắc ảm tối hơn khi vũ trụ đối mặt với sự trỗi dậy của Malekith và Dark Elves. Khác với những trận chiến rạng rỡ thường thấy, lần này mối nguy hiểm đến từ một thế lực có thể xóa sổ ánh sáng, niềm tin và cả trật tự giữa các thế giới. \n\nBên cạnh quy mô siêu anh hùng, phim còn tập trung vào mối quan hệ vừa mong manh vừa phức tạp giữa Thor và Loki. Sự hoài nghi, mặc cả và niềm tin đặt sai chỗ tạo nên chiều sâu tâm lý giúp câu chuyện không chỉ là hành trình cứu thế giới, mà còn là phép thử với tinh thần hy sinh, tình thân huyết thống và cái giá của quyền lực.",
   },
   {
-    legacyId: 4,
+    legacyId: 18,
     slug: "dao-pho-va-piano",
     title: "ĐÀO, PHỞ VÀ PIANO",
     poster: "/assets/images/Đào.jpg",
@@ -210,7 +212,7 @@ const rawSeedMovies = [
     description: "Lấy bối cảnh Hà Nội trong những năm đầu kháng chiến, Đào, Phở và Piano không kể lịch sử bằng những tuyến sự kiện hoành tráng, mà thông qua đời sống, tình yêu và phẩm giá của những con người bình thường giữa thời đại biến động. Từng khung hình, từng đối thoại và từng nhạc cụ xuất hiện đều gợi lên một không khí rất Hà Nội: thanh lịch, mong manh nhưng không hề yếu đuối. \n\nBộ phim chọn nhìn lịch sử từ mật độ con người, nơi cái đẹp vẫn tồn tại giữa mất mát, nơi tình yêu và nghệ thuật vẫn có thể song song cùng chiến tranh. Vì thế, tác phẩm để lại dư vị rất riêng: nhẹ nhàng mà ám ảnh, tiết chế mà thấm sâu, và rất hợp với những khán giả muốn tìm thấy cảm xúc hơn là chi tiết sự kiện.",
   },
   {
-    legacyId: 5,
+    legacyId: 19,
     slug: "1990",
     title: "1990",
     poster: "/assets/images/1990.webp",
@@ -226,7 +228,7 @@ const rawSeedMovies = [
     description: "Ba người phụ nữ cùng sinh năm 1990 bước vào tuổi 30 với những nút thắt quen thuộc của đời sống hiện đại: tình yêu chẳng dễ gọi tên, sự nghiệp không ổn định như mong đợi và áp lực gia đình luôn hiện hữu trong từng quyết định. Mỗi nhân vật là một mẫu tâm lý khác nhau, nhưng đều gặp nhau ở nỗi lo mình đang chậm hơn người khác một nhịp trong cuộc sống trưởng thành. \n\nPhim sử dụng chất hài nhẹ, đối thoại đời thường và những tình huống dễ đồng cảm để mở ra một bài toán quen thuộc của thế hệ trẻ thành thị: làm sao để vừa sống cho mình, vừa không đánh mất những mối quan hệ quan trọng. Đây là một tác phẩm gần gũi, dễ xem, nhưng vẫn đủ thấm thật để khiến khán giả thấy một phần mình trong đó.",
   },
   {
-    legacyId: 6,
+    legacyId: 20,
     slug: "mat-biec",
     title: "MẮT BIẾC",
     poster: "/assets/images/Mắt biếc.jpg",
@@ -242,7 +244,7 @@ const rawSeedMovies = [
     description: "Mắt Biếc là câu chuyện thanh xuân thơm mùi làng quê, được kể bằng nhịp chậm và đầy chất thơ về mối tình đơn phương dai dẳng của Ngạn dành cho Hà Lan. Từ những năm tháng trẻ thơ đến lúc bước vào đời, tình cảm ấy vẫn ở đó, đôi khi trong trẻo, đôi khi đau đớn, nhưng luôn là sợi dây âm thầm chi phối mọi lựa chọn của nhân vật. \n\nTác phẩm nổi bật ở cách dùng hình ảnh, âm nhạc và khoảng lặng để tạo nên nỗi buồn tiếc nuối rất Việt Nam. Hơn cả một chuyện tình không thành, phim còn là ký ức về một thời người ta sống chậm hơn, yêu nhiều hơn và mang theo những điều không nói thành lời suốt cả cuộc đời.",
   },
   {
-    legacyId: 7,
+    legacyId: 21,
     slug: "beauty-and-the-beast",
     title: "BEAUTY AND THE BEAST",
     poster: "/assets/images/Beauty.jpg",
@@ -258,7 +260,7 @@ const rawSeedMovies = [
     description: "Belle bị cuốn vào lâu đài kỳ bí của Quái Thú và dần nhận ra rằng phía sau vẻ ngoài dữ dội là một tâm hồn từng bị tổn thương và giam cầm trong lời nguyền. Hành trình của cô không chỉ là khám phá một thế giới cổ tích, mà còn là hành trình học cách nhìn thấy con người thật sự phía sau nỗi sợ, định kiến và vẻ ngoài không hoàn hảo. \n\nPhiên bản live-action giữ tinh thần lãng mạn của nguyên tác kinh điển nhưng thêm vào nhiều chất điện ảnh hiện đại hơn về tâm lý và nhân vật. Những cảnh quay lộng lẫy, phần âm nhạc quen thuộc và thông điệp về lòng trắc ẩn giúp bộ phim trở thành một câu chuyện vượt thời gian về cách tình yêu có thể thay đổi cả một lời nguyền lẫn một con người.",
   },
   {
-    legacyId: 101,
+    legacyId: 106,
     slug: "te-le-quy-linh-nhi",
     title: "TẾ LỄ QUỶ LINH NHI",
     poster: "/assets/images/te-le-quy-linh-nhi.webp",
@@ -274,7 +276,7 @@ const rawSeedMovies = [
     description: "Sau khi sinh con thứ hai, một người mẹ trẻ bắt đầu rơi vào vòng xoáy của nỗi sợ và áp lực tâm lý khi linh cảm rằng một thế lực tà ác đang nhắm vào đứa bé sơ sinh của mình. Càng cố gắng bảo vệ gia đình, cô càng phải đối mặt với ranh giới ngày càng mơ hồ giữa ảo giác, niềm tin tôn giáo và khủng hoảng hậu sinh. \n\nBộ phim kinh dị chọn cách gây sợ hãi không chỉ bằng hình ảnh ma quái mà bằng cảm giác bất an kéo dài, khi người xem không còn chắc điều gì đang thực sự xảy ra. Một màu sắc u ám, lạnh lẽo và đầy tính tâm lý giúp tác phẩm trở nên nặng nề theo đúng cách mà những câu chuyện về nỗi sợ mẹ hiện đại thường chạm đến.",
   },
   {
-    legacyId: 102,
+    legacyId: 105,
     slug: "mui-pho-k",
     title: "MÙI PHỞ (K)",
     poster: "/assets/images/mui-pho.webp",
@@ -290,7 +292,7 @@ const rawSeedMovies = [
     description: "Mùi Phở kể một câu chuyện gia đình nhẹ nhàng xoay quanh những va chạm thế hệ, những điều không nói ra và một món ăn gần như đã trở thành ký ức tập thể của người Việt. Từ gian bếp, bàn ăn đến những lần hội ngộ đầy vướng mắc, bộ phim dùng mùi vị quen thuộc để mở ra một câu chuyện lớn hơn về căn nhà, sự tha thứ và cách con người tìm lại nhau sau những hiểu lầm. \n\nTác phẩm theo đuổi tông màu ấm áp, chậm rãi và dễ tiếp cận, ưu tiên cảm xúc hơn xung đột cực đoan. Bởi vậy, sức hút của phim nằm ở chỗ nó khiến khán giả thấy được sự thân thuộc: những bữa cơm, những câu nói bỏ lỡ và những tình cảm tưởng bình thường nhưng lại là điều giữ người ta ở lại với nhau.",
   },
   {
-    legacyId: 103,
+    legacyId: 104,
     slug: "quy-nhap-trang-2",
     title: "QUỶ NHẬP TRÀNG 2",
     poster: "/assets/images/quy-nhap-trang-main.webp",
@@ -306,7 +308,7 @@ const rawSeedMovies = [
     description: "Là tiền truyện của Quỷ Nhập Tràng, bộ phim đưa khán giả trở lại xưởng nhuộm cũ nơi những bí mật đẫm máu và chuỗi hiện tượng ma quái vẫn còn chôn vùi trong bóng tối. Quá khứ không còn là một mảng sự kiện đã qua, mà trở thành vết thương sống động chi phối từng nhân vật, từng căn phòng và từng thanh âm vang lên trong đêm. \n\nTác phẩm đẩy mạnh không khí rùng rợn bằng việc đào sâu vào nguồn gốc nỗi sợ, kết hợp giữa kinh dị dân gian và chất ám ảnh tâm lý. Càng về cuối, câu chuyện càng mở ra nhiều lớp bí ẩn, khiến người xem bị kéo vào một thế giới âm u, nghẹt thở và đầy cảm giác bất an kéo dài ngay cả khi bộ phim đã kết thúc.",
   },
   {
-    legacyId: 301,
+    legacyId: 5,
     slug: "song-hy-lam-nguy",
     title: "SONG HỶ LÂM NGUY",
     poster: "/assets/images/song-hy-lam-nguy.jpg",
@@ -323,7 +325,7 @@ const rawSeedMovies = [
       "Một đám cưới tưởng như viên mãn bỗng hóa thành chuỗi tình huống dở khóc dở cười khi những bí mật bị giấu kỹ trong gia đình lần lượt lộ ra. Song Hỷ Lâm Nguy khai thác chất hài đời thường nhưng luôn giữ nhịp căng vừa đủ để người xem tò mò về điều gì sẽ xảy ra tiếp theo.\n\nĐiểm hấp dẫn của phim nằm ở cách va chạm giữa không khí lễ hỷ rộn ràng và những mâu thuẫn âm ỉ nhiều năm. Từ đó, câu chuyện mở ra góc nhìn gần gũi về gia đình, sĩ diện, tình thân và khả năng chữa lành sau những hiểu lầm kéo dài.",
   },
   {
-    legacyId: 302,
+    legacyId: 6,
     slug: "phi-phong-quy-mau-rung-thieng",
     title: "PHÍ PHÔNG: QUỶ MÁU RỪNG THIÊNG",
     poster: "/assets/images/phi-phong-quy-mau-rung-thieng.jpg",
@@ -340,7 +342,7 @@ const rawSeedMovies = [
       "Lấy bối cảnh vùng rừng linh thiêng phủ đầy lời nguyền, bộ phim theo chân một nhóm người vô tình đánh thức thế lực khát máu gắn với nghi lễ cổ xưa. Mỗi bước tiến sâu vào khu rừng là một lần họ phải trả giá bằng nỗi sợ, sự phản bội và cả những bí mật không ai dám gọi tên.\n\nPhim đi theo màu sắc kinh dị dân gian, ưu tiên cảm giác âm u và áp lực tâm lý hơn là chỉ hù dọa đơn thuần. Nhờ vậy, tác phẩm tạo được không khí ngột ngạt khá bền, phù hợp với nhóm khán giả thích trải nghiệm rùng rợn kiểu chậm mà thấm.",
   },
   {
-    legacyId: 303,
+    legacyId: 7,
     slug: "anh-hung-2026",
     title: "ANH HÙNG",
     poster: "/assets/images/anh-hung-2026.jpg",
@@ -357,7 +359,7 @@ const rawSeedMovies = [
       "Anh Hùng kể câu chuyện về một con người bình thường bị đẩy vào tình thế phải gánh trách nhiệm lớn hơn khả năng của mình. Thay vì chọn mô-típ hào nhoáng, phim đi chậm để khắc họa những quyết định khó khăn, những mất mát riêng tư và áp lực giữ gìn gia đình giữa biến cố bất ngờ.\n\nTác phẩm thiên về cảm xúc, nhấn mạnh giá trị của lòng can đảm trong đời sống thường ngày. Chính lựa chọn kể chuyện này giúp phim chạm vào cảm giác gần gũi hơn là chỉ xây dựng hình tượng anh hùng theo kiểu biểu tượng.",
   },
   {
-    legacyId: 304,
+    legacyId: 8,
     slug: "heo-nam-mong",
     title: "HEO NĂM MÓNG",
     poster: "/assets/images/heo-nam-mong.jpg",
@@ -374,7 +376,7 @@ const rawSeedMovies = [
       "Một truyền thuyết kỳ dị ở miền quê trở lại sau hàng chục năm yên ắng, kéo theo chuỗi hiện tượng khó lý giải quanh một gia đình tưởng chừng rất bình thường. Heo Năm Móng khai thác hình ảnh dân gian quen thuộc để tạo nên cảm giác vừa lạ vừa rờn rợn, đặc biệt ở những cảnh đời sống bị xáo trộn bởi nỗi sợ vô hình.\n\nPhim kết hợp yếu tố kinh dị bản địa với nhịp dựng dồn dập, giữ người xem trong tâm thế luôn chờ điều tệ nhất ập tới. Đây là kiểu tác phẩm dễ gây bàn tán vì chất liệu văn hóa gần gũi nhưng cách kể chuyện khá táo bạo.",
   },
   {
-    legacyId: 305,
+    legacyId: 9,
     slug: "bau-vat-troi-cho",
     title: "BÁU VẬT TRỜI CHO",
     poster: "/assets/images/bau-vat-troi-cho.jpg",
@@ -391,7 +393,7 @@ const rawSeedMovies = [
       "Báu Vật Trời Cho mở ra từ một cơ duyên tưởng chừng nhỏ bé nhưng nhanh chóng làm xáo trộn cuộc sống của nhiều thành viên trong gia đình. Bộ phim chọn tông màu ấm áp, hài hước và giàu cảm xúc để kể về hành trình học cách yêu thương đúng cách, ngay cả khi ai cũng mang trong lòng những thiếu sót riêng.\n\nNhờ đặt trọng tâm vào mối quan hệ giữa các thế hệ, phim tạo được sự dễ xem và phù hợp với nhóm khán giả gia đình. Những mảng miếng hài được dùng vừa đủ để giữ nhịp sáng sủa trước khi kéo người xem trở lại với các khoảnh khắc tình cảm.",
   },
   {
-    legacyId: 306,
+    legacyId: 10,
     slug: "tai-2026",
     title: "TÀI",
     poster: "/assets/images/tai-2026.jpg",
@@ -408,7 +410,7 @@ const rawSeedMovies = [
       "Tài xoay quanh một nhân vật trẻ phải loay hoay giữa kỳ vọng của người thân, những lựa chọn tình cảm và khát vọng chứng minh giá trị của bản thân. Phim giữ chất đời thường, đối thoại gần gũi và cách xây dựng tình huống đủ duyên để câu chuyện không bị nặng nề dù chạm đến nhiều áp lực quen thuộc của người trưởng thành.\n\nĐiểm dễ đồng cảm là tác phẩm không cố tô vẽ nhân vật thành hình mẫu hoàn hảo. Thay vào đó, Tài để người xem thấy một hành trình trưởng thành còn nhiều vụng về nhưng chân thành, từ đó tạo cảm giác thân thuộc và dễ nhớ.",
   },
   {
-    legacyId: 307,
+    legacyId: 11,
     slug: "phim-super-mario-thien-ha",
     title: "PHIM SUPER MARIO THIÊN HÀ",
     poster: "/assets/images/phim-super-mario-thien-ha.jpg",
@@ -425,7 +427,7 @@ const rawSeedMovies = [
       "Mario bước vào một chuyến phiêu lưu lớn hơn khi phải băng qua các thiên hà mới, đối đầu những hiểm họa kỳ quặc và tiếp tục bảo vệ thế giới nấm khỏi tham vọng của thế lực phản diện. Bộ phim giữ màu sắc vui nhộn, nhịp nhanh và giàu tính giải trí, phù hợp với khán giả gia đình lẫn người đã quen với thương hiệu game này.\n\nĐiểm mạnh của tác phẩm nằm ở sự năng động trong hình ảnh, các màn hành động hoạt hình sáng tạo và cảm giác phiêu lưu liên tục. Đây là kiểu phim dễ kéo khán giả ra rạp nếu đang tìm một lựa chọn nhẹ nhàng, giàu năng lượng và dễ tiếp cận.",
   },
   {
-    legacyId: 308,
+    legacyId: 101,
     slug: "tham-my-vien-am-phu",
     title: "THẨM MỸ VIỆN ÂM PHỦ",
     poster: "/assets/images/tham-my-vien-am-phu.jpg",
@@ -442,7 +444,7 @@ const rawSeedMovies = [
       "Đặt bối cảnh tại một cơ sở làm đẹp tưởng như sang trọng và kín kẽ, bộ phim mở ra những bí mật bệnh hoạn nằm sau các dịch vụ tưởng chỉ phục vụ nhu cầu thay đổi ngoại hình. Càng đi sâu, nhân vật càng phát hiện những dấu vết ghê rợn gắn với tham vọng, ám ảnh sắc đẹp và cái giá phải trả cho việc chối bỏ bản thân.\n\nTác phẩm hứa hẹn khai thác không gian khép kín để nuôi cảm giác ngột ngạt, nơi vẻ ngoài lộng lẫy lại che giấu phần tối nhất của con người. Đây là chất liệu khá hợp với dòng kinh dị tâm lý hiện đại và dễ tạo tò mò ngay từ tên phim.",
   },
   {
-    legacyId: 309,
+    legacyId: 102,
     slug: "mot-thoi-ta-da-yeu",
     title: "MỘT THỜI TA ĐÃ YÊU",
     poster: "/assets/images/mot-thoi-ta-da-yeu.jpg",
@@ -459,7 +461,7 @@ const rawSeedMovies = [
       "Một Thời Ta Đã Yêu theo chân những con người gặp lại nhau khi ký ức cũ tưởng đã ngủ yên bỗng trở về cùng những tiếc nuối chưa từng được gọi tên. Phim nghiêng về cảm xúc, khai thác sự trưởng thành sau đổ vỡ và cảm giác day dứt khi tình yêu đẹp nhất đôi khi lại là thứ không thể giữ lại.\n\nNếu được triển khai đúng nhịp, đây sẽ là kiểu phim dễ chạm tới khán giả thích chất lãng mạn pha buồn, nơi những cuộc hội ngộ không chỉ để nhớ lại quá khứ mà còn để đối diện với con người mình của hiện tại.",
   },
   {
-    legacyId: 310,
+    legacyId: 103,
     slug: "supergirl-2026",
     title: "SUPERGIRL",
     poster: "/assets/images/supergirl-2026.jpg",
@@ -477,16 +479,20 @@ const rawSeedMovies = [
   },
 ];
 
+const rawSeedMovies = [...baseSeedMovies, ...adminSeedMovies];
+
 const seedMovies = rawSeedMovies.map((movie, index) => {
   const displayConfig = movieDisplayConfigBySlug[movie.slug] || {};
 
   return {
     ...movie,
     statusOrder: movie.status === "coming-soon" ? 1 : 0,
-    catalogOrder: displayConfig.catalogOrder ?? index + 1,
+    catalogOrder: displayConfig.catalogOrder ?? movie.catalogOrder ?? index + 1,
     heroOrder: Number.isInteger(displayConfig.heroOrder)
       ? displayConfig.heroOrder
-      : null,
+      : Number.isInteger(movie.heroOrder)
+        ? movie.heroOrder
+        : null,
   };
 });
 

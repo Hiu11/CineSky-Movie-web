@@ -17,6 +17,16 @@ const bookingSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    screeningDate: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    screeningDateLabel: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     movieLegacyId: {
       type: Number,
       required: true,

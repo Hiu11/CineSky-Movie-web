@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "../config/api";
+import { getAuthHeaders } from "./authService";
 
 const buildQueryString = (params = {}) => {
   const searchParams = new URLSearchParams();
@@ -35,9 +36,9 @@ export const createFeedbackEntry = async (payload) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/feedback`, {
       method: "POST",
-      headers: {
+      headers: getAuthHeaders({
         "Content-Type": "application/json",
-      },
+      }),
       body: JSON.stringify(payload),
     });
 
