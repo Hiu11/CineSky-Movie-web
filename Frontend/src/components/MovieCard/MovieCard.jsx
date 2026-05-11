@@ -27,11 +27,17 @@ const MovieCard = ({ movie }) => {
     navigate(`/booking?movieId=${movie.id}`);
   };
 
+  const handlePosterError = (event) => {
+    if (event.currentTarget.src.includes("dai-tiec-trang-mau-1.jpg")) {
+      event.currentTarget.src = "/assets/images/dai-tiec-trang-mau.jpg";
+    }
+  };
+
   return (
     <div className="movie-card-container" onClick={() => navigate(`/movie/${movie.id}?tab=${currentTab}`)}>
       <div className="movie-card-box">
         <div className="movie-poster">
-          <img src={movie.poster} alt={movie.title} />
+          <img src={movie.poster} alt={movie.title} onError={handlePosterError} />
           <div className="poster-overlay" />
           <div className="overlay-tags">
             <span className="tag-2d">2D</span>

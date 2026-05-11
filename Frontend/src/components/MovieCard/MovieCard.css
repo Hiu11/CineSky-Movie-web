@@ -4,15 +4,22 @@
   overflow: hidden;
   cursor: pointer;
   border-radius: 18px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(145deg, rgba(24, 28, 49, 0.96), rgba(17, 20, 32, 0.98));
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.32);
-  transition: transform 0.28s cubic-bezier(0.16, 0.84, 0.24, 1), box-shadow 0.28s cubic-bezier(0.16, 0.84, 0.24, 1);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    radial-gradient(circle at 82% 14%, rgba(247, 180, 0, 0.14), transparent 28%),
+    linear-gradient(145deg, rgba(45, 50, 78, 0.98), rgba(27, 31, 50, 0.98));
+  box-shadow:
+    0 14px 30px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transition: transform 0.28s cubic-bezier(0.16, 0.84, 0.24, 1), box-shadow 0.28s cubic-bezier(0.16, 0.84, 0.24, 1), border-color 0.28s ease;
 }
 
 .movie-card-container:hover {
   transform: translateY(-6px);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.44);
+  border-color: rgba(247, 180, 0, 0.28);
+  box-shadow:
+    0 22px 44px rgba(0, 0, 0, 0.4),
+    0 0 34px rgba(247, 180, 0, 0.16);
 }
 
 .movie-card-container::after {
@@ -49,6 +56,9 @@
   position: relative;
   width: 35%;
   overflow: hidden;
+  background:
+    radial-gradient(circle at center, rgba(247, 180, 0, 0.18), transparent 42%),
+    linear-gradient(145deg, #252b43, #151827);
 }
 
 .movie-poster img {
@@ -56,17 +66,21 @@
   height: 100%;
   display: block;
   object-fit: cover;
-  transition: transform 0.42s cubic-bezier(0.16, 0.84, 0.24, 1);
+  filter: brightness(1.08) saturate(1.08);
+  transition: transform 0.42s cubic-bezier(0.16, 0.84, 0.24, 1), filter 0.42s ease;
 }
 
 .movie-card-container:hover .movie-poster img {
   transform: scale(1.03);
+  filter: brightness(1.16) saturate(1.12);
 }
 
 .poster-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(8, 10, 18, 0.08), rgba(8, 10, 18, 0.22));
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 225, 160, 0.1), transparent 34%),
+    linear-gradient(180deg, rgba(8, 10, 18, 0), rgba(8, 10, 18, 0.12));
 }
 
 .overlay-tags {

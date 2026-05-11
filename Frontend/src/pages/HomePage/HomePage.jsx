@@ -167,6 +167,15 @@ const techShowcase = [
   "Mobile booking reminders",
 ];
 
+const cinematicParticles = Array.from({ length: 42 }, (_, index) => ({
+  id: index,
+  left: `${(index * 37) % 100}%`,
+  top: `${(index * 53) % 100}%`,
+  size: `${1 + (index % 3)}px`,
+  delay: `${(index % 9) * -0.7}s`,
+  duration: `${8 + (index % 6)}s`,
+}));
+
 const requestedMovies = [
   {
     id: 204,
@@ -804,6 +813,32 @@ const HomePage = ({ searchQuery = "" }) => {
 
   return (
     <main className="homepage-wrapper homepage-shell homepage-shell--hero">
+      <div className="home-cinematic-backdrop" aria-hidden="true">
+        <div className="home-cinematic-backdrop__grain"></div>
+        <div className="home-cinematic-backdrop__light home-cinematic-backdrop__light--gold"></div>
+        <div className="home-cinematic-backdrop__light home-cinematic-backdrop__light--blue"></div>
+        <div className="home-cinematic-backdrop__beam home-cinematic-backdrop__beam--left"></div>
+        <div className="home-cinematic-backdrop__beam home-cinematic-backdrop__beam--right"></div>
+        <div className="home-cinematic-backdrop__orb home-cinematic-backdrop__orb--one"></div>
+        <div className="home-cinematic-backdrop__orb home-cinematic-backdrop__orb--two"></div>
+        <div className="home-cinematic-backdrop__film home-cinematic-backdrop__film--left"></div>
+        <div className="home-cinematic-backdrop__film home-cinematic-backdrop__film--right"></div>
+        <div className="home-cinematic-backdrop__particles">
+          {cinematicParticles.map((particle) => (
+            <span
+              key={particle.id}
+              style={{
+                "--particle-left": particle.left,
+                "--particle-top": particle.top,
+                "--particle-size": particle.size,
+                "--particle-delay": particle.delay,
+                "--particle-duration": particle.duration,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
       {featuredMovie ? (
         <section className="home-hero">
           <div className="home-hero__slides" aria-hidden="true">
@@ -1086,7 +1121,7 @@ const HomePage = ({ searchQuery = "" }) => {
         </div>
       </section>
 
-      <section className="home-section home-section--partners">
+      <section className="home-section home-section--partners" data-reveal>
         <div className="home-section__header">
           <div>
             <h2>Công nghệ & Đối tác</h2>

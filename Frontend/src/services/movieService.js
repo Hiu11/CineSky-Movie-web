@@ -29,16 +29,38 @@ const parseResponse = async (response) => {
   return payload.data;
 };
 
+const normalizeMoviePoster = (poster = "") => {
+  if (poster === "/assets/images/dai-tiec-trang-mau-1.jpg") {
+    return "/assets/images/dai-tiec-trang-mau.jpg";
+  }
+
+  return poster;
+};
+
+const normalizeMovieAsset = (movie) =>
+  movie
+    ? {
+        ...movie,
+        poster: normalizeMoviePoster(movie.poster),
+        gallery: Array.isArray(movie.gallery)
+          ? movie.gallery.map((item) => normalizeMoviePoster(item))
+          : movie.gallery,
+      }
+    : movie;
+
+const normalizeMoviePayload = (payload) =>
+  Array.isArray(payload) ? payload.map(normalizeMovieAsset) : normalizeMovieAsset(payload);
+
 export const getMovies = async (params = {}) => {
   const response = await fetch(
     `${API_BASE_URL}/api/v1/movies${buildQueryString(params)}`
   );
-  return parseResponse(response);
+  return normalizeMoviePayload(await parseResponse(response));
 };
 
 export const getMovieById = async (movieId) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/movies/${movieId}`);
-  return parseResponse(response);
+  return normalizeMoviePayload(await parseResponse(response));
 };
 
 export const getMovieShowtimes = async (movieId) => {
