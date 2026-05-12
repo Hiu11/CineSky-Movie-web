@@ -20,7 +20,7 @@ const parseResponse = async (response) => {
   if (!response.ok || !payload?.success) {
     if (response.status === 401 || payload?.message === "Invalid or expired token") {
       clearAuthSession();
-      throw new Error("Phien dang nhap da het han. Vui long dang nhap admin lai.");
+      throw new Error("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
     }
 
     throw new Error(payload?.message || `Request failed (${response.status})`);

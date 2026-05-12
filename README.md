@@ -179,6 +179,7 @@ Chỉ commit file mẫu:
 
 - `.env.example`
 
+Lý do: file `.env` có thể chứa mật khẩu database, JWT secret hoặc API key.
 
 ## 9. Lỗi Thường Gặp
 
