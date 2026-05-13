@@ -1,0 +1,27 @@
+#!/bin/sh
+
+staged_files=$(git diff --cached --name-only)
+
+# Nếu staged files có .env thật thì dừng commit ngay.
+for file in $staged_files; do
+  case "$file" in
+    *.env.example|.env.example|Backend/.env.example|Frontend/.env.example)
+      ;;
+    .env|*/.env|.env.*|*/.env.*)
+      echo "Commit blocked: .env files must not be committed."
+      echo "Keep real secrets local and commit only .env.example files."
+      exit 1
+      ;;
+  esac
+done
+
+# Nếu nội dung staged diff có giá trị secret thật/đáng ngờ thì cũng dừng commit.
+if [ -n "$staged_files" ]; then
+  if git diff --cached -- . ':(exclude)**/.env.example' ':(exclude).env.example' ':(exclude)README.md' ':(exclude).githooks/pre-commit' | grep -E '^[+][^+].*(GOCSPX-|FACEBOOK_CLIENT_SECRET=[0-9a-fA-F]{20,}|JWT_SECRET=cinemax|JWT_REFRESH_SECRET=cinemax|ADMIN_PASSWORD=Admin@)' >/dev/null; then
+    echo "Commit blocked: staged changes contain secret-looking env keys."
+    echo "Remove real values for GOOGLE/FACEBOOK/JWT/admin secrets before committing."
+    exit 1
+  fi
+fi
+
+exit 0

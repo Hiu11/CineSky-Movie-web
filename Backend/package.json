@@ -5,8 +5,8 @@
   "type": "module",
   "main": "src/server.js",
   "scripts": {
-    "dev": "nodemon src/server.js",
-    "start": "node src/server.js",
+    "dev": "title Backend && nodemon src/server.js",
+    "start": "title Backend && node src/server.js",
     "seed": "node src/scripts/seed.js"
   },
   "dependencies": {

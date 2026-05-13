@@ -6,7 +6,12 @@ import AuthLayout, {
   AuthSocialButtons,
   AuthSocialFooter,
 } from "../../components/AuthLayout/AuthLayout";
-import { loginUser, storeAuthSession } from "../../services/authService";
+import {
+  loginUser,
+  readSocialAuthSession,
+  redirectToSocialLogin,
+  storeAuthSession,
+} from "../../services/authService";
 import "./Login.css";
 
 export default function Login({ onLoginSuccess, showToast }) {
@@ -19,6 +24,47 @@ export default function Login({ onLoginSuccess, showToast }) {
   const navigate = useNavigate();
 
   useEffect(() => {
+    const searchParams = new URLSearchParams(location.search);
+    const authSession = searchParams.get("authSession");
+    const authError = searchParams.get("authError");
+
+    // Sau khi login Google/Facebook, backend redirect về đây với session giống login thường,
+    // nên app có thể lưu user/token và dùng lại toàn bộ auth state cũ.
+    if (authSession) {
+      try {
+        const session = readSocialAuthSession(authSession);
+        const { user } = storeAuthSession(session);
+
+        if (onLoginSuccess) {
+          onLoginSuccess(user);
+        }
+
+        showToast?.({
+          type: "success",
+          title: "Welcome back",
+          message: `Signed in as ${user.fullName || user.name || user.email}.`,
+        });
+
+        navigate("/", { replace: true });
+        return;
+      } catch {
+        setStatus({
+          type: "error",
+          message: "Social sign in failed. Please try again.",
+        });
+        navigate("/login", { replace: true });
+      }
+    }
+
+    // Nếu login mạng xã hội lỗi, backend cũng redirect về đây kèm thông báo dễ đọc.
+    if (authError) {
+      setStatus({
+        type: "error",
+        message: authError,
+      });
+      navigate("/login", { replace: true });
+    }
+
     if (location.state?.email) {
       setEmail(location.state.email);
     }
@@ -29,7 +75,7 @@ export default function Login({ onLoginSuccess, showToast }) {
         message: location.state.message,
       });
     }
-  }, [location.state]);
+  }, [location.search, location.state, navigate, onLoginSuccess, showToast]);
 
   const handleLogin = async (event) => {
     event.preventDefault();
@@ -83,7 +129,11 @@ export default function Login({ onLoginSuccess, showToast }) {
       subtitle="Sign in to save tickets, view booking history, and continue your cinema journey."
       topContent={
         <>
-          <AuthSocialButtons />
+          <AuthSocialButtons
+            onGoogleClick={() => redirectToSocialLogin("google")}
+            onFacebookClick={() => redirectToSocialLogin("facebook")}
+            disabled={isSubmitting}
+          />
           <AuthDivider label="Or" />
         </>
       }

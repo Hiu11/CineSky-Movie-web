@@ -19,3 +19,18 @@ export const getAdminPassword = () => getEnvValue("ADMIN_PASSWORD");
 
 export const getAdminFullName = () =>
   getEnvValue("ADMIN_FULL_NAME") || "CineSky Admin";
+
+export const getFrontendUrl = () =>
+  getEnvValue("FRONTEND_URL") || "http://localhost:3000";
+
+export const getBackendPublicUrl = () =>
+  getEnvValue("BACKEND_PUBLIC_URL") ||
+  `http://localhost:${getEnvValue("PORT") || "5000"}`;
+
+export const getGoogleClientId = () => getEnvValue("GOOGLE_CLIENT_ID");
+
+export const getGoogleClientSecret = () => getEnvValue("GOOGLE_CLIENT_SECRET");
+
+export const getFacebookClientId = () => getEnvValue("FACEBOOK_CLIENT_ID");
+
+export const getFacebookClientSecret = () => getEnvValue("FACEBOOK_CLIENT_SECRET");

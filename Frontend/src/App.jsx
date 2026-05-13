@@ -108,6 +108,22 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
+    const handleUserUpdated = (event) => {
+      if (!event.detail) {
+        return;
+      }
+
+      setUser(normalizeAuthUser(event.detail));
+      setIsLoggedIn(true);
+    };
+
+    window.addEventListener("auth:user-updated", handleUserUpdated);
+    return () => {
+      window.removeEventListener("auth:user-updated", handleUserUpdated);
+    };
+  }, []);
+
+  useEffect(() => {
     const activeTimeouts = toastTimeoutsRef.current;
 
     return () => {

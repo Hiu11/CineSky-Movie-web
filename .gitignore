@@ -21,6 +21,7 @@ Frontend/dist/
 Frontend/build/
 Backend/dist/
 Backend/build/
+Backend/public/uploads/
 
 # Logs
 *.log

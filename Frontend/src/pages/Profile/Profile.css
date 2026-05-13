@@ -184,6 +184,19 @@
   outline: none;
 }
 
+select.profile-input {
+  appearance: none;
+  background:
+    linear-gradient(135deg, rgba(246, 248, 255, 0.08), rgba(170, 178, 205, 0.03)),
+    rgba(255, 255, 255, 0.05);
+  cursor: pointer;
+}
+
+select.profile-input option {
+  background: #191b28;
+  color: #fff;
+}
+
 .profile-input:disabled {
   opacity: 0.72;
   cursor: not-allowed;
@@ -191,6 +204,51 @@
 
 .profile-input::placeholder {
   color: rgba(255, 255, 255, 0.44);
+}
+
+.profile-file-picker {
+  position: relative;
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 12px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(135deg, rgba(246, 248, 255, 0.08), rgba(170, 178, 205, 0.03)),
+    rgba(255, 255, 255, 0.05);
+  color: #fff;
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.profile-file-picker input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.profile-file-picker__button {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 34px;
+  padding: 0 14px;
+  border-radius: 11px;
+  background: rgba(247, 180, 0, 0.9);
+  color: #111;
+  font-weight: 800;
+}
+
+.profile-file-picker__text {
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.68);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .profile-form__footer {

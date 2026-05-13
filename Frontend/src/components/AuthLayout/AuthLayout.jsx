@@ -111,13 +111,25 @@ export function AuthIcon({ name }) {
   );
 }
 
-export function AuthSocialButtons() {
+export function AuthSocialButtons({ onGoogleClick, onFacebookClick, disabled = false }) {
   return (
     <div className="auth-social-actions" aria-label="Continue with social accounts">
-      <button type="button" className="auth-social-button" aria-label="Continue with Google">
+      <button
+        type="button"
+        className="auth-social-button"
+        onClick={onGoogleClick}
+        disabled={disabled}
+        aria-label="Continue with Google"
+      >
         <SocialGlyph name="google" />
       </button>
-      <button type="button" className="auth-social-button" aria-label="Continue with Facebook">
+      <button
+        type="button"
+        className="auth-social-button"
+        onClick={onFacebookClick}
+        disabled={disabled}
+        aria-label="Continue with Facebook"
+      >
         <SocialGlyph name="facebook" />
       </button>
     </div>

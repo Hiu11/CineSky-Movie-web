@@ -31,6 +31,7 @@ const creatorHighlights = [
   { label: "Người thực hiện", value: "Đỗ Trọng Hiếu" },
   { label: "Định hướng", value: "Frontend Developer" },
   { label: "Loại dự án", value: "Dự án cá nhân" },
+  { label: "Trạng thái", value: "Chạy local, chưa deploy" },
   { label: "Kênh liên hệ", value: "Facebook và GitHub cá nhân" },
 ];
 
@@ -146,7 +147,7 @@ const projectPros = [
 const projectCons = [
   "Thanh toán vẫn là mô phỏng, chưa tích hợp cổng thanh toán thật hoặc quy trình hoàn/hủy vé đầy đủ.",
   "Một số module admin như showtimes, cinemas, payments, activity hiện thiên về hiển thị hơn là CRUD hoàn chỉnh.",
-  "Dự án cần thêm kiểm thử, deploy production, bảo mật nâng cao và tối ưu hiệu năng khi dữ liệu lớn hơn.",
+  "Dự án hiện chạy local, chưa deploy production; cần thêm kiểm thử, bảo mật nâng cao và tối ưu hiệu năng khi dữ liệu lớn hơn.",
 ];
 
 const roadmapItems = [
@@ -173,7 +174,7 @@ const roadmapItems = [
   {
     phase: "Deploy & kiểm thử",
     description:
-      "Chuẩn hóa môi trường production, thêm test cho auth/booking/admin và kiểm tra responsive để project sẵn sàng demo ổn định.",
+      "Chuẩn hóa biến môi trường khi deploy, thêm test cho auth/booking/admin và kiểm tra responsive để project sẵn sàng demo ổn định trên hosting.",
   },
 ];
 
@@ -247,7 +248,7 @@ const cinemaServices = [
 ];
 
 const aboutNoteText =
-  "Trang About được chia rõ 2 phần: phía trên giới thiệu CineSky như một hệ thống rạp phim/website đặt vé để người dùng hiểu dịch vụ; phía dưới mới là phần nói về dự án cá nhân, công nghệ và người thực hiện. CineSky hiện vẫn là sản phẩm mô phỏng phục vụ học tập và portfolio, nhưng đã có thêm auth, booking, history, feedback và admin dashboard; thanh toán và một số module vận hành vẫn ở mức mô phỏng.";
+  "Trang About được chia rõ 2 phần: phía trên giới thiệu CineSky như một hệ thống rạp phim/website đặt vé để người dùng hiểu dịch vụ; phía dưới mới là phần nói về dự án cá nhân, công nghệ và người thực hiện. CineSky hiện là sản phẩm mô phỏng chạy local phục vụ học tập và portfolio, chưa deploy production, nhưng đã có auth, booking, history, feedback và admin dashboard; thanh toán và một số module vận hành vẫn ở mức mô phỏng.";
 
 const AboutPage = () => {
   const pageRef = useRef(null);
@@ -493,10 +494,11 @@ const AboutPage = () => {
       <section className="about-creator">
         <div className="about-section-heading">
           <span className="about-kicker">Về dự án cá nhân</span>
-          <h2>CineSky hiện là project full-stack tập trung vào trải nghiệm đặt vé, tài khoản người dùng và quản trị dữ liệu.</h2>
+          <h2>CineSky hiện là project full-stack chạy local, tập trung vào trải nghiệm đặt vé, tài khoản người dùng và quản trị dữ liệu.</h2>
           <p>
             Project được phát triển để rèn cả tư duy frontend lẫn backend: routing, UI state, form, API, auth, database,
-            protected route, booking flow và dashboard admin.
+            protected route, booking flow và dashboard admin. Phiên bản hiện tại chưa deploy production nên các OAuth key,
+            database URI và secret cần được cấu hình riêng trong môi trường local.
           </p>
         </div>
 
@@ -607,10 +609,11 @@ const AboutPage = () => {
       <section className="about-completed">
         <div className="about-section-heading">
           <span className="about-kicker">Phiên bản hoàn thiện</span>
-          <h2>CineSky hiện đã có nền full-stack đủ rõ để demo như một movie booking app học tập.</h2>
+          <h2>CineSky hiện đã có nền full-stack đủ rõ để demo local như một movie booking app học tập.</h2>
           <p>
             Các phần quan trọng như backend API, authentication, booking, review/favorite, search/filter, profile, feedback
-            và Admin Dashboard đã được đưa vào cùng một trải nghiệm.
+            và Admin Dashboard đã được đưa vào cùng một trải nghiệm. Project vẫn cần bước deploy, cấu hình HTTPS và kiểm thử
+            trước khi xem như sản phẩm production.
           </p>
         </div>
 
@@ -660,7 +663,7 @@ const AboutPage = () => {
           <h2>Các bước tiếp theo nên tập trung vào vận hành thật, bảo mật và deploy ổn định.</h2>
           <p>
             Vì auth, booking, history, feedback và admin đã có nền tảng, giai đoạn tiếp theo nên làm sâu hơn phần thanh toán,
-            quản trị showtime/cinema, kiểm thử và triển khai production.
+            quản trị showtime/cinema, kiểm thử và triển khai production với biến môi trường riêng cho hosting.
           </p>
         </div>
 

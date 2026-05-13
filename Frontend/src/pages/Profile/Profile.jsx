@@ -1,7 +1,13 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { getBookingHistory } from "../../services/movieService";
-import { getMyProfile, normalizeAuthUser, updateMyProfile, updateStoredUser } from "../../services/authService";
+import {
+  getMyProfile,
+  normalizeAuthUser,
+  updateMyProfile,
+  updateStoredUser,
+  uploadMyAvatar,
+} from "../../services/authService";
 import "./Profile.css";
 
 const getSessionUser = () => {
@@ -100,12 +106,12 @@ export default function Profile() {
 
   const profileStats = useMemo(
     () => [
-      { label: "Bookings", value: recentBookings.length || 0 },
+      { label: "Lượt đặt vé", value: recentBookings.length || 0 },
       {
-        label: "Spent",
+        label: "Đã chi tiêu",
         value: `${recentBookings.reduce((sum, booking) => sum + Number(booking.totalPrice || 0), 0).toLocaleString("vi-VN")} VND`,
       },
-      { label: "Preferred channel", value: user?.email ? "Email account" : "Guest profile" },
+      { label: "Kênh tài khoản", value: user?.email ? "Tài khoản email" : "Hồ sơ khách" },
     ],
     [recentBookings, user?.email]
   );
@@ -118,6 +124,50 @@ export default function Profile() {
     }));
     setSaveMessage("");
     setSaveError("");
+  };
+
+  const handleAvatarUpload = async (event) => {
+    const file = event.target.files?.[0];
+
+    if (!file) {
+      return;
+    }
+
+    if (!file.type.startsWith("image/")) {
+      setSaveError("Vui lòng chọn file ảnh.");
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onload = async () => {
+      setIsSaving(true);
+      setSaveMessage("");
+      setSaveError("");
+
+      try {
+        // Gửi file dạng data URL; backend sẽ lưu thành file thật và trả về avatar URL.
+        const updatedUser = await uploadMyAvatar({
+          fileName: file.name,
+          fileData: reader.result,
+        });
+        const normalizedUser = updateStoredUser(updatedUser);
+
+        setUser(normalizedUser);
+        setFormData((current) => ({
+          ...current,
+          avatar: normalizedUser.avatar,
+        }));
+        setSaveMessage("Tải ảnh đại diện thành công.");
+      } catch (error) {
+        setSaveError(error.message || "Không thể tải ảnh đại diện.");
+      } finally {
+        setIsSaving(false);
+        event.target.value = "";
+      }
+    };
+
+    reader.readAsDataURL(file);
   };
 
   const handleProfileSubmit = async (event) => {
@@ -154,12 +204,12 @@ export default function Profile() {
     return (
       <main className="profile-page">
         <section className="profile-empty-card">
-          <span className="profile-kicker">Profile</span>
-          <h1>Sign in to open your profile.</h1>
-          <p>Your account info, recent bookings, and quick actions will appear here.</p>
+          <span className="profile-kicker">Hồ sơ</span>
+          <h1>Đăng nhập để mở hồ sơ của bạn.</h1>
+          <p>Thông tin tài khoản, lịch sử đặt vé gần đây và thao tác nhanh sẽ hiển thị tại đây.</p>
           <div className="profile-actions">
             <Link to="/login" className="profile-primary">
-              Go to login
+              Đến trang đăng nhập
             </Link>
           </div>
         </section>
@@ -180,9 +230,9 @@ export default function Profile() {
           )}
 
           <div className="profile-copy">
-            <span className="profile-kicker">Profile</span>
-            <h1>{user.fullName || user.name || "CineSky user"}</h1>
-            <p>Manage your account overview, review recent bookings, and continue exploring movies.</p>
+            <span className="profile-kicker">Hồ sơ</span>
+            <h1>{user.fullName || user.name || "Người dùng CineSky"}</h1>
+            <p>Quản lý thông tin tài khoản, xem lại các vé đã đặt và tiếp tục khám phá phim mới.</p>
           </div>
         </div>
 
@@ -198,7 +248,7 @@ export default function Profile() {
 
       <section className="profile-grid">
         <article className="profile-card">
-          <h2>Account details</h2>
+          <h2>Thông tin tài khoản</h2>
           <form className="profile-form" onSubmit={handleProfileSubmit}>
             <div className="profile-details">
               <label className="profile-field">
@@ -245,7 +295,7 @@ export default function Profile() {
                 />
               </label>
               <label className="profile-field">
-                <span>Link avatar</span>
+                <span>Link ảnh đại diện</span>
                 <input
                   className="profile-input"
                   name="avatar"
@@ -253,6 +303,19 @@ export default function Profile() {
                   onChange={handleFieldChange}
                   placeholder="https://..."
                 />
+              </label>
+              <label className="profile-field">
+                <span>Tải ảnh đại diện</span>
+                <span className="profile-file-picker">
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleAvatarUpload}
+                    disabled={isSaving}
+                  />
+                  <span className="profile-file-picker__button">Chọn ảnh</span>
+                  <span className="profile-file-picker__text">PNG, JPG, WebP hoặc GIF</span>
+                </span>
               </label>
               <label className="profile-field profile-field--full">
                 <span>Mật khẩu mới</span>
@@ -267,7 +330,7 @@ export default function Profile() {
               </label>
             </div>
             <div className="profile-form__footer">
-              <p className="profile-note">Avatar hiện hỗ trợ cập nhật bằng đường dẫn ảnh.</p>
+              <p className="profile-note">Ảnh đại diện có thể nhập bằng link hoặc tải file nhỏ hơn 2MB.</p>
               <div className="profile-form__actions">
                 {saveError ? <span className="profile-status profile-status--error">{saveError}</span> : null}
                 {saveMessage ? <span className="profile-status profile-status--success">{saveMessage}</span> : null}
@@ -280,16 +343,16 @@ export default function Profile() {
         </article>
 
         <article className="profile-card">
-          <h2>Quick actions</h2>
+          <h2>Thao tác nhanh</h2>
           <div className="profile-actions">
             <Link to="/history" className="profile-secondary">
-              Booking history
+              Lịch sử đặt vé
             </Link>
             <Link to="/?tab=now" className="profile-secondary">
-              Browse now showing
+              Xem phim đang chiếu
             </Link>
             <Link to="/feedback" className="profile-primary">
-              Leave feedback
+              Gửi góp ý
             </Link>
           </div>
         </article>
@@ -297,9 +360,9 @@ export default function Profile() {
 
       <section className="profile-card">
         <div className="profile-card__header">
-          <h2>Recent bookings</h2>
+          <h2>Vé đã đặt gần đây</h2>
           <Link to="/history" className="profile-inline-link">
-            View full history
+            Xem toàn bộ lịch sử
           </Link>
         </div>
 
@@ -308,15 +371,15 @@ export default function Profile() {
             {recentBookings.map((booking) => (
               <article key={booking.id} className="profile-booking">
                 <div>
-                  <strong>{booking.movieTitle || "Movie ticket"}</strong>
+                  <strong>{booking.movieTitle || "Vé xem phim"}</strong>
                   <span>{[booking.displayDate, booking.displayTime].filter(Boolean).join(" • ")}</span>
                 </div>
-                <small>{(booking.seatNumbers || []).join(", ") || "No seats selected"}</small>
+                <small>{(booking.seatNumbers || []).join(", ") || "Chưa chọn ghế"}</small>
               </article>
             ))}
           </div>
         ) : (
-          <p className="profile-muted">No bookings have been saved to this account yet.</p>
+          <p className="profile-muted">Tài khoản này chưa có vé nào được lưu.</p>
         )}
       </section>
     </main>

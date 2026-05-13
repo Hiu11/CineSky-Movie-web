@@ -112,6 +112,27 @@ export const loginUser = async (credentials) => {
   return normalizeAuthSession(payload);
 };
 
+export const redirectToSocialLogin = (provider) => {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  // Chuyển sang backend để giữ kín OAuth secret và xử lý redirect với Google/Facebook.
+  window.location.href = `${API_BASE_URL}/api/v1/auth/${provider}`;
+};
+
+export const readSocialAuthSession = (encodedSession = "") => {
+  if (!encodedSession) {
+    return null;
+  }
+
+  // Backend gửi base64 dạng an toàn cho URL để callback có thể mang session trong query string.
+  const base64 = encodedSession.replace(/-/g, "+").replace(/_/g, "/");
+  const paddedBase64 = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+  const bytes = Uint8Array.from(window.atob(paddedBase64), (char) => char.charCodeAt(0));
+  return normalizeAuthSession(JSON.parse(new TextDecoder().decode(bytes)));
+};
+
 export const registerUser = async (payload) => {
   const responsePayload = await requestAuth("register", payload);
   return normalizeAuthSession(responsePayload);
@@ -124,6 +145,7 @@ export const updateStoredUser = (user) => {
 
   const normalizedUser = normalizeAuthUser(user);
   sessionStorage.setItem(USER_SESSION_KEY, JSON.stringify(normalizedUser));
+  window.dispatchEvent(new CustomEvent("auth:user-updated", { detail: normalizedUser }));
   return normalizedUser;
 };
 
@@ -152,5 +174,12 @@ export const getMyProfile = async () => requestPrivateAuth("me", { method: "GET"
 export const updateMyProfile = async (payload) =>
   requestPrivateAuth("profile", {
     method: "PATCH",
+    body: JSON.stringify(payload),
+  });
+
+export const uploadMyAvatar = async (payload) =>
+  // Upload ảnh lên backend để nhận lại user có avatar là URL http.
+  requestPrivateAuth("profile/avatar", {
+    method: "POST",
     body: JSON.stringify(payload),
   });
