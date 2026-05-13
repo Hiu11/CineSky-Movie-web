@@ -162,7 +162,7 @@ const requestPrivateAuth = async (path, options = {}) => {
     return await parseResponse(response);
   } catch (error) {
     if (error instanceof TypeError) {
-      throw new Error("KhĂ´ng thá»ƒ káº¿t ná»‘i Ä‘áº¿n mĂ¡y chá»§");
+      throw new Error("Không thể kết nối đến máy chủ");
     }
 
     throw error;

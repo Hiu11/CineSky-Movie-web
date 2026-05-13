@@ -55,6 +55,12 @@ git clone https://github.com/Hiu11/CineSky-Movie-web.git
 cd CineSky-Movie-web
 ```
 
+Khuyến nghị bật Git hook để chặn commit nhầm `.env` hoặc secret:
+
+```bash
+git config core.hooksPath .githooks
+```
+
 ## 4. Cấu Hình Backend
 
 Vào thư mục backend:
@@ -273,7 +279,11 @@ Chỉ commit file mẫu:
 
 Lý do: `.env` có thể chứa database URI, JWT secret, OAuth secret hoặc mật khẩu admin.
 
-Project có pre-commit hook trong `.githooks/pre-commit` để chặn commit nhầm `.env` và các key nhạy cảm.
+Project có pre-commit hook trong `.githooks/pre-commit` để chặn commit nhầm `.env` và các key nhạy cảm. Sau khi clone, chạy lệnh dưới đây một lần để bật hook:
+
+```bash
+git config core.hooksPath .githooks
+```
 
 ## 13. Lỗi Thường Gặp
 
