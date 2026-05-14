@@ -35,16 +35,22 @@ const buildSeatLabels = (roomName = "") => {
   });
 };
 
+const isValidSeedShowtime = (timeLabel) => /^\d{2}:\d{2}$/.test(String(timeLabel));
+
 const createShowtimesFromMovies = (movies = []) => {
   const baseDate = "2026-05-10";
 
   return movies.flatMap((movie, movieIndex) => {
-    if (!Array.isArray(movie.showtimes) || movie.showtimes.length === 0) {
+    const validShowtimes = Array.isArray(movie.showtimes)
+      ? movie.showtimes.filter(isValidSeedShowtime)
+      : [];
+
+    if (movie.status !== "now-showing" || validShowtimes.length === 0) {
       return [];
     }
 
     return defaultCinemaCatalog.flatMap((cinema, cinemaIndex) =>
-      movie.showtimes.map((timeLabel, timeIndex) => {
+      validShowtimes.map((timeLabel, timeIndex) => {
         const roomName = cinema.rooms[(movieIndex + cinemaIndex + timeIndex) % cinema.rooms.length];
         const seatLabels = buildSeatLabels(roomName);
         const [hour, minute] = String(timeLabel)

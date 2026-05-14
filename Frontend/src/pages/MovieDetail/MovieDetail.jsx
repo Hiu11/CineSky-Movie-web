@@ -34,6 +34,9 @@ export default function MovieDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [isTrailerExpanded, setIsTrailerExpanded] = useState(false);
+  const [isDetailIntroDone, setIsDetailIntroDone] = useState(false);
+  const [hasTrailerIntroStarted, setHasTrailerIntroStarted] = useState(false);
+  const [isTrailerIntroDone, setIsTrailerIntroDone] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -105,6 +108,65 @@ export default function MovieDetail() {
     setIsTrailerExpanded(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [id, location.hash]);
+
+  useEffect(() => {
+    if (document.querySelector("script[data-lottie-player]")) {
+      return undefined;
+    }
+
+    const script = document.createElement("script");
+
+    script.src = "https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js";
+    script.async = true;
+    script.dataset.lottiePlayer = "true";
+    document.body.appendChild(script);
+
+    return undefined;
+  }, []);
+
+  useEffect(() => {
+    setIsDetailIntroDone(false);
+
+    const introTimer = window.setTimeout(() => {
+      setIsDetailIntroDone(true);
+    }, 2300);
+
+    return () => window.clearTimeout(introTimer);
+  }, [movie?.id]);
+
+  useEffect(() => {
+    const node = trailerSectionRef.current;
+
+    setHasTrailerIntroStarted(false);
+    setIsTrailerIntroDone(false);
+
+    if (!node) {
+      return undefined;
+    }
+
+    let trailerTimer = 0;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) {
+          return;
+        }
+
+        setHasTrailerIntroStarted(true);
+        trailerTimer = window.setTimeout(() => {
+          setIsTrailerIntroDone(true);
+        }, 1900);
+        observer.disconnect();
+      },
+      { threshold: 0.28 }
+    );
+
+    observer.observe(node);
+
+    return () => {
+      window.clearTimeout(trailerTimer);
+      observer.disconnect();
+    };
+  }, [movie?.id]);
 
   const isComingSoon = movie?.status === "coming-soon";
 
@@ -217,7 +279,19 @@ export default function MovieDetail() {
           </div>
         </div>
 
-        <div className="md-content-panel">
+        <div className={"md-content-panel" + (isDetailIntroDone ? " is-ready" : " is-intro")}>
+          {!isDetailIntroDone ? (
+            <div className="md-spoiler-intro" aria-hidden="true">
+              <lottie-player
+                src="/assets/lottie/spoiler-alert.json"
+                background="transparent"
+                speed="1"
+                autoplay
+              ></lottie-player>
+            </div>
+          ) : null}
+
+          <div className="md-detail-copy">
           <div className="md-topline">
             <span className="md-status-chip">{isComingSoon ? "Sắp chiếu" : "Đang chiếu"}</span>
             <span className={`md-rating-chip ${movie.ratingClass}`}>{movie.rating}</span>
@@ -270,10 +344,11 @@ export default function MovieDetail() {
               )}
             </div>
           </aside>
+          </div>
         </div>
       </section>
 
-      <section className="md-trailer" ref={trailerSectionRef} id="trailer">
+      <section className={"md-trailer" + (isTrailerIntroDone ? " is-ready" : " is-intro")} ref={trailerSectionRef} id="trailer">
         <div className="md-section-header">
           <div>
             <span className="md-kicker">Trailer</span>
@@ -284,7 +359,21 @@ export default function MovieDetail() {
           </button>
         </div>
 
-        <div className="md-trailer-layout">
+        <div className={"md-trailer-layout" + (isTrailerIntroDone ? " is-ready" : " is-intro")}>
+          {!isTrailerIntroDone ? (
+            <div className="md-trailer-intro" aria-hidden="true">
+              {hasTrailerIntroStarted ? (
+                <lottie-player
+                  src="/assets/lottie/movie-clapboard.json"
+                  background="transparent"
+                  speed="1"
+                  autoplay
+                ></lottie-player>
+              ) : null}
+            </div>
+          ) : null}
+
+          <div className="md-trailer-ready">
           <div className="md-videoWrap">
             <div className="md-video">
               <iframe
@@ -325,6 +414,7 @@ export default function MovieDetail() {
               )}
             </div>
           </aside>
+          </div>
         </div>
       </section>
 

@@ -697,6 +697,52 @@ const HomePage = ({ searchQuery = "" }) => {
   const featuredMovieTab = featuredMovie?.status === "coming-soon" ? "soon" : "now";
   const heroReleaseYear = extractReleaseYear(featuredMovie?.release || "");
   const heroIsComingSoon = featuredMovie?.status === "coming-soon";
+  const faqMascotRef = useRef(null);
+
+  useEffect(() => {
+    if (document.querySelector("script[data-lottie-player]")) {
+      return undefined;
+    }
+
+    const script = document.createElement("script");
+
+    script.src = "https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js";
+    script.async = true;
+    script.dataset.lottiePlayer = "true";
+    document.body.appendChild(script);
+
+    return undefined;
+  }, []);
+
+  useEffect(() => {
+    let replayTimer = 0;
+    let playAttempts = 0;
+
+    const playMascot = () => {
+      const player = faqMascotRef.current;
+
+      if (player?.play) {
+        player.loop = true;
+        player.autoplay = true;
+        player.play();
+      }
+    };
+
+    if (window.customElements?.whenDefined) {
+      window.customElements.whenDefined("lottie-player").then(playMascot);
+    }
+
+    replayTimer = window.setInterval(() => {
+      playAttempts += 1;
+      playMascot();
+
+      if (playAttempts >= 10) {
+        window.clearInterval(replayTimer);
+      }
+    }, 500);
+
+    return () => window.clearInterval(replayTimer);
+  }, []);
 
   if (isLoading) {
     return <HomePageSkeleton />;
@@ -1155,6 +1201,17 @@ const HomePage = ({ searchQuery = "" }) => {
             Phần FAQ được đặt gần cuối trang để người xem có thể xem nhanh các câu trả lời quan trọng mà không làm đứt luồng
             khám phá phim ở phía trên.
           </p>
+        </div>
+
+        <div className="home-faq-mascot" aria-hidden="true">
+          <lottie-player
+            ref={faqMascotRef}
+            src="/assets/lottie/loader-cat.json"
+            background="transparent"
+            speed="1"
+            loop
+            autoplay
+          ></lottie-player>
         </div>
 
         <div className="home-faq-grid">

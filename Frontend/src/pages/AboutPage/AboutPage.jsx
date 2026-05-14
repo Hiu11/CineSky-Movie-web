@@ -21,8 +21,8 @@ const projectPoints = [
 ];
 
 const stats = [
-  { value: "Full-stack", label: "React frontend kết nối Express API và MongoDB cho dữ liệu phim, user, booking, feedback." },
-  { value: "Auth", label: "Có đăng ký, đăng nhập, JWT/session, profile và phân quyền user/admin." },
+  { value: "Full-stack", label: "React 19 frontend kết nối Express API và MongoDB cho dữ liệu phim, user, booking, feedback." },
+  { value: "Auth", label: "Có đăng ký, đăng nhập email/password, Google/Facebook OAuth, JWT/session, profile và phân quyền user/admin." },
   { value: "Booking", label: "Có chọn phim, chọn suất chiếu, tạo vé và xem lại lịch sử đặt vé." },
   { value: "Admin", label: "Có dashboard quản lý phim, user, booking, thùng rác và overview." },
 ];
@@ -70,16 +70,17 @@ const creatorFocus = [
 ];
 
 const technologies = [
-  "ReactJS",
-  "React Router",
+  "React 19",
+  "React Router 6",
   "JavaScript",
   "React Scripts",
-  "ExpressJS",
+  "Express 4",
   "MongoDB",
-  "Mongoose",
+  "Mongoose 8",
   "REST API",
   "bcrypt",
   "JWT Auth",
+  "Google/Facebook OAuth",
   "Admin Dashboard",
   "Responsive UI",
   "Figma mindset",

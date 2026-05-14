@@ -49,6 +49,7 @@ function AppContent() {
   const isBookingPage =
     location.pathname === "/booking" || location.pathname === "/booking/success";
   const isAdminPage = location.pathname === "/admin";
+  const isMovieDetailPage = location.pathname.startsWith("/movie/");
 
   useEffect(() => {
     if ("scrollRestoration" in window.history) {
@@ -207,7 +208,7 @@ function AppContent() {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {!isAuthPage ? <Footer flushTop={isBookingPage || isAdminPage} /> : null}
+      {!isAuthPage ? <Footer flushTop={isBookingPage || isAdminPage || isMovieDetailPage} /> : null}
       <ToastViewport toasts={toasts} onDismiss={dismissToast} />
     </div>
   );

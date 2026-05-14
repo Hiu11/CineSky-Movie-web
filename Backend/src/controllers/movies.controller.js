@@ -1,4 +1,5 @@
 import GenreModel from "../models/genre.model.js";
+import { createShowtimesFromMovies } from "../data/seedShowtimes.js";
 import MovieModel from "../models/movie.model.js";
 import ShowtimeModel from "../models/showtime.model.js";
 
@@ -22,10 +23,16 @@ const ratingDescriptionMap = {
   NR: "**NR:** Chưa phân loại",
 };
 
+const isValidDisplayTime = (timeLabel) => /^\d{2}:\d{2}$/.test(String(timeLabel));
+
 const createTimeMap = (showtimes = []) => {
   const timeMap = new Map();
 
   showtimes.forEach((showtime) => {
+    if (!isValidDisplayTime(showtime.displayTime)) {
+      return;
+    }
+
     const currentTimes = timeMap.get(showtime.movieLegacyId) || [];
 
     if (!currentTimes.includes(showtime.displayTime)) {
@@ -36,6 +43,18 @@ const createTimeMap = (showtimes = []) => {
   });
 
   return timeMap;
+};
+
+const getMovieTimes = (movie, timeMap = new Map()) => {
+  const mappedTimes = timeMap.get(movie.legacyId) || [];
+
+  if (mappedTimes.length > 0) {
+    return mappedTimes;
+  }
+
+  return Array.isArray(movie.showtimes)
+    ? movie.showtimes.filter(isValidDisplayTime)
+    : [];
 };
 
 const getYoutubeVideoId = (trailer = "") => {
@@ -76,7 +95,7 @@ const buildFallbackCast = (movie) => [
 ];
 
 const buildTrailerFacts = (movie, timeMap = new Map()) => {
-  const previewTimes = (timeMap.get(movie.legacyId) || []).slice(0, 5);
+  const previewTimes = getMovieTimes(movie, timeMap).slice(0, 5);
 
   return [
     {
@@ -102,7 +121,7 @@ const buildTrailerFacts = (movie, timeMap = new Map()) => {
 };
 
 const buildTrailerPanel = (movie, timeMap = new Map()) => {
-  const previewTimes = timeMap.get(movie.legacyId) || [];
+  const previewTimes = getMovieTimes(movie, timeMap);
 
   return {
     label: "Thông tin nhanh",
@@ -121,7 +140,10 @@ const hasTrailerPanelContent = (panel) =>
 
 const formatMovieId = (legacyId) => String(legacyId).padStart(3, "0");
 
-const serializeMovie = (movie, timeMap = new Map()) => ({
+const serializeMovie = (movie, timeMap = new Map()) => {
+  const movieTimes = getMovieTimes(movie, timeMap);
+
+  return {
   id: formatMovieId(movie.legacyId),
   slug: movie.slug,
   title: movie.title,
@@ -142,11 +164,9 @@ const serializeMovie = (movie, timeMap = new Map()) => ({
   release: movie.releaseDate,
   trailer: movie.trailer,
   description: movie.description,
-  times:
-    (timeMap.get(movie.legacyId) || []).length > 0
-      ? timeMap.get(movie.legacyId)
-      : ["Chưa có lịch"],
-});
+  times: movieTimes.length > 0 ? movieTimes : ["Chưa có lịch"],
+  };
+};
 
 const serializeMovieDetail = (movie, timeMap = new Map()) => {
   const baseMovie = serializeMovie(movie, timeMap);
@@ -162,12 +182,8 @@ const serializeMovieDetail = (movie, timeMap = new Map()) => {
     gallery: hasDetailItems(movie.gallery)
       ? movie.gallery
       : [...new Set(fallbackGallery)].slice(0, 4),
-    trailerFacts: hasDetailItems(movie.trailerFacts)
-      ? movie.trailerFacts
-      : buildTrailerFacts(movie, timeMap),
-    trailerPanel: hasTrailerPanelContent(movie.trailerPanel)
-      ? movie.trailerPanel
-      : buildTrailerPanel(movie, timeMap),
+    trailerFacts: buildTrailerFacts(movie, timeMap),
+    trailerPanel: buildTrailerPanel(movie, timeMap),
   };
 };
 
@@ -252,6 +268,7 @@ const moviesController = {
       ]);
       const showtimes = await ShowtimeModel.find({
         movieLegacyId: { $in: movies.map((movie) => movie.legacyId) },
+        displayTime: { $regex: /^\d{2}:\d{2}$/ },
       }).sort({ startTime: 1 });
       const timeMap = createTimeMap(showtimes);
 
@@ -299,6 +316,7 @@ const moviesController = {
 
       const showtimes = await ShowtimeModel.find({
         movieLegacyId: legacyId,
+        displayTime: { $regex: /^\d{2}:\d{2}$/ },
       }).sort({ startTime: 1 });
       const timeMap = createTimeMap(showtimes);
 
@@ -338,12 +356,54 @@ const moviesController = {
         });
       }
 
-      const showtimes = await ShowtimeModel.find({
+      let showtimes = await ShowtimeModel.find({
         movieLegacyId: legacyId,
+        displayTime: { $regex: /^\d{2}:\d{2}$/ },
       }).sort({
         cinemaName: 1,
         startTime: 1,
       });
+
+      if (showtimes.length === 0 && movie.status === "now-showing") {
+        const seedShowtimes = createShowtimesFromMovies([movie]);
+
+        if (seedShowtimes.length > 0) {
+          await ShowtimeModel.bulkWrite(
+            seedShowtimes.map((showtime) => ({
+              updateOne: {
+                filter: { seedKey: showtime.seedKey },
+                update: {
+                  $set: {
+                    movieLegacyId: showtime.movieLegacyId,
+                    cinemaName: showtime.cinemaName,
+                    cinemaAddress: showtime.cinemaAddress,
+                    roomName: showtime.roomName,
+                    displayDate: showtime.displayDate,
+                    displayTime: showtime.displayTime,
+                    startTime: showtime.startTime,
+                    endTime: showtime.endTime,
+                    price: showtime.price,
+                    seats: showtime.seats,
+                  },
+                  $setOnInsert: {
+                    seedKey: showtime.seedKey,
+                    bookedSeats: [],
+                  },
+                },
+                upsert: true,
+              },
+            }))
+          );
+
+          showtimes = await ShowtimeModel.find({
+            movieLegacyId: legacyId,
+            displayTime: { $regex: /^\d{2}:\d{2}$/ },
+          }).sort({
+            cinemaName: 1,
+            startTime: 1,
+          });
+        }
+      }
 
       return res.status(200).send({
         success: true,

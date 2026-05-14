@@ -121,6 +121,7 @@ export const ensureMovieSeedData = async () => {
   );
 
   const showtimes = createShowtimesFromMovies(seedMovies);
+  const showtimeSeedKeys = showtimes.map((showtime) => showtime.seedKey);
 
   if (showtimes.length > 0) {
     await ShowtimeModel.bulkWrite(
@@ -152,6 +153,10 @@ export const ensureMovieSeedData = async () => {
 
     console.log("Synced showtime seed data");
   }
+
+  await ShowtimeModel.deleteMany({
+    seedKey: { $exists: true, $nin: showtimeSeedKeys },
+  });
 
   if (seedFeedbackEntries.length > 0) {
     await FeedbackModel.bulkWrite(

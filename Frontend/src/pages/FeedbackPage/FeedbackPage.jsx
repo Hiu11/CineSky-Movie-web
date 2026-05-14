@@ -77,6 +77,21 @@ const FeedbackPage = ({ showToast }) => {
   const messageLength = form.message.trim().length;
 
   useEffect(() => {
+    if (document.querySelector("script[data-lottie-player]")) {
+      return undefined;
+    }
+
+    const script = document.createElement("script");
+
+    script.src = "https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js";
+    script.async = true;
+    script.dataset.lottiePlayer = "true";
+    document.body.appendChild(script);
+
+    return undefined;
+  }, []);
+
+  useEffect(() => {
     let isMounted = true;
 
     const loadFeedbackEntries = async () => {
@@ -227,13 +242,20 @@ const FeedbackPage = ({ showToast }) => {
 
       <div className="feedback-shell">
         <section className="feedback-card">
-          <div className="feedback-header">
-            <span className="feedback-pill">Chúng tôi lắng nghe</span>
-            <h2>Góp ý với CineSky</h2>
-            <p>
-              Chia sẻ cảm nhận của bạn về giao diện, trải nghiệm đặt vé hoặc bất
-              kỳ điểm nào cần cải thiện.
-            </p>
+          <div className="feedback-hero">
+            <div className="feedback-header">
+              <h2>Góp ý với CineSky</h2>
+            </div>
+            <div className="feedback-speech">Bạn thấy lỗi thì la lên, đừng để nó sống thọ.</div>
+            <div className="feedback-mascot" aria-hidden="true">
+              <lottie-player
+                src="/assets/lottie/kicking-cats.json"
+                background="transparent"
+                speed="1"
+                loop
+                autoplay
+              ></lottie-player>
+            </div>
           </div>
 
           {status.message ? (
@@ -307,7 +329,6 @@ const FeedbackPage = ({ showToast }) => {
                   })}
                 </div>
 
-                <p className="feedback-rating__hint">{ratingHint}</p>
               </div>
             </div>
 
@@ -322,12 +343,7 @@ const FeedbackPage = ({ showToast }) => {
                 value={form.message}
                 onChange={handleFieldChange("message")}
               />
-              <div className="feedback-field__meta">
-                <span>
-                  Gợi ý: hãy nhắc tới trang hoặc luồng thao tác bạn đang góp ý.
-                </span>
-                <strong>{messageLength} ký tự</strong>
-              </div>
+              <strong className="feedback-char-count">{messageLength} ký tự</strong>
             </div>
 
             <button type="submit" className="feedback-submit" disabled={isSubmitting}>

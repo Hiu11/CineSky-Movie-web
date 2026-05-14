@@ -1,6 +1,6 @@
 .md-page {
   min-height: 100vh;
-  padding: 34px 5% 80px;
+  padding: 34px 5% 32px;
   color: #fff;
   background:
     radial-gradient(circle at 10% 10%, rgba(124, 58, 237, 0.14), transparent 18%),
@@ -55,9 +55,41 @@
 }
 
 .md-content-panel {
+  position: relative;
   display: grid;
   align-content: start;
   gap: 18px;
+}
+
+.md-detail-copy {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+}
+
+.md-content-panel.is-intro .md-detail-copy {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.md-content-panel.is-ready .md-detail-copy {
+  animation: mdDetailCopySlideIn 1.08s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.md-spoiler-intro {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+
+.md-spoiler-intro lottie-player {
+  width: min(760px, 94%);
+  height: min(560px, 58vw);
+  filter: drop-shadow(0 22px 38px rgba(0, 0, 0, 0.32));
 }
 
 .md-topline,
@@ -239,6 +271,22 @@
 .md-trailer {
   margin-top: 24px;
   padding: 26px;
+  box-sizing: border-box;
+  height: 640px;
+}
+
+.md-trailer.is-intro {
+  display: grid;
+  place-items: center;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.md-trailer.is-intro .md-section-header {
+  display: none;
 }
 
 .md-extra-section {
@@ -279,21 +327,73 @@
   overflow: hidden;
   border-radius: 24px;
   background: #05060f;
-  aspect-ratio: 16 / 10;
-  min-height: 320px;
+  aspect-ratio: 16 / 9;
+  min-height: 0;
 }
 
 .md-video iframe {
   width: 100%;
   height: 100%;
+  border: 0;
   display: block;
 }
 
 .md-trailer-layout {
+  position: relative;
   display: grid;
-  grid-template-columns: minmax(0, 1.35fr) minmax(280px, 0.9fr);
+  grid-template-columns: minmax(0, 760px) minmax(280px, 0.9fr);
   gap: 18px;
   align-items: stretch;
+  justify-content: center;
+  min-height: 0;
+}
+
+.md-trailer.is-intro .md-trailer-layout {
+  width: min(760px, 100%);
+  aspect-ratio: 16 / 9;
+  display: block;
+}
+
+.md-trailer-ready {
+  display: contents;
+}
+
+.md-trailer-layout.is-intro .md-trailer-ready {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.md-trailer-layout.is-ready .md-trailer-ready {
+  display: contents;
+}
+
+.md-trailer-layout.is-ready {
+  animation: mdTrailerOpen 1s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.md-trailer.is-ready {
+  animation: mdTrailerCardIn 0.72s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.md-trailer-intro {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 50% 50%, rgba(247, 180, 0, 0.14), transparent 24%),
+    radial-gradient(circle at 58% 54%, rgba(124, 58, 237, 0.14), transparent 32%),
+    rgba(6, 8, 18, 0.96);
+  pointer-events: none;
+}
+
+.md-trailer-intro lottie-player {
+  width: min(420px, 70vw);
+  height: min(330px, 54vw);
+  filter: drop-shadow(0 22px 38px rgba(0, 0, 0, 0.32));
 }
 
 .md-videoWrap,
@@ -311,12 +411,14 @@
 
 .md-videoWrap {
   padding: 14px;
+  align-self: start;
 }
 
 .md-trailer-side {
   display: grid;
   gap: 16px;
   align-content: start;
+  min-height: 0;
 }
 
 .md-trailer-sideCard {
@@ -606,6 +708,44 @@
   }
 }
 
+@keyframes mdDetailCopySlideIn {
+  from {
+    opacity: 0;
+    transform: translate3d(-72px, 0, 0);
+    filter: blur(14px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+    filter: blur(0);
+  }
+}
+
+@keyframes mdTrailerOpen {
+  from {
+    clip-path: inset(0 48% round 24px);
+    opacity: 0.72;
+  }
+
+  to {
+    clip-path: inset(0 0 round 24px);
+    opacity: 1;
+  }
+}
+
+@keyframes mdTrailerCardIn {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
 @media (max-width: 1040px) {
   .md-shell {
     grid-template-columns: 1fr;
@@ -619,6 +759,10 @@
     grid-template-columns: 1fr;
   }
 
+  .md-trailer {
+    height: 900px;
+  }
+
   .md-gallery-grid,
   .md-cast-grid,
   .md-related-grid {
@@ -628,7 +772,7 @@
 
 @media (max-width: 760px) {
   .md-page {
-    padding: 24px 16px 64px;
+    padding: 24px 16px 32px;
   }
 
   .md-shell,
@@ -662,6 +806,7 @@
 
   .md-trailer {
     padding: 20px;
+    height: 760px;
   }
 
   .md-extra-section {
@@ -669,7 +814,12 @@
   }
 
   .md-video {
-    min-height: 220px;
+    min-height: 0;
+  }
+
+  .md-trailer-layout,
+  .md-trailer-side {
+    min-height: 0;
   }
 
   .md-trailer-facts {

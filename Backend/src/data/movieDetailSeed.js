@@ -169,39 +169,45 @@ const buildFallbackCast = (movie) => [
 const buildGallery = (movie) =>
   [...new Set([movie.poster, ...getYoutubeThumbnailCandidates(movie.trailer)])].filter(Boolean).slice(0, 4);
 
+const isValidSeedShowtime = (timeLabel) => /^\d{2}:\d{2}$/.test(String(timeLabel));
+
 const buildTrailerFacts = (movie) => {
-  const previewTimes = Array.isArray(movie.showtimes) ? movie.showtimes.filter(Boolean).slice(0, 5) : [];
+  const previewTimes = Array.isArray(movie.showtimes)
+    ? movie.showtimes.filter(isValidSeedShowtime).slice(0, 5)
+    : [];
 
   return [
     {
-      label: "Trang thai",
-      value: movie.status === "coming-soon" ? "Sap chieu" : "Dang chieu",
+      label: "Trạng thái",
+      value: movie.status === "coming-soon" ? "Sắp chiếu" : "Đang chiếu",
     },
     {
-      label: "Do tuoi",
-      value: movie.rating || "Dang cap nhat",
+      label: "Độ tuổi",
+      value: movie.rating || "Đang cập nhật",
     },
     {
-      label: "Suat noi bat",
-      value: previewTimes.length > 0 ? `${previewTimes.length} suat` : "Dang cap nhat",
+      label: "Suất nổi bật",
+      value: previewTimes.length > 0 ? `${previewTimes.length} suất` : "Đang cập nhật",
     },
     {
       label: "Xem nhanh",
-      value: previewTimes.length > 0 ? previewTimes.slice(0, 3).join(" | ") : "Chua co lich chieu",
+      value: previewTimes.length > 0 ? previewTimes.slice(0, 3).join(" | ") : "Chưa có lịch chiếu",
     },
   ];
 };
 
 const buildTrailerPanel = (movie) => {
-  const previewTimes = Array.isArray(movie.showtimes) ? movie.showtimes.filter(Boolean) : [];
+  const previewTimes = Array.isArray(movie.showtimes)
+    ? movie.showtimes.filter(isValidSeedShowtime)
+    : [];
 
   return {
-    label: "Thong tin nhanh",
+    label: "Thông tin nhanh",
     title: movie.title,
     description:
       previewTimes.length > 0
-        ? "Xem trailer truoc khi chon suat. Khu vuc nay tom tat nhanh trang thai phat hanh, do tuoi va lich chieu noi bat de ban quyet dinh thuan tien hon."
-        : "Phim hien chua co lich chieu kha dung. Ban van co the xem trailer, doc mo ta va theo doi trang thai phat hanh ngay tren trang chi tiet.",
+        ? "Xem trailer trước khi chọn suất. Khu vực này tóm tắt nhanh trạng thái phát hành, độ tuổi và lịch chiếu nổi bật để bạn quyết định thuận tiện hơn."
+        : "Phim hiện chưa có lịch chiếu khả dụng. Bạn vẫn có thể xem trailer, đọc mô tả và theo dõi trạng thái phát hành ngay trên trang chi tiết.",
   };
 };
 

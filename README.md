@@ -3,7 +3,7 @@
 CineSky là dự án web đặt vé xem phim full-stack, phục vụ học tập và portfolio. Dự án hiện được thiết kế để chạy local, chưa deploy production.
 
 - `Backend`: Node.js, Express, MongoDB, Mongoose
-- `Frontend`: React, React Router, CSS custom
+- `Frontend`: React 19, React Router 6, React Scripts, CSS custom
 - `Auth`: JWT, bcryptjs, đăng nhập email/password, Google OAuth, Facebook OAuth
 
 ## 1. Trạng Thái Dự Án
@@ -86,7 +86,7 @@ Mở `Backend/.env` và kiểm tra các biến quan trọng:
 
 ```env
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/movie-web-pro
+MONGO_URI=mongodb://localhost:27017/movie-web-pro
 JWT_SECRET=your_access_token_secret
 JWT_REFRESH_SECRET=your_refresh_token_secret
 JWT_EXPIRES_IN=1d
@@ -98,17 +98,17 @@ BACKEND_PUBLIC_URL=http://localhost:5000
 Nếu dùng MongoDB local, giữ:
 
 ```env
-MONGODB_URI=mongodb://localhost:27017/movie-web-pro
+MONGO_URI=mongodb://localhost:27017/movie-web-pro
 ```
 
-Nếu dùng MongoDB Atlas, thay `MONGODB_URI` bằng connection string Atlas.
+Nếu dùng MongoDB Atlas, thay `MONGO_URI` bằng connection string Atlas.
 
 Các dòng nên đổi sau khi clone:
 
 - `JWT_SECRET`: tự đặt chuỗi bí mật dài, khó đoán
 - `JWT_REFRESH_SECRET`: tự đặt chuỗi khác `JWT_SECRET`
 - `ADMIN_PASSWORD`: đổi mật khẩu admin mặc định nếu có dùng admin
-- `MONGODB_URI`: đổi nếu dùng Atlas hoặc database khác
+- `MONGO_URI`: đổi nếu dùng Atlas hoặc database khác
 
 ## 5. Google/Facebook Login
 
@@ -256,6 +256,7 @@ Frontend:
 ```bash
 cd Frontend
 npm start
+npm run dev
 npm run build
 ```
 
@@ -302,7 +303,7 @@ Nếu backend báo port `5000` bị chiếm:
 Nếu backend không kết nối được database:
 
 - Kiểm tra MongoDB đã bật chưa
-- Kiểm tra `MONGODB_URI` trong `Backend/.env`
+- Kiểm tra `MONGO_URI` trong `Backend/.env`
 
 Nếu Google/Facebook login báo chưa cấu hình:
 

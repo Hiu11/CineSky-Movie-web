@@ -62,6 +62,7 @@ export default function Header({
   const location = useLocation();
   const searchWrapperRef = useRef(null);
   const userMenuRef = useRef(null);
+  const transitionPlayerRef = useRef(null);
   const [avatarFailed, setAvatarFailed] = useState(false);
   const [catalogMovies, setCatalogMovies] = useState([]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -69,6 +70,7 @@ export default function Header({
   const [recentSearches, setRecentSearches] = useState(() => readRecentSearches());
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [transitionTarget, setTransitionTarget] = useState(null);
   const searchParams = new URLSearchParams(location.search);
   const hasMovieTab = searchParams.has("tab");
   const tabParam = searchParams.get("tab") || "now";
@@ -113,7 +115,54 @@ export default function Header({
     setIsUserMenuOpen(false);
     setIsMobileMenuOpen(false);
     setActiveSuggestionIndex(-1);
+    setTransitionTarget(null);
   }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    if (document.querySelector("script[data-lottie-player]")) {
+      return undefined;
+    }
+
+    const script = document.createElement("script");
+
+    script.src = "https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js";
+    script.async = true;
+    script.dataset.lottiePlayer = "true";
+    document.body.appendChild(script);
+
+    return undefined;
+  }, []);
+
+  useEffect(() => {
+    if (!transitionTarget) {
+      return undefined;
+    }
+
+    let navigateTimer = 0;
+    document.body.classList.add("is-page-transitioning");
+
+    const playTransition = () => {
+      const player = transitionPlayerRef.current;
+
+      if (player?.play) {
+        player.loop = false;
+        player.autoplay = true;
+        player.play();
+      }
+    };
+
+    if (window.customElements?.whenDefined) {
+      window.customElements.whenDefined("lottie-player").then(playTransition);
+    }
+
+    playTransition();
+    navigateTimer = window.setTimeout(() => navigate(transitionTarget), 2200);
+
+    return () => {
+      document.body.classList.remove("is-page-transitioning");
+      window.clearTimeout(navigateTimer);
+    };
+  }, [navigate, transitionTarget]);
 
   useEffect(() => {
     const handlePointerDown = (event) => {
@@ -262,6 +311,21 @@ export default function Header({
     setIsMobileMenuOpen(false);
     onLogout?.();
     window.location.replace("/");
+  };
+
+  const handleNavTransition = (event, to) => {
+    const currentPath = `${location.pathname}${location.search}`;
+
+    if (to === currentPath || transitionTarget) {
+      event.preventDefault();
+      return;
+    }
+
+    event.preventDefault();
+    setIsSearchOpen(false);
+    setIsUserMenuOpen(false);
+    setIsMobileMenuOpen(false);
+    setTransitionTarget(to);
   };
 
   const clearRecentSearches = () => {
@@ -481,7 +545,12 @@ export default function Header({
           }
 
           return item.id === "home" || item.to.startsWith("/?") ? (
-            <Link key={item.id} to={item.to} className={isActive ? "tab-btn active" : "tab-btn"}>
+            <Link
+              key={item.id}
+              to={item.to}
+              className={isActive ? "tab-btn active" : "tab-btn"}
+              onClick={(event) => handleNavTransition(event, item.to)}
+            >
               {item.label}
             </Link>
           ) : (
@@ -489,6 +558,7 @@ export default function Header({
               key={item.id}
               to={item.to}
               className={({ isActive: routeActive }) => (routeActive ? "tab-btn active" : "tab-btn")}
+              onClick={(event) => handleNavTransition(event, item.to)}
             >
               {item.label}
             </NavLink>
@@ -520,7 +590,12 @@ export default function Header({
 
             <nav className="mobile-nav">
               {navItems.map((item) => (
-                <Link key={item.id} to={item.to} className="mobile-nav__link">
+                <Link
+                  key={item.id}
+                  to={item.to}
+                  className="mobile-nav__link"
+                  onClick={(event) => handleNavTransition(event, item.to)}
+                >
                   <span className="mobile-link-icon" aria-hidden="true">{mobileNavIcons[item.id]}</span>
                   <span>{item.label}</span>
                 </Link>
@@ -558,6 +633,22 @@ export default function Header({
             </div>
           </aside>
         </>
+      ) : null}
+
+      {transitionTarget ? (
+        <div className="header-page-transition" aria-hidden="true">
+          <div className="header-page-transition__stage">
+            <div className="header-page-transition__glow"></div>
+            <lottie-player
+            ref={transitionPlayerRef}
+            src="/assets/lottie/cat-scratches.json"
+            background="transparent"
+            speed="1.45"
+            autoplay
+          ></lottie-player>
+          </div>
+          <span>Loading CineSky</span>
+        </div>
       ) : null}
     </header>
   );

@@ -1720,7 +1720,48 @@
 }
 
 .home-section--faq {
+  position: relative;
   gap: 22px;
+}
+
+.home-faq-mascot {
+  position: absolute;
+  right: clamp(-26px, -32vw, 132px);
+  bottom: clamp(19px, -40vw, -103px);
+  width: clamp(340px, 47vw, 520px);
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+  z-index: 2;
+  opacity: 0;
+  transform: translate3d(0, 28px, 0) scale(0.88);
+  animation: homeFaqMascotIn 0.72s cubic-bezier(0.18, 0.78, 0.22, 1) forwards;
+  animation-delay: 0.18s;
+}
+
+.home-faq-mascot::before {
+  content: "";
+  position: absolute;
+  inset: 8%;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.22), transparent 28%),
+    radial-gradient(circle, rgba(196, 181, 253, 0.62), transparent 58%),
+    radial-gradient(circle at 70% 30%, rgba(56, 189, 248, 0.36), transparent 56%);
+  filter: blur(20px);
+  animation: homeFaqMascotGlow 2.8s ease-in-out infinite alternate;
+}
+
+.home-faq-mascot lottie-player {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 18px 28px rgba(0, 0, 0, 0.26));
+}
+
+.home-section--faq .home-faq-grid {
+  padding-right: min(34vw, 540px);
 }
 
 .home-section--faq .home-section__header > p {
@@ -1876,6 +1917,35 @@
   to {
     opacity: 1;
     transform: translateX(0);
+  }
+}
+
+@keyframes homeFaqMascotIn {
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+}
+
+@keyframes homeFaqMascotGlow {
+  to {
+    opacity: 0.72;
+    transform: scale(1.12);
+  }
+}
+
+@media (max-width: 960px) {
+  .home-faq-mascot {
+    position: relative;
+    right: auto;
+    bottom: auto;
+    width: min(74vw, 320px);
+    justify-self: end;
+    margin: -10px 6px -4px 0;
+  }
+
+  .home-section--faq .home-faq-grid {
+    padding-right: 0;
   }
 }
 
