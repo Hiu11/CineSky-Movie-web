@@ -1,6 +1,6 @@
 .filter-view-container {
   position: relative;
-  overflow: hidden;
+  overflow: visible;
   padding-top: 34px;
 }
 
@@ -84,6 +84,7 @@
 
 .filter-options-panel {
   position: relative;
+  z-index: 20;
   padding: 8px 5% 0;
   display: flex;
   justify-content: center;
@@ -94,6 +95,7 @@
   width: min(1120px, 100%);
   display: grid;
   gap: 18px;
+  overflow: visible;
 }
 
 .filter-toolbar__intro {
@@ -130,46 +132,88 @@
 }
 
 .filter-row {
+  position: relative;
   width: min(1120px, 100%);
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 14px;
+  overflow: visible;
+}
+
+.filter-row > .filter-control:not(.filter-dropdown) {
+  display: none;
 }
 
 .filter-control {
   position: relative;
-  border-radius: 24px;
+  border-radius: 30px;
   background:
-    linear-gradient(135deg, rgba(243, 246, 255, 0.1), rgba(171, 180, 203, 0.05)),
-    linear-gradient(180deg, rgba(18, 17, 26, 0.72), rgba(10, 10, 17, 0.58));
-  border: 1px solid rgba(255, 255, 255, 0.14);
+    radial-gradient(ellipse 78% 46% at 50% -12%, rgba(255, 255, 255, 0.36), transparent 58%),
+    radial-gradient(ellipse 72% 38% at 50% 116%, rgba(255, 255, 255, 0.12), transparent 58%),
+    radial-gradient(ellipse at 86% 100%, rgba(167, 139, 250, 0.18), transparent 42%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.045) 46%, rgba(151, 131, 255, 0.1)),
+    linear-gradient(180deg, rgba(21, 21, 34, 0.48), rgba(9, 10, 18, 0.34));
+  border: 1px solid rgba(255, 255, 255, 0.18);
   box-shadow:
-    0 18px 36px rgba(0, 0, 0, 0.18),
-    inset 0 1px 0 rgba(255, 255, 255, 0.18),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(24px) saturate(155%);
-  -webkit-backdrop-filter: blur(24px) saturate(155%);
+    0 18px 48px rgba(0, 0, 0, 0.18),
+    0 10px 28px rgba(124, 58, 237, 0.08),
+    inset 0 1px 1px rgba(255, 255, 255, 0.3),
+    inset 0 10px 18px rgba(255, 255, 255, 0.08),
+    inset 0 -10px 18px rgba(0, 0, 0, 0.18),
+    inset 0 -18px 34px rgba(255, 255, 255, 0.035);
+  backdrop-filter: blur(34px) saturate(190%);
+  -webkit-backdrop-filter: blur(34px) saturate(190%);
   overflow: hidden;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+  transition: transform 0.28s ease, box-shadow 0.28s ease, border-color 0.28s ease, background 0.28s ease;
+}
+
+.filter-dropdown {
+  overflow: visible;
+  z-index: 30;
+  isolation: isolate;
+}
+
+.filter-dropdown.is-open,
+.filter-dropdown:focus-within {
+  z-index: 60;
 }
 
 .filter-control::before {
   content: "";
   position: absolute;
+  z-index: 0;
   inset: 1px;
   border-radius: inherit;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.02) 34%, transparent 60%),
-    radial-gradient(circle at 18% 0%, rgba(255, 255, 255, 0.08), transparent 24%);
+    radial-gradient(ellipse 86% 48% at 50% 2%, rgba(255, 255, 255, 0.28), transparent 50%),
+    radial-gradient(ellipse 78% 36% at 50% 96%, rgba(255, 255, 255, 0.08), transparent 62%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.018) 48%, transparent 76%);
   pointer-events: none;
 }
 
+.filter-control::after {
+  content: "";
+  position: absolute;
+  z-index: 0;
+  inset: -32% -18%;
+  background:
+    radial-gradient(ellipse 64% 26% at 50% 18%, rgba(255, 255, 255, 0.18), transparent 58%),
+    radial-gradient(ellipse at 30% 42%, rgba(255, 255, 255, 0.12), transparent 34%),
+    radial-gradient(ellipse at 68% 58%, rgba(167, 139, 250, 0.12), transparent 36%);
+  filter: blur(12px);
+  opacity: 0.72;
+  pointer-events: none;
+  transform: rotate(-6deg);
+}
+
 .filter-control:hover {
-  transform: translateY(-1px);
-  border-color: rgba(255, 255, 255, 0.22);
+  transform: translateY(-1px) scale(1.006);
+  border-color: rgba(255, 255, 255, 0.25);
   box-shadow:
-    0 22px 42px rgba(0, 0, 0, 0.22),
-    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+    0 22px 54px rgba(0, 0, 0, 0.22),
+    0 12px 34px rgba(124, 58, 237, 0.12),
+    inset 0 1px 1px rgba(255, 255, 255, 0.38),
+    inset 0 -18px 36px rgba(255, 255, 255, 0.045);
 }
 
 .filter-control:focus-within {
@@ -191,11 +235,12 @@
   color: rgba(255, 255, 255, 0.94);
   border: none;
   padding: 15px 44px 15px 18px;
-  border-radius: 24px;
+  border-radius: 30px;
   outline: none;
   cursor: pointer;
   font-size: 15px;
   font-weight: 500;
+  color-scheme: dark;
   background: transparent;
   box-shadow: none;
   background-image:
@@ -209,7 +254,168 @@
 }
 
 .custom-select option {
-  color: #111;
+  background: #171829;
+  color: rgba(255, 255, 255, 0.94);
+  font-size: 15px;
+}
+
+.custom-select option:checked,
+.custom-select option:hover {
+  background: #6b55d9;
+  color: #fff;
+}
+
+.filter-dropdown__trigger {
+  position: relative;
+  z-index: 2;
+  width: 100%;
+  min-height: 50px;
+  padding: 0 44px 0 18px;
+  border: 0;
+  border-radius: 30px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.96);
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  text-align: left;
+}
+
+.filter-dropdown__trigger::before,
+.filter-dropdown__trigger::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 8px;
+  height: 2px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.72);
+  transition: transform 0.2s ease;
+}
+
+.filter-dropdown__trigger::before {
+  right: 22px;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.filter-dropdown__trigger::after {
+  right: 17px;
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+.filter-dropdown.is-open .filter-dropdown__trigger::before,
+.filter-dropdown:focus-within .filter-dropdown__trigger::before {
+  transform: translateY(-50%) rotate(-45deg);
+}
+
+.filter-dropdown.is-open .filter-dropdown__trigger::after,
+.filter-dropdown:focus-within .filter-dropdown__trigger::after {
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.filter-dropdown__menu {
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 0;
+  right: 0;
+  z-index: 999;
+  width: auto;
+  min-height: 52px;
+  max-height: 360px;
+  margin: 0;
+  padding: 8px;
+  overflow-y: auto;
+  visibility: hidden;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-6px) scale(0.98);
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background:
+    radial-gradient(ellipse 92% 38% at 50% 0%, rgba(255, 255, 255, 0.2), transparent 60%),
+    linear-gradient(145deg, rgba(31, 32, 49, 0.96), rgba(14, 15, 27, 0.92));
+  box-shadow:
+    0 28px 58px rgba(0, 0, 0, 0.38),
+    inset 0 1px 1px rgba(255, 255, 255, 0.26),
+    inset 0 -18px 32px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s ease;
+}
+
+.filter-dropdown.is-open .filter-dropdown__menu,
+.filter-dropdown:focus-within .filter-dropdown__menu {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.filter-row > .filter-dropdown__menu {
+  visibility: visible;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0) scale(1);
+}
+
+.filter-dropdown__menu--genre {
+  left: 0;
+  right: auto;
+  width: calc((100% - 28px) / 3);
+}
+
+.filter-dropdown__menu--country {
+  left: calc((100% - 28px) / 3 + 14px);
+  right: auto;
+  width: calc((100% - 28px) / 3);
+}
+
+.filter-dropdown__menu--rating {
+  left: calc(((100% - 28px) / 3 + 14px) * 2);
+  right: auto;
+  width: calc((100% - 28px) / 3);
+}
+
+.filter-dropdown__menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+.filter-dropdown__menu::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+}
+
+.filter-dropdown__menu::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.34);
+  border-radius: 999px;
+}
+
+.filter-dropdown__option {
+  position: relative;
+  z-index: 6;
+  width: 100%;
+  min-height: 44px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 18px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  cursor: pointer;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  text-align: left;
+  transition: background 0.16s ease, color 0.16s ease, transform 0.16s ease;
+}
+
+.filter-dropdown__option:hover,
+.filter-dropdown__option.is-selected {
+  background:
+    radial-gradient(ellipse at 18% 0%, rgba(255, 255, 255, 0.26), transparent 46%),
+    linear-gradient(135deg, rgba(127, 105, 234, 0.82), rgba(96, 79, 194, 0.68));
+  color: #fff;
+  transform: translateX(2px);
 }
 
 .filter-toolbar__footer {

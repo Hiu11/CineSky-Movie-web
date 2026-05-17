@@ -96,7 +96,7 @@
 .feedback-speech::after {
   content: "";
   position: absolute;
-  right: 72px;
+  right: 128px;
   bottom: -18px;
   width: 36px;
   height: 28px;

@@ -730,6 +730,7 @@
 .about-location-system,
 .about-service-system,
 .about-project-divider {
+  position: relative;
   padding: 34px;
   border-radius: 30px;
   border: 1px solid rgba(255, 255, 255, 0.12);
@@ -793,6 +794,10 @@
   align-items: center;
 }
 
+.about-location-system > .about-section-heading {
+  max-width: 760px;
+}
+
 .about-cinema-summary {
   position: relative;
   top: auto;
@@ -844,9 +849,28 @@
   font-weight: 800;
 }
 
+.about-location-showcase {
+  display: grid;
+  grid-template-columns: minmax(300px, 340px);
+  gap: 22px;
+  align-items: start;
+}
+
 .about-location-list {
   display: grid;
   gap: 14px;
+  width: min(100%, 340px);
+}
+
+.about-location-animation {
+  position: absolute;
+  top: -48px;
+  right: 34px;
+  width: min(28vw, 589px);
+  min-width: 280px;
+  min-height: 340px;
+  pointer-events: none;
+  z-index: 1;
 }
 
 .about-location-card {
@@ -1289,6 +1313,18 @@
     position: relative;
     top: auto;
     min-height: 360px;
+  }
+
+  .about-location-list {
+    width: 100%;
+  }
+
+  .about-location-showcase {
+    grid-template-columns: 1fr;
+  }
+
+  .about-location-animation {
+    display: none;
   }
 }
 

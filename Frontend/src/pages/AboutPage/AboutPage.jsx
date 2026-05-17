@@ -32,7 +32,6 @@ const creatorHighlights = [
   { label: "Định hướng", value: "Frontend Developer" },
   { label: "Loại dự án", value: "Dự án cá nhân" },
   { label: "Trạng thái", value: "Chạy local, chưa deploy" },
-  { label: "Kênh liên hệ", value: "Facebook và GitHub cá nhân" },
 ];
 
 const journeySteps = [
@@ -288,6 +287,16 @@ const AboutPage = () => {
     return () => observer.disconnect();
   }, []);
 
+  useEffect(() => {
+    if (document.getElementById("lottie-player-script")) return;
+
+    const script = document.createElement("script");
+    script.id = "lottie-player-script";
+    script.src = "https://unpkg.com/@lottiefiles/lottie-player@2.0.12/dist/lottie-player.js";
+    script.async = true;
+    document.body.appendChild(script);
+  }, []);
+
   const closeNotePopup = () => {
     const noteRect = noteRef.current?.getBoundingClientRect();
     const cardRect = noteCardRef.current?.getBoundingClientRect();
@@ -335,10 +344,6 @@ const AboutPage = () => {
         <div className="about-hero__content">
           <span className="about-kicker">Về rạp CineSky</span>
           <h1>CineSky là website đặt vé xem phim full-stack với luồng tìm phim, đặt vé, tài khoản người dùng và admin dashboard.</h1>
-          <p>
-            Phiên bản hiện tại không chỉ dừng ở giao diện xem phim. Người dùng có thể tìm kiếm/lọc phim, xem chi tiết,
-            đăng nhập, đặt vé, xem lịch sử booking, cập nhật profile và gửi feedback; admin có khu vực riêng để quản lý dữ liệu chính.
-          </p>
 
           <div ref={noteRef} className={`about-project-note${isNoteLanding ? " about-project-note--landing" : ""}`}>
             <strong>Ghi chú nhanh</strong>
@@ -374,7 +379,6 @@ const AboutPage = () => {
         <div className="about-hero__panel">
           <div className="about-highlight-card">
             <span className="about-highlight-card__label">Trải nghiệm tại CineSky</span>
-            <h2>Tìm phim, đặt vé, lưu lịch sử và quản trị dữ liệu trong cùng một project.</h2>
             <p>
               CineSky hiện kết nối React frontend với Express API và MongoDB. Các phần auth, movie, booking, feedback,
               review/favorite và admin được tổ chức thành một luồng sản phẩm mô phỏng khá đầy đủ cho portfolio.
@@ -406,10 +410,6 @@ const AboutPage = () => {
         <div className="about-section-heading about-section-heading--center">
           <span className="about-kicker">Hệ thống rạp</span>
           <h2>CineSky mô phỏng một hệ thống đặt vé phim có dữ liệu rạp, phòng chiếu, suất chiếu và ghế.</h2>
-          <p>
-            Phần này nói về lớp trải nghiệm dành cho người xem: xem phim đang chiếu/sắp chiếu, lọc nội dung, vào chi tiết,
-            chọn suất chiếu và hoàn tất booking với tài khoản đã đăng nhập.
-          </p>
         </div>
 
         <div className="about-mission-grid">
@@ -426,11 +426,6 @@ const AboutPage = () => {
       <section className="about-location-system">
         <div className="about-section-heading">
           <span className="about-kicker">Cụm rạp mô phỏng</span>
-          <h2>Dữ liệu rạp và phòng chiếu đang phục vụ trực tiếp cho luồng booking.</h2>
-          <p>
-            Các cụm rạp mô phỏng giúp người dùng hình dung nơi xem, phòng chiếu và số ghế. Dữ liệu này là nền để mở rộng
-            quản lý cinema/showtime sâu hơn trong Admin Dashboard.
-          </p>
         </div>
 
         <div className="about-location-layout">
@@ -445,7 +440,8 @@ const AboutPage = () => {
             </div>
           </div>
 
-          <div className="about-location-list">
+          <div className="about-location-showcase">
+            <div className="about-location-list">
             {cinemaLocations.map((item) => (
               <article key={item.name} className="about-location-card">
                 <h3>{item.name}</h3>
@@ -454,6 +450,17 @@ const AboutPage = () => {
                 <small>{item.halls}</small>
               </article>
             ))}
+            </div>
+
+            <lottie-player
+              className="about-location-animation"
+              src="/assets/lottie/Space%20Tour.json"
+              background="transparent"
+              speed="1"
+              loop
+              autoplay
+              aria-label="Minh họa phi hành gia CineSky"
+            />
           </div>
         </div>
       </section>
@@ -548,10 +555,6 @@ const AboutPage = () => {
         <div className="about-section-heading">
           <span className="about-kicker">Điểm nổi bật của website</span>
           <h2>Ba điểm nổi bật đúng với trạng thái CineSky hiện tại.</h2>
-          <p>
-            CineSky hiện có đầy đủ hơn một trang giới thiệu phim tĩnh: có luồng đặt vé, tài khoản người dùng và khu vực admin
-            để quản lý dữ liệu vận hành mô phỏng.
-          </p>
         </div>
 
         <div className="about-story__grid">
@@ -568,10 +571,6 @@ const AboutPage = () => {
         <div className="about-section-heading">
           <span className="about-kicker">Hành trình người dùng</span>
           <h2>CineSky được sắp xếp theo đúng các bước người xem cần đi qua để tìm và đặt một bộ phim phù hợp.</h2>
-          <p>
-            Thay vì dồn mọi thứ vào một màn hình duy nhất, dự án chia nhỏ nội dung theo từng quyết định của người dùng để việc
-            xem nhanh, hiểu nhanh và hành động nhanh hơn trong một flow nhất quán.
-          </p>
         </div>
 
         <div className="about-journey__grid">
@@ -589,9 +588,6 @@ const AboutPage = () => {
         <div className="about-section-heading">
           <span className="about-kicker">Timeline dự án</span>
           <h2>CineSky được hoàn thiện theo từng lớp từ catalog phim đến auth, booking và admin.</h2>
-          <p>
-            Timeline dưới đây phản ánh các lớp chức năng hiện có trong project thay vì chỉ mô tả ý tưởng ban đầu.
-          </p>
         </div>
 
         <div className="about-timeline__list">
@@ -611,11 +607,6 @@ const AboutPage = () => {
         <div className="about-section-heading">
           <span className="about-kicker">Phiên bản hoàn thiện</span>
           <h2>CineSky hiện đã có nền full-stack đủ rõ để demo local như một movie booking app học tập.</h2>
-          <p>
-            Các phần quan trọng như backend API, authentication, booking, review/favorite, search/filter, profile, feedback
-            và Admin Dashboard đã được đưa vào cùng một trải nghiệm. Project vẫn cần bước deploy, cấu hình HTTPS và kiểm thử
-            trước khi xem như sản phẩm production.
-          </p>
         </div>
 
         <div className="about-roadmap__grid">
@@ -632,9 +623,6 @@ const AboutPage = () => {
         <div className="about-section-heading">
           <span className="about-kicker">Ưu & nhược điểm</span>
           <h2>Nhìn nhanh điểm mạnh và giới hạn hiện tại của project.</h2>
-          <p>
-            Project đã có nhiều chức năng chính, nhưng vẫn còn vài phần mô phỏng cần nâng cấp nếu muốn tiến gần sản phẩm thật.
-          </p>
         </div>
 
         <div className="about-pros-cons__grid">

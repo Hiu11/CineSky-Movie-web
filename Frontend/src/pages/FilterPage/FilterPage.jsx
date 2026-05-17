@@ -22,10 +22,27 @@ const normalizeText = (value) =>
 
 const FilterSkeletonCard = () => <div className="filter-skeleton-card" aria-hidden="true"></div>;
 
+const FilterDropdown = ({ id, label, value, isOpen, onToggle }) => {
+  return (
+    <div className={`filter-control filter-dropdown ${isOpen ? "is-open" : ""}`}>
+      <button
+        type="button"
+        className="filter-dropdown__trigger"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        onClick={() => onToggle(isOpen ? "" : id)}
+      >
+        <span>{value || label}</span>
+      </button>
+    </div>
+  );
+};
+
 const FilterPage = ({ searchQuery = "" }) => {
   const [selectedGenre, setSelectedGenre] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedRating, setSelectedRating] = useState("");
+  const [openDropdown, setOpenDropdown] = useState("");
   const [movies, setMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -143,6 +160,27 @@ const FilterPage = ({ searchQuery = "" }) => {
       ? [...movies].reverse().filter((movie) => movie.poster)
       : filterFilmPosters.map((poster, index) => ({ id: `fallback-${index}`, poster }));
   const filmBackgroundLoopMovies = Array.from({ length: 3 }).flatMap(() => filmBackgroundMovies);
+  const dropdownOptions = {
+    genre: {
+      label: "Thá»ƒ loáº¡i",
+      value: selectedGenre,
+      options: genreOptions,
+      onChange: setSelectedGenre,
+    },
+    country: {
+      label: "Quá»‘c gia",
+      value: selectedCountry,
+      options: countryOptions,
+      onChange: setSelectedCountry,
+    },
+    rating: {
+      label: "Äá»™ tuá»•i",
+      value: selectedRating,
+      options: ratingOptions,
+      onChange: setSelectedRating,
+    },
+  };
+  const activeDropdown = dropdownOptions[openDropdown];
 
   return (
     <main className="filter-view-container">
@@ -170,6 +208,52 @@ const FilterPage = ({ searchQuery = "" }) => {
           </div>
 
           <div className="filter-row">
+            <FilterDropdown
+              id="genre"
+              label="Thể loại"
+              value={selectedGenre}
+              options={genreOptions}
+              isOpen={openDropdown === "genre"}
+              onToggle={setOpenDropdown}
+              onChange={setSelectedGenre}
+            />
+            <FilterDropdown
+              id="country"
+              label="Quốc gia"
+              value={selectedCountry}
+              options={countryOptions}
+              isOpen={openDropdown === "country"}
+              onToggle={setOpenDropdown}
+              onChange={setSelectedCountry}
+            />
+            <FilterDropdown
+              id="rating"
+              label="Độ tuổi"
+              value={selectedRating}
+              options={ratingOptions}
+              isOpen={openDropdown === "rating"}
+              onToggle={setOpenDropdown}
+              onChange={setSelectedRating}
+            />
+            {activeDropdown ? (
+              <div className={`filter-dropdown__menu filter-dropdown__menu--${openDropdown}`} role="listbox" aria-label={activeDropdown.label}>
+                {activeDropdown.options.map((option) => (
+                  <button
+                    type="button"
+                    key={option}
+                    className={`filter-dropdown__option ${activeDropdown.value === option ? "is-selected" : ""}`}
+                    role="option"
+                    aria-selected={activeDropdown.value === option}
+                    onClick={() => {
+                      activeDropdown.onChange(option);
+                      setOpenDropdown("");
+                    }}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             <div className="filter-control">
               <select className="custom-select" value={selectedGenre} onChange={(event) => setSelectedGenre(event.target.value)}>
                 <option value="">Thể loại</option>
