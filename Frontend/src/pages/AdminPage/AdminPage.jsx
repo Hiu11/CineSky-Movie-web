@@ -11,6 +11,7 @@ import {
   getMovieById,
   getMovies,
   restoreAdminMovie,
+  searchAdminTmdbMovie,
   updateAdminUserRole,
   updateAdminMovie,
   uploadAdminPoster,
@@ -18,14 +19,14 @@ import {
 import "./AdminPage.css";
 
 const moduleConfig = [
-  { key: "movies", label: "Movies", statusLabel: "Status" },
-  { key: "showtimes", label: "Showtimes", statusLabel: "Time" },
-  { key: "cinemas", label: "Cinemas", statusLabel: "Status" },
-  { key: "users", label: "Users", statusLabel: "Role" },
-  { key: "orders", label: "Tickets / orders", statusLabel: "Payment" },
-  { key: "payments", label: "Payments", statusLabel: "Status" },
-  { key: "trash", label: "Trash", statusLabel: "Deleted" },
-  { key: "activity", label: "Activity log", statusLabel: "Action" },
+  { key: "movies", label: "Phim", statusLabel: "Trạng thái" },
+  { key: "showtimes", label: "Suất chiếu", statusLabel: "Giờ chiếu" },
+  { key: "cinemas", label: "Rạp / phòng", statusLabel: "Trạng thái" },
+  { key: "users", label: "Người dùng", statusLabel: "Vai trò" },
+  { key: "orders", label: "Vé / đơn đặt", statusLabel: "Thanh toán" },
+  { key: "payments", label: "Thanh toán", statusLabel: "Trạng thái" },
+  { key: "trash", label: "Thùng rác", statusLabel: "Đã xóa" },
+  { key: "activity", label: "Nhật ký", statusLabel: "Hành động" },
 ];
 
 const initialData = {
@@ -68,15 +69,31 @@ const initialData = {
   ],
 };
 
+const createEmptyAdminData = () =>
+  Object.keys(initialData).reduce(
+    (data, key) => ({
+      ...data,
+      [key]: [],
+    }),
+    {}
+  );
+
 const readOnlyModules = new Set(
   moduleConfig.map((module) => module.key).filter((key) => !["movies", "trash", "activity"].includes(key))
 );
 const initialRevenueTrend = [0, 0, 0, 0, 0, 0, 0];
 const initialMovieRevenue = [];
 const initialPaymentState = [
-  { label: "Paid", value: 0, color: "#f7b400" },
-  { label: "Cancelled", value: 0, color: "#ef4444" },
+  { label: "Đã thanh toán", value: 0, color: "#f7b400" },
+  { label: "Đã hủy", value: 0, color: "#ef4444" },
 ];
+
+const dateRangeLabels = {
+  day: "hôm nay",
+  week: "tuần này",
+  month: "tháng này",
+  year: "năm nay",
+};
 
 const polarToCartesian = (center, radius, angle) => {
   const radians = ((angle - 90) * Math.PI) / 180;
@@ -165,16 +182,19 @@ const buildDashboardCharts = (bookings = []) => {
 
   bookings.forEach((booking) => {
     const revenue = Number(booking.totalPrice || 0);
+    const isCancelled = booking.status === "cancelled";
     const createdAt = new Date(booking.createdAt);
     const dayIndex = Number.isNaN(createdAt.getTime())
       ? 6
       : Math.min(6, Math.max(0, 6 - Math.floor((Date.now() - createdAt.getTime()) / 86400000)));
     const movieTitle = booking.movieTitle || "Movie ticket";
 
-    dailyRevenue[dayIndex] += revenue;
-    revenueByMovie.set(movieTitle, (revenueByMovie.get(movieTitle) || 0) + revenue);
+    if (!isCancelled) {
+      dailyRevenue[dayIndex] += revenue;
+      revenueByMovie.set(movieTitle, (revenueByMovie.get(movieTitle) || 0) + revenue);
+    }
 
-    if (booking.status === "cancelled") {
+    if (isCancelled) {
       cancelledCount += 1;
     }
   });
@@ -193,12 +213,12 @@ const buildDashboardCharts = (bookings = []) => {
       })),
     paymentState: [
       {
-        label: "Paid",
+        label: "Đã thanh toán",
         value: totalBookings ? Math.round(((totalBookings - cancelledCount) / totalBookings) * 100) : 0,
         color: "#f7b400",
       },
       {
-        label: "Cancelled",
+        label: "Đã hủy",
         value: totalBookings ? Math.round((cancelledCount / totalBookings) * 100) : 0,
         color: "#ef4444",
       },
@@ -341,26 +361,32 @@ const formatDetailValue = (value) => {
 
 export default function AdminPage() {
   const [activeModule, setActiveModule] = useState("movies");
-  const [records, setRecords] = useState(initialData);
+  const [records, setRecords] = useState(createEmptyAdminData);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortDir, setSortDir] = useState("asc");
   const [page, setPage] = useState(1);
   const [form, setForm] = useState(createMovieForm);
   const [editingId, setEditingId] = useState("");
+  const [isCrudMode, setIsCrudMode] = useState(false);
   const [selectedDetail, setSelectedDetail] = useState(null);
   const [formError, setFormError] = useState("");
   const [dateRange, setDateRange] = useState("month");
   const [activePaymentLabel, setActivePaymentLabel] = useState("");
   const [isPosterUploading, setIsPosterUploading] = useState(false);
+  const [isTmdbSyncing, setIsTmdbSyncing] = useState(false);
   const [revenueTrend, setRevenueTrend] = useState(initialRevenueTrend);
   const [movieRevenue, setMovieRevenue] = useState(initialMovieRevenue);
   const [paymentState, setPaymentState] = useState(initialPaymentState);
   const [dashboardStats, setDashboardStats] = useState([
-    { label: "Users", value: "0", helper: "Synced from database" },
-    { label: "Bookings", value: "0", helper: "Saved ticket bookings" },
-    { label: "Reviews", value: "0", helper: "User reviews" },
-    { label: "Favorites", value: "0", helper: "Current favorites" },
+    { label: "Người dùng", value: "0", helper: "Đồng bộ từ database" },
+    { label: "Vé đã đặt", value: "0", helper: "Đơn vé đã lưu" },
+    { label: "Doanh thu", value: "0", helper: "Tổng tiền vé hợp lệ" },
+    { label: "Suất chiếu", value: "0", helper: "Lịch chiếu đang có" },
+    { label: "Phim đang chiếu", value: "0", helper: "Catalog hoạt động" },
+    { label: "Phim sắp chiếu", value: "0", helper: "Chuẩn bị ra mắt" },
+    { label: "Đánh giá", value: "0", helper: "Review người dùng" },
+    { label: "Vé đã hủy", value: "0", helper: "Đơn không còn hiệu lực" },
   ]);
 
   useEffect(() => {
@@ -375,10 +401,30 @@ export default function AdminPage() {
         }
 
         setDashboardStats([
-          { label: "Users", value: String(overview.users || 0), helper: "Synced from database" },
-          { label: "Bookings", value: String(overview.bookings || 0), helper: "Saved ticket bookings" },
-          { label: "Reviews", value: String(overview.reviews || 0), helper: "User reviews" },
-          { label: "Favorites", value: String(overview.favorites || 0), helper: `${overview.feedbackEntries || 0} feedback entries` },
+          { label: "Người dùng", value: String(overview.users || 0), helper: "Đồng bộ từ database" },
+          { label: "Vé đã đặt", value: String(overview.bookings || 0), helper: "Đơn vé đã lưu" },
+          { label: "Doanh thu", value: `${Number(overview.revenue || 0).toLocaleString("vi-VN")}đ`, helper: "Tổng tiền vé hợp lệ" },
+          { label: "Suất chiếu", value: String(overview.showtimes || 0), helper: "Lịch chiếu đang có" },
+          { label: "Phim đang chiếu", value: String(overview.activeMovies || 0), helper: "Catalog hoạt động" },
+          { label: "Phim sắp chiếu", value: String(overview.comingSoonMovies || 0), helper: "Chuẩn bị ra mắt" },
+          { label: "Đánh giá", value: String(overview.reviews || 0), helper: `${overview.feedbackEntries || 0} phản hồi` },
+          { label: "Vé đã hủy", value: String(overview.cancelledBookings || 0), helper: `${overview.favorites || 0} lượt yêu thích` },
+        ]);
+
+        const totalBookings = Number(overview.bookings || 0);
+        const cancelledBookings = Number(overview.cancelledBookings || 0);
+
+        setPaymentState([
+          {
+            label: "Đã thanh toán",
+            value: totalBookings ? Math.round(((totalBookings - cancelledBookings) / totalBookings) * 100) : 0,
+            color: "#f7b400",
+          },
+          {
+            label: "Đã hủy",
+            value: totalBookings ? Math.round((cancelledBookings / totalBookings) * 100) : 0,
+            color: "#ef4444",
+          },
         ]);
       } catch {}
     };
@@ -431,7 +477,7 @@ export default function AdminPage() {
       try {
         const [users, bookings, activity] = await Promise.all([
           getAdminUsers({ limit: 20 }),
-          getAdminBookings({ limit: 20 }),
+          getAdminBookings({ limit: 50 }),
           getAdminActivity({ limit: 50 }).catch(() => []),
         ]);
 
@@ -444,8 +490,6 @@ export default function AdminPage() {
 
         setRevenueTrend(nextCharts.revenueTrend);
         setMovieRevenue(nextCharts.movieRevenue);
-        setPaymentState(nextCharts.paymentState);
-
         if ((!Array.isArray(users) || users.length === 0) && safeBookings.length === 0 && (!Array.isArray(activity) || activity.length === 0)) {
           return;
         }
@@ -455,23 +499,44 @@ export default function AdminPage() {
           users: Array.isArray(users) && users.length > 0 ? users.map((user) => ({
             id: String(user.id),
             name: user.fullName || user.email,
-            status: user.role === "admin" ? "Admin" : "User",
+            status: user.role === "admin" ? "Quản trị" : "Thành viên",
             time: formatAdminDateTime(user.createdAt),
             value: `${user.stats?.bookings || 0} orders • ${user.email || "No email"}`,
             role: user.role || "user",
             email: user.email || "",
           })) : current.users,
+          showtimes: safeBookings.length > 0 ? safeBookings.map((booking, index) => ({
+            id: `ST${String(index + 1).padStart(3, "0")}`,
+            name: `${booking.movieTitle || "Phim"} - ${booking.roomName || "Phòng chiếu"}`,
+            status: booking.displayTime || "Đang cập nhật",
+            time: booking.displayDate || formatAdminDateTime(booking.createdAt),
+            value: `${(booking.seatNumbers || []).length} ghế đã đặt`,
+          })) : current.showtimes,
+          cinemas: safeBookings.length > 0 ? Array.from(
+            new Map(
+              safeBookings.map((booking) => [
+                `${booking.cinemaName || "CineSky"}-${booking.roomName || "Phòng chiếu"}`,
+                {
+                  id: `RM${String((booking.roomName || "01").replace(/\D/g, "") || "01").padStart(3, "0")}`,
+                  name: `${booking.cinemaName || "CineSky"} - ${booking.roomName || "Phòng chiếu"}`,
+                  status: "Hoạt động",
+                  time: booking.displayDate || "Theo lịch chiếu",
+                  value: `${(booking.seatNumbers || []).length} ghế đã phát sinh vé`,
+                },
+              ])
+            ).values()
+          ) : current.cinemas,
           orders: safeBookings.length > 0 ? safeBookings.map((booking) => ({
             id: String(booking.id),
-            name: `${(booking.seatNumbers || []).length} tickets ${booking.movieTitle || "Movie ticket"}`,
-            status: booking.status === "cancelled" ? "Cancelled" : "Paid",
+            name: `${(booking.seatNumbers || []).length} vé ${booking.movieTitle || "Vé xem phim"}`,
+            status: booking.status === "cancelled" ? "Đã hủy" : "Đã thanh toán",
             time: [booking.displayDate, booking.displayTime].filter(Boolean).join(" • ") || formatAdminDateTime(booking.createdAt),
             value: `${Number(booking.totalPrice || 0).toLocaleString("vi-VN")} VND • ${booking.customerName || booking.customerEmail || "Guest"}`,
           })) : current.orders,
           payments: safeBookings.length > 0 ? safeBookings.map((booking) => ({
             id: String(booking.id),
-            name: `Booking ${String(booking.id).slice(-6)}`,
-            status: booking.status === "cancelled" ? "Cancelled" : "Paid",
+            name: `Đơn ${String(booking.id).slice(-6)}`,
+            status: booking.status === "cancelled" ? "Đã hủy" : "Đã thanh toán",
             time: formatAdminDateTime(booking.createdAt),
             value: `${Number(booking.totalPrice || 0).toLocaleString("vi-VN")} VND`,
           })) : current.payments,
@@ -611,6 +676,42 @@ export default function AdminPage() {
     reader.readAsDataURL(file);
   };
 
+  const handleSyncTmdbMetadata = async () => {
+    if (!form.title.trim()) {
+      setFormError("Nhập tên phim trước khi đồng bộ TMDB.");
+      return;
+    }
+
+    try {
+      setIsTmdbSyncing(true);
+      const metadata = await searchAdminTmdbMovie(form.title);
+
+      setForm((current) => ({
+        ...current,
+        title: metadata.title || current.title,
+        poster: metadata.poster || current.poster,
+        genres: Array.isArray(metadata.genres) ? metadata.genres.join(", ") : current.genres,
+        country: metadata.country || current.country,
+        director: metadata.director || current.director,
+        duration: metadata.duration ? String(metadata.duration) : current.duration,
+        releaseDate: metadata.releaseDate || current.releaseDate,
+        trailer: metadata.trailer || current.trailer,
+        description: metadata.description || current.description,
+        cast: metadata.cast || current.cast,
+        gallery: Array.isArray(metadata.gallery) ? metadata.gallery.join(", ") : current.gallery,
+        trailerFacts: metadata.trailerFacts || current.trailerFacts,
+        trailerPanelLabel: metadata.trailerPanelLabel || current.trailerPanelLabel,
+        trailerPanelTitle: metadata.trailerPanelTitle || current.trailerPanelTitle,
+        trailerPanelDescription: metadata.trailerPanelDescription || current.trailerPanelDescription,
+      }));
+      setFormError("Đã nạp metadata TMDB vào form. Kiểm tra lại rồi bấm xác nhận để lưu DB.");
+    } catch (error) {
+      setFormError(error.message || "Không thể đồng bộ metadata TMDB.");
+    } finally {
+      setIsTmdbSyncing(false);
+    }
+  };
+
   const switchModule = (moduleKey) => {
     setActiveModule(moduleKey);
     setSearch("");
@@ -618,8 +719,37 @@ export default function AdminPage() {
     setPage(1);
     setForm(moduleKey === "movies" ? createMovieForm() : createEmptyForm());
     setEditingId("");
+    setIsCrudMode(false);
     setSelectedDetail(null);
     setFormError("");
+  };
+
+  const openCreateForm = () => {
+    if (readOnlyModules.has(activeModule)) {
+      setFormError("Module này hiện chỉ đọc, chưa có API lưu dữ liệu.");
+      return;
+    }
+
+    setForm(activeModule === "movies" ? createMovieForm() : createEmptyForm());
+    setEditingId("");
+    setSelectedDetail(null);
+    setIsCrudMode(true);
+    setFormError("");
+  };
+
+  const closeCrudMode = () => {
+    setIsCrudMode(false);
+    setForm(activeModule === "movies" ? createMovieForm() : createEmptyForm());
+    setEditingId("");
+    setFormError("");
+  };
+
+  const handleSaveDraft = () => {
+    localStorage.setItem(
+      `cinesky-admin-draft-${activeModule}`,
+      JSON.stringify({ form, editingId, savedAt: new Date().toISOString() })
+    );
+    setFormError("Đã lưu nháp trên trình duyệt.");
   };
 
   const handleSubmit = async (event) => {
@@ -651,7 +781,6 @@ export default function AdminPage() {
         const savedMovie = editingId
           ? await updateAdminMovie(editingId, movieFormToPayload(form))
           : await createAdminMovie(movieFormToPayload(form));
-        const freshMovie = savedMovie;
 
         if (false && editingId) {
           throw new Error("Backend chưa lưu thay đổi phim. Vui lòng restart backend rồi thử lại.");
@@ -681,6 +810,7 @@ export default function AdminPage() {
         });
         setForm(createMovieForm());
         setEditingId("");
+        setIsCrudMode(false);
         setSelectedDetail(nextRecord);
         setFormError("");
       } catch (error) {
@@ -710,6 +840,7 @@ export default function AdminPage() {
     }));
     setForm(createEmptyForm());
     setEditingId("");
+    setIsCrudMode(false);
     setFormError("");
   };
 
@@ -727,6 +858,7 @@ export default function AdminPage() {
         setForm(mapMovieToForm(record));
       }
       setEditingId(record.id);
+      setIsCrudMode(true);
       setSelectedDetail(record);
       setFormError("");
       return;
@@ -734,6 +866,7 @@ export default function AdminPage() {
 
     setForm(record);
     setEditingId(record.id);
+    setIsCrudMode(true);
     setFormError("");
   };
 
@@ -926,7 +1059,7 @@ export default function AdminPage() {
         </Link>
         <nav className="admin-nav">
           <button className={activeModule === "dashboard" ? "active" : ""} onClick={() => switchModule("dashboard")}>
-            Dashboard
+            Tổng quan
           </button>
           {moduleConfig.map((module) => (
             <button key={module.key} className={activeModule === module.key ? "active" : ""} onClick={() => switchModule(module.key)}>
@@ -939,14 +1072,14 @@ export default function AdminPage() {
       <section className="admin-main">
         <header className="admin-header">
           <div>
-            <span>Admin panel</span>
-            <h1>{activeModule === "dashboard" ? "Dashboard overview" : `Manage ${activeConfig.label.toLowerCase()}`}</h1>
+            <span>Trang quản trị</span>
+            <h1>{activeModule === "dashboard" ? "Tổng quan vận hành" : `Quản lý ${activeConfig.label.toLowerCase()}`}</h1>
           </div>
           <select value={dateRange} onChange={(event) => setDateRange(event.target.value)}>
-            <option value="day">Day</option>
-            <option value="week">Week</option>
-            <option value="month">Month</option>
-            <option value="year">Year</option>
+            <option value="day">Hôm nay</option>
+            <option value="week">Tuần này</option>
+            <option value="month">Tháng này</option>
+            <option value="year">Năm nay</option>
           </select>
         </header>
 
@@ -964,7 +1097,7 @@ export default function AdminPage() {
 
             <div className="admin-chart-grid">
               <article className="admin-panel admin-panel--wide">
-                <h2>Revenue trend by {dateRange}</h2>
+                <h2>Xu hướng doanh thu {dateRangeLabels[dateRange] || ""}</h2>
                 <div className="admin-line-chart">
                   {revenueTrend.map((value, index) => (
                     <span key={index} style={{ height: `${value}%` }} />
@@ -985,7 +1118,7 @@ export default function AdminPage() {
               </article>
 
               <article className="admin-panel">
-                <h2>Payment status</h2>
+                <h2>Trạng thái thanh toán</h2>
                 <svg className="admin-donut" viewBox="0 0 120 120" aria-label="Payment status">
                   {paymentChartState.map((item, index) => {
                     const startAngle = paymentChartState
@@ -1038,19 +1171,25 @@ export default function AdminPage() {
             </div>
           </div>
         ) : (
-          <div className="admin-workspace">
+          <div className={"admin-workspace" + (isCrudMode ? " admin-workspace--editor" : "")}>
+            {!isCrudMode ? (
             <section className="admin-panel admin-table-panel">
               <div className="admin-toolbar">
-                <input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Search by name or ID" />
+                <input value={search} onChange={(event) => { setSearch(event.target.value); setPage(1); }} placeholder="Tìm theo tên hoặc ID" />
                 <select value={statusFilter} onChange={(event) => { setStatusFilter(event.target.value); setPage(1); }}>
-                  <option value="all">All statuses</option>
+                  <option value="all">Tất cả trạng thái</option>
                   {statuses.map((status) => (
                     <option key={status} value={status}>{status}</option>
                   ))}
                 </select>
                 <button onClick={() => setSortDir((current) => (current === "asc" ? "desc" : "asc"))}>
-                  Sort {sortDir === "asc" ? "A-Z" : "Z-A"}
+                  Sắp xếp {sortDir === "asc" ? "A-Z" : "Z-A"}
                 </button>
+                {!readOnlyModules.has(activeModule) ? (
+                  <button type="button" onClick={openCreateForm}>
+                    Thêm mới
+                  </button>
+                ) : null}
               </div>
 
               <div className="admin-table-wrap">
@@ -1058,11 +1197,11 @@ export default function AdminPage() {
                   <thead>
                     <tr>
                       <th>ID</th>
-                      <th>Name</th>
+                      <th>Tên</th>
                       <th>{activeConfig.statusLabel}</th>
-                      <th>Time</th>
-                      <th>Value</th>
-                      <th>Actions</th>
+                      <th>Thời gian</th>
+                      <th>Giá trị</th>
+                      <th>Thao tác</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -1075,22 +1214,22 @@ export default function AdminPage() {
                         <td>{record.value}</td>
                         <td>
                           <div className="admin-row-actions">
-                            <button onClick={() => setSelectedDetail(record)}>View</button>
+                            <button onClick={() => setSelectedDetail(record)}>Xem</button>
                             {activeModule === "trash" ? (
-                              <button onClick={() => handleRestoreMovie(record)}>Restore</button>
+                              <button onClick={() => handleRestoreMovie(record)}>Khôi phục</button>
                             ) : null}
                             {activeModule === "activity" ? (
-                              <button disabled={!record.undo} onClick={() => handleUndoActivity(record)}>Undo</button>
+                              <button disabled={!record.undo} onClick={() => handleUndoActivity(record)}>Hoàn tác</button>
                             ) : null}
                             {activeModule === "users" ? (
                               <button onClick={() => handleToggleUserRole(record)}>
-                                {record.role === "admin" ? "Make User" : "Make Admin"}
+                                {record.role === "admin" ? "Chuyển thành user" : "Cấp admin"}
                               </button>
                             ) : null}
                             {activeModule !== "trash" && activeModule !== "activity" ? (
                               <>
-                                {activeModule !== "users" ? <button onClick={() => handleEdit(record)}>Edit</button> : null}
-                                {activeModule !== "users" ? <button onClick={() => handleDelete(record.id)}>Delete</button> : null}
+                                {activeModule !== "users" ? <button onClick={() => handleEdit(record)}>Sửa</button> : null}
+                                {activeModule !== "users" ? <button onClick={() => handleDelete(record.id)}>Xóa</button> : null}
                               </>
                             ) : null}
                           </div>
@@ -1102,25 +1241,39 @@ export default function AdminPage() {
               </div>
 
               <div className="admin-pagination">
-                <button disabled={page === 1} onClick={() => setPage((current) => Math.max(1, current - 1))}>Previous</button>
-                <span>Page {page}/{totalPages}</span>
-                <button disabled={page === totalPages} onClick={() => setPage((current) => Math.min(totalPages, current + 1))}>Next</button>
+                <button disabled={page === 1} onClick={() => setPage((current) => Math.max(1, current - 1))}>Trước</button>
+                <span>Trang {page}/{totalPages}</span>
+                <button disabled={page === totalPages} onClick={() => setPage((current) => Math.min(totalPages, current + 1))}>Sau</button>
               </div>
             </section>
+            ) : null}
 
             <aside className="admin-side-panels">
               {activeModule !== "trash" && activeModule !== "activity" ? (
               <form className="admin-panel admin-form" onSubmit={handleSubmit}>
-                <h2>{editingId ? "Edit record" : "Add record"}</h2>
+                <div className="admin-form-head">
+                  <div>
+                    <span>{editingId ? "Chỉnh sửa" : "Tạo mới"}</span>
+                    <h2>{editingId ? "Sửa bản ghi" : "Thêm bản ghi"}</h2>
+                  </div>
+                  {isCrudMode ? (
+                    <button type="button" className="admin-form-back" onClick={closeCrudMode}>
+                      Back danh sách
+                    </button>
+                  ) : null}
+                </div>
                 {formError ? <p className="admin-form-error">{formError}</p> : null}
                 {activeModule === "movies" ? (
                   <>
                     <datalist id="genre-suggestions">{movieSuggestions.genres.map((item) => <option key={item} value={item} />)}</datalist>
                     <datalist id="country-suggestions">{movieSuggestions.country.map((item) => <option key={item} value={item} />)}</datalist>
                     <datalist id="showtime-suggestions">{movieSuggestions.showtimes.map((item) => <option key={item} value={item} />)}</datalist>
-                    <input value={form.id} onChange={(event) => setForm({ ...form, id: event.target.value })} placeholder="Movie ID tự tạo nếu trống" disabled={Boolean(editingId)} />
-                    <input required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="Tên phim" />
-                    <div className="admin-poster-picker">
+                    <input className="admin-field--tiny" value={form.id} onChange={(event) => setForm({ ...form, id: event.target.value })} placeholder="Movie ID tự tạo nếu trống" disabled={Boolean(editingId)} />
+                    <input className="admin-field--medium" required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="Tên phim" />
+                    <button className="admin-field--small admin-tmdb-btn" type="button" onClick={handleSyncTmdbMetadata} disabled={isTmdbSyncing}>
+                      {isTmdbSyncing ? "Đang đồng bộ..." : "Đồng bộ TMDB"}
+                    </button>
+                    <div className="admin-poster-picker admin-field--wide">
                       <label>
                         <span>Chọn ảnh poster từ máy</span>
                         <span className="admin-file-control">
@@ -1140,9 +1293,9 @@ export default function AdminPage() {
                         <small>{isPosterUploading ? "Đang lưu ảnh vào assets/images..." : "Chưa chọn poster. Ảnh sẽ được lưu vào Frontend/public/assets/images."}</small>
                       )}
                     </div>
-                    <input required value={form.trailer} onChange={(event) => setForm({ ...form, trailer: event.target.value })} placeholder="Link trailer YouTube" />
-                    <textarea required value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Mô tả phim" rows="4" />
-                    <div className="admin-multi-field">
+                    <input className="admin-field--medium" required value={form.trailer} onChange={(event) => setForm({ ...form, trailer: event.target.value })} placeholder="Link trailer YouTube" />
+                    <textarea className="admin-field--large" required value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Mô tả phim" rows="4" />
+                    <div className="admin-multi-field admin-field--wide">
                       <input required list="genre-suggestions" value={form.genres} onChange={(event) => setForm({ ...form, genres: event.target.value })} placeholder="Thể loại, cách nhau bằng dấu phẩy hoặc xuống dòng" />
                       <div>
                         {movieSuggestions.genres.slice(0, 5).map((item) => (
@@ -1172,16 +1325,16 @@ export default function AdminPage() {
                         <option value="coming-soon">Sắp chiếu</option>
                       </select>
                     </div>
-                    <textarea value={form.cast} onChange={(event) => setForm({ ...form, cast: event.target.value })} placeholder="Diễn viên, mỗi dòng: Tên: Vai" rows="3" />
-                    <div className="admin-multi-field">
+                    <textarea className="admin-field--wide" value={form.cast} onChange={(event) => setForm({ ...form, cast: event.target.value })} placeholder="Diễn viên, mỗi dòng: Tên: Vai" rows="3" />
+                    <div className="admin-multi-field admin-field--wide">
                       <input value={form.gallery} onChange={(event) => setForm({ ...form, gallery: event.target.value })} placeholder="Gallery URL, cách nhau bằng dấu phẩy hoặc xuống dòng" />
                       <button type="button" onClick={() => appendMultiValue("gallery", form.poster)}>Thêm poster vào gallery</button>
                     </div>
-                    <textarea value={form.trailerFacts} onChange={(event) => setForm({ ...form, trailerFacts: event.target.value })} placeholder="Trailer facts, mỗi dòng: Nhãn: Giá trị" rows="3" />
-                    <input value={form.trailerPanelLabel} onChange={(event) => setForm({ ...form, trailerPanelLabel: event.target.value })} placeholder="Nhãn panel trailer" />
-                    <input value={form.trailerPanelTitle} onChange={(event) => setForm({ ...form, trailerPanelTitle: event.target.value })} placeholder="Tiêu đề panel trailer" />
-                    <textarea value={form.trailerPanelDescription} onChange={(event) => setForm({ ...form, trailerPanelDescription: event.target.value })} placeholder="Mô tả panel trailer" rows="3" />
-                    <div className="admin-multi-field">
+                    <textarea className="admin-field--wide" value={form.trailerFacts} onChange={(event) => setForm({ ...form, trailerFacts: event.target.value })} placeholder="Trailer facts, mỗi dòng: Nhãn: Giá trị" rows="3" />
+                    <input className="admin-field--small" value={form.trailerPanelLabel} onChange={(event) => setForm({ ...form, trailerPanelLabel: event.target.value })} placeholder="Nhãn panel trailer" />
+                    <input className="admin-field--medium" value={form.trailerPanelTitle} onChange={(event) => setForm({ ...form, trailerPanelTitle: event.target.value })} placeholder="Tiêu đề panel trailer" />
+                    <textarea className="admin-field--large" value={form.trailerPanelDescription} onChange={(event) => setForm({ ...form, trailerPanelDescription: event.target.value })} placeholder="Mô tả panel trailer" rows="3" />
+                    <div className="admin-multi-field admin-field--wide">
                       <input list="showtime-suggestions" value={form.showtimes} onChange={(event) => setForm({ ...form, showtimes: event.target.value })} placeholder="Suất chiếu nhanh, cách nhau bằng dấu phẩy hoặc xuống dòng" />
                       <div>
                         {movieSuggestions.showtimes.slice(0, 4).map((item) => (
@@ -1196,19 +1349,25 @@ export default function AdminPage() {
                   </>
                 ) : (
                   <>
-                    <input value={form.id} onChange={(event) => setForm({ ...form, id: event.target.value })} placeholder="Auto ID if empty" />
-                    <input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Name" />
-                    <input value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })} placeholder="Status" />
-                    <input value={form.time} onChange={(event) => setForm({ ...form, time: event.target.value })} placeholder="Time" />
-                    <input value={form.value} onChange={(event) => setForm({ ...form, value: event.target.value })} placeholder="Value / note" />
+                    <input value={form.id} onChange={(event) => setForm({ ...form, id: event.target.value })} placeholder="Tự tạo ID nếu để trống" />
+                    <input value={form.name} onChange={(event) => setForm({ ...form, name: event.target.value })} placeholder="Tên" />
+                    <input value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })} placeholder="Trạng thái" />
+                    <input value={form.time} onChange={(event) => setForm({ ...form, time: event.target.value })} placeholder="Thời gian" />
+                    <input value={form.value} onChange={(event) => setForm({ ...form, value: event.target.value })} placeholder="Giá trị / ghi chú" />
                   </>
                 )}
-                <button type="submit">{editingId ? "Save changes" : "Add new"}</button>
+                <div className="admin-form-actions">
+                  <button type="button" className="admin-draft-btn" onClick={handleSaveDraft}>
+                    Lưu nháp
+                  </button>
+                  <button type="submit">{editingId ? "Xác nhận lưu" : "Xác nhận thêm"}</button>
+                </div>
               </form>
               ) : null}
 
+              {!isCrudMode ? (
               <article className="admin-panel admin-detail">
-                <h2>Details</h2>
+                <h2>Chi tiết</h2>
                 {selectedDetail ? (
                   <dl>
                     {Object.entries(selectedDetail).map(([key, value]) => (
@@ -1219,9 +1378,10 @@ export default function AdminPage() {
                     ))}
                   </dl>
                 ) : (
-                  <p>Select a row to view details.</p>
+                  <p>Chọn một dòng để xem chi tiết.</p>
                 )}
               </article>
+              ) : null}
             </aside>
           </div>
         )}

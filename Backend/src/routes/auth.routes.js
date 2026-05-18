@@ -6,6 +6,8 @@ const authRouter = Router();
 
 authRouter.post("/register", authController.register);
 authRouter.post("/login", authController.login);
+authRouter.post("/forgot-password", authController.forgotPassword);
+authRouter.post("/reset-password", authController.resetPassword);
 authRouter.get("/google", authController.redirectGoogle);
 authRouter.get("/google/callback", authController.handleGoogleCallback);
 authRouter.get("/facebook", authController.redirectFacebook);

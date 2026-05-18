@@ -6,5 +6,6 @@ const bookingsRouter = Router();
 
 bookingsRouter.get("/history", requireAuth, bookingsController.getBookingHistory);
 bookingsRouter.post("/", requireAuth, bookingsController.createBooking);
+bookingsRouter.patch("/:bookingId/cancel", requireAuth, bookingsController.cancelBooking);
 
 export default bookingsRouter;

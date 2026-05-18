@@ -11,3 +11,41 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+select {
+  -webkit--moz-appearance: none;
+  -webkit-appearance: none;
+  
+  -moz-appearance: none;
+  appearance: none;
+  color-scheme: dark;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 20px;
+  color: rgba(255, 255, 255, 0.95);
+  background:
+    linear-gradient(45deg, transparent 50%, rgba(255, 255, 255, 0.72) 50%) calc(100% - 22px) calc(50% - 3px) / 7px 7px no-repeat,
+    linear-gradient(135deg, rgba(255, 255, 255, 0.72) 50%, transparent 50%) calc(100% - 16px) calc(50% - 3px) / 7px 7px no-repeat,
+    radial-gradient(ellipse 78% 46% at 50% -12%, rgba(255, 255, 255, 0.26), transparent 58%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.045) 46%, rgba(151, 131, 255, 0.1)),
+    rgba(15, 17, 30, 0.78);
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.2),
+    inset 0 1px 1px rgba(255, 255, 255, 0.22),
+    inset 0 -12px 22px rgba(0, 0, 0, 0.16);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+  backdrop-filter: blur(24px) saturate(170%);
+}
+
+select:focus {
+  outline: none;
+  border-color: rgba(167, 139, 250, 0.72);
+  box-shadow:
+    0 0 0 4px rgba(124, 58, 237, 0.12),
+    0 18px 42px rgba(0, 0, 0, 0.22),
+    inset 0 1px 1px rgba(255, 255, 255, 0.26);
+}
+
+select option {
+  background: #171829;
+  color: rgba(255, 255, 255, 0.95);
+}

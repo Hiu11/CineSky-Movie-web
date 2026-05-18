@@ -26,6 +26,8 @@ export const getFrontendUrl = () =>
 export const getBackendPublicUrl = () =>
   getEnvValue("BACKEND_PUBLIC_URL") ||
   `http://localhost:${getEnvValue("PORT") || "5000"}`;
+      
+export const getTmdbApiKey = () => getEnvValue("TMDB_API_KEY");
 
 export const getGoogleClientId = () => getEnvValue("GOOGLE_CLIENT_ID");
 

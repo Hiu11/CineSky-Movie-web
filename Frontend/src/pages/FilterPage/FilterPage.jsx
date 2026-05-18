@@ -22,27 +22,13 @@ const normalizeText = (value) =>
 
 const FilterSkeletonCard = () => <div className="filter-skeleton-card" aria-hidden="true"></div>;
 
-const FilterDropdown = ({ id, label, value, isOpen, onToggle }) => {
-  return (
-    <div className={`filter-control filter-dropdown ${isOpen ? "is-open" : ""}`}>
-      <button
-        type="button"
-        className="filter-dropdown__trigger"
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-        onClick={() => onToggle(isOpen ? "" : id)}
-      >
-        <span>{value || label}</span>
-      </button>
-    </div>
-  );
-};
+
 
 const FilterPage = ({ searchQuery = "" }) => {
   const [selectedGenre, setSelectedGenre] = useState("");
   const [selectedCountry, setSelectedCountry] = useState("");
   const [selectedRating, setSelectedRating] = useState("");
-  const [openDropdown, setOpenDropdown] = useState("");
+  const [openDropdown, setOpenDropdown] = useState(""); // eslint-disable-line no-unused-vars
   const [movies, setMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
@@ -180,6 +166,7 @@ const FilterPage = ({ searchQuery = "" }) => {
       onChange: setSelectedRating,
     },
   };
+  // eslint-disable-next-line no-unused-vars
   const activeDropdown = dropdownOptions[openDropdown];
 
   return (
@@ -207,84 +194,56 @@ const FilterPage = ({ searchQuery = "" }) => {
             </p>
           </div>
 
-          <div className="filter-row">
-            <FilterDropdown
-              id="genre"
-              label="Thể loại"
-              value={selectedGenre}
-              options={genreOptions}
-              isOpen={openDropdown === "genre"}
-              onToggle={setOpenDropdown}
-              onChange={setSelectedGenre}
-            />
-            <FilterDropdown
-              id="country"
-              label="Quốc gia"
-              value={selectedCountry}
-              options={countryOptions}
-              isOpen={openDropdown === "country"}
-              onToggle={setOpenDropdown}
-              onChange={setSelectedCountry}
-            />
-            <FilterDropdown
-              id="rating"
-              label="Độ tuổi"
-              value={selectedRating}
-              options={ratingOptions}
-              isOpen={openDropdown === "rating"}
-              onToggle={setOpenDropdown}
-              onChange={setSelectedRating}
-            />
-            {activeDropdown ? (
-              <div className={`filter-dropdown__menu filter-dropdown__menu--${openDropdown}`} role="listbox" aria-label={activeDropdown.label}>
-                {activeDropdown.options.map((option) => (
-                  <button
-                    type="button"
-                    key={option}
-                    className={`filter-dropdown__option ${activeDropdown.value === option ? "is-selected" : ""}`}
-                    role="option"
-                    aria-selected={activeDropdown.value === option}
-                    onClick={() => {
-                      activeDropdown.onChange(option);
-                      setOpenDropdown("");
-                    }}
-                  >
-                    {option}
-                  </button>
-                ))}
+          <div className="filter-tags-section">
+            <span className="filter-section-title">Thể loại</span>
+            <div className="filter-tags-scroll">
+              <button
+                type="button"
+                className={`filter-tag-chip ${!selectedGenre ? "is-active" : ""}`}
+                onClick={() => setSelectedGenre("")}
+              >
+                Tất cả
+              </button>
+              {genreOptions.map((genre) => (
+                <button
+                  type="button"
+                  key={genre}
+                  className={`filter-tag-chip ${selectedGenre === genre ? "is-active" : ""}`}
+                  onClick={() => setSelectedGenre(selectedGenre === genre ? "" : genre)}
+                >
+                  {genre}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="filter-dropdowns-grid">
+            <div className="filter-dropdown-container">
+              <label>Quốc gia</label>
+              <div className="filter-control">
+                <select value={selectedCountry} onChange={(event) => setSelectedCountry(event.target.value)} className="custom-select">
+                  <option value="">Tất cả quốc gia</option>
+                  {countryOptions.map((country) => (
+                    <option key={country} value={country}>
+                      {country}
+                    </option>
+                  ))}
+                </select>
               </div>
-            ) : null}
-            <div className="filter-control">
-              <select className="custom-select" value={selectedGenre} onChange={(event) => setSelectedGenre(event.target.value)}>
-                <option value="">Thể loại</option>
-                {genreOptions.map((genre) => (
-                  <option key={genre} value={genre}>
-                    {genre}
-                  </option>
-                ))}
-              </select>
             </div>
 
-            <div className="filter-control">
-              <select className="custom-select" value={selectedCountry} onChange={(event) => setSelectedCountry(event.target.value)}>
-                <option value="">Quốc gia</option>
-                {countryOptions.map((country) => (
-                  <option key={country} value={country}>
-                    {country}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div className="filter-control">
-              <select className="custom-select" value={selectedRating} onChange={(event) => setSelectedRating(event.target.value)}>
-                <option value="">Độ tuổi</option>
-                {ratingOptions.map((rating) => (
-                  <option key={rating} value={rating}>
-                    {rating}
-                  </option>
-                ))}
-              </select>
+            <div className="filter-dropdown-container">
+              <label>Độ tuổi thích hợp</label>
+              <div className="filter-control">
+                <select value={selectedRating} onChange={(event) => setSelectedRating(event.target.value)} className="custom-select">
+                  <option value="">Tất cả độ tuổi</option>
+                  {ratingOptions.map((rating) => (
+                    <option key={rating} value={rating}>
+                      {rating}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 

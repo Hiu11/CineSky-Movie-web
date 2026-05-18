@@ -75,81 +75,775 @@
   margin-top: 8px;
   color: rgba(255, 255, 255, 0.66);
 }
+.history-page {
+  padding: 34px 5% 100px;
+  display: grid;
+  gap: 24px;
+  color: #fff;
+}
+
+.history-hero,
+.history-empty-card {
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(135deg, rgba(245, 247, 255, 0.08), rgba(169, 177, 203, 0.04)),
+    rgba(10, 12, 22, 0.76);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.24);
+}
+
+.history-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+  gap: 20px;
+  padding: 30px;
+}
+
+.history-kicker {
+  display: inline-flex;
+  width: fit-content;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(247, 180, 0, 0.12);
+  color: var(--primary-gold);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.history-hero h1,
+.history-empty-card h1,
+.history-empty-card h2 {
+  margin: 14px 0 0;
+  font-size: clamp(32px, 5vw, 52px);
+  line-height: 1.04;
+  letter-spacing: -0.05em;
+}
+
+.history-hero p,
+.history-empty-card p {
+  margin: 12px 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.8;
+}
+
+.history-stats {
+  display: grid;
+  gap: 14px;
+}
+
+.history-stats div {
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.history-stats strong {
+  display: block;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.history-stats span {
+  display: block;
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.66);
+}
 
 .history-list {
   display: grid;
   gap: 16px;
 }
 
-.history-card {
-  padding: 24px;
-  display: grid;
-  gap: 14px;
-}
-
-.history-card__head {
+/* 
+  ===========================================
+  TICKET DESIGN (CINEMATIC STUB)
+  ===========================================
+*/
+.history-ticket {
+  position: relative;
   display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  align-items: flex-start;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(234, 179, 8, 0.12), transparent 34%),
+    linear-gradient(135deg, rgba(18, 24, 38, 0.96), rgba(11, 16, 32, 0.98));
+  border: 1px solid rgba(234, 179, 8, 0.32);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, border-color 0.3s ease;
+  padding: 0;
+  gap: 0;
 }
 
-.history-card__head strong {
-  display: block;
-  font-size: 22px;
-  line-height: 1.3;
+.history-ticket:hover {
+  transform: translateY(-5px);
+  box-shadow:
+    0 24px 52px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(234, 179, 8, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-color: rgba(234, 179, 8, 0.5);
 }
 
-.history-card__head span {
-  display: block;
-  margin-top: 6px;
-  color: rgba(255, 255, 255, 0.64);
+.history-ticket__main {
+  flex: 1;
+  padding: 24px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
-.history-card__status {
-  display: inline-flex;
+.history-ticket__header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.history-ticket__header strong {
+  font-size: 26px;
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.history-ticket__header span {
+  color: #eab308;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.history-ticket__header small {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.history-ticket__meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 20px 16px;
+  padding-top: 20px;
+  border-top: 1px dashed rgba(234, 179, 8, 0.26);
+}
+
+.history-ticket__meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.history-ticket__meta-item small {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+
+.history-ticket__meta-item span {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.history-ticket__price {
+  color: #22c55e !important;
+  font-weight: 700 !important;
+}
+
+/* The dotted line dividing the ticket */
+.history-ticket__divider {
+  width: 2px;
+  background-image: linear-gradient(to bottom, rgba(234, 179, 8, 0.42) 50%, transparent 50%);
+  background-size: 2px 14px;
+  background-repeat: repeat-y;
+  position: relative;
+}
+
+/* Semi-circle cutouts on top and bottom of the divider */
+.history-ticket__cutout {
+  position: absolute;
+  left: calc(100% - 210px - 14px); /* aligns with divider assuming stub is 210px wide */
+  width: 28px;
+  height: 28px;
+  background: #090b16; /* Color of the page background to simulate hole */
+  border-radius: 50%;
+  z-index: 2;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.4);
+}
+
+.history-ticket__cutout--top {
+  top: -14px;
+}
+
+.history-ticket__cutout--bottom {
+  bottom: -14px;
+  box-shadow: inset 0 -2px 5px rgba(0,0,0,0.4);
+}
+
+.history-ticket__stub {
+  width: 210px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  min-height: 36px;
-  padding: 0 14px;
+  gap: 16px;
+  background:
+    linear-gradient(180deg, rgba(234, 179, 8, 0.07), rgba(255, 255, 255, 0.025)),
+    rgba(9, 13, 26, 0.72);
+}
+
+/* Fake barcode */
+.history-ticket__barcode {
+  width: 100%;
+  height: 48px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(226,232,240,0.76),
+    rgba(226,232,240,0.76) 2px,
+    transparent 2px,
+    transparent 4px,
+    rgba(226,232,240,0.76) 4px,
+    rgba(226,232,240,0.76) 5px,
+    transparent 5px,
+    transparent 8px,
+    rgba(226,232,240,0.76) 8px,
+    rgba(226,232,240,0.76) 11px,
+    transparent 11px,
+    transparent 12px
+  );
+  opacity: 0.6;
+  margin-bottom: 8px;
+}
+
+.history-ticket__status {
+  padding: 8px 18px;
   border-radius: 999px;
-  font-size: 12px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.history-card__status--active {
-  background: rgba(74, 222, 128, 0.16);
-  color: #bbf7d0;
-  border: 1px solid rgba(134, 239, 172, 0.24);
-}
-
-.history-card__status--cancelled {
-  background: rgba(248, 113, 113, 0.16);
-  color: #fecaca;
-  border: 1px solid rgba(252, 165, 165, 0.22);
-}
-
-.history-card__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.history-card__meta span {
-  padding: 8px 12px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  color: rgba(255, 255, 255, 0.82);
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  width: 100%;
+  text-align: center;
+}
+
+.history-ticket__status--active {
+  background: rgba(34, 197, 94, 0.15);
+  color: #bbf7d0;
+  border: 1px solid rgba(34, 197, 94, 0.34);
+  box-shadow: 0 0 18px rgba(34, 197, 94, 0.08);
+}
+
+.history-ticket__status--cancelled {
+  background: rgba(248, 113, 113, 0.12);
+  color: #fca5a5;
+  border: 1px solid rgba(248, 113, 113, 0.25);
+}
+
+.history-ticket__actions {
+  width: 100%;
+  display: flex;
+}
+
+.history-cancel-button {
+  width: 100%;
+  min-height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.34);
+  background: rgba(127, 29, 29, 0.34);
+  color: #fecaca;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.history-cancel-button:hover:not(:disabled) {
+  background: rgba(127, 29, 29, 0.5);
+  transform: translateY(-2px);
+}
+
+.history-cancel-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .history-empty-card {
   padding: 30px;
+}
+
+.history-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.history-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(247, 180, 0, 0.98), rgba(242, 193, 78, 0.86));
+  color: #111;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.history-loading {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* Make it responsive */
+@media (max-width: 900px) {
+  .history-hero {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .history-page {
+    padding: 24px 16px 80px;
+  }
+
+  .history-hero,
+  .history-empty-card {
+    border-radius: 24px;
+    padding: 22px 20px;
+  }
+
+  .history-ticket {
+    flex-direction: column;
+  }
+  
+  .history-ticket__main {
+    padding: 20px;
+  }
+  
+  .history-ticket__divider {
+    width: 100%;
+    height: 2px;
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.2) 50%, transparent 50%);
+    background-size: 14px 2px;
+    background-repeat: repeat-x;
+  }
+  
+  .history-ticket__cutout {
+    display: none;
+  }
+  
+  .history-ticket__stub {
+    width: 100%;
+    padding: 20px;
+  }
+}
+
+/* Ticket color trial: midnight blue + champagne gold */
+.history-ticket {
+  background:
+    radial-gradient(circle at 8% 0%, rgba(234, 179, 8, 0.12), transparent 34%),
+    linear-gradient(135deg, rgba(18, 24, 38, 0.96), rgba(11, 16, 32, 0.98));
+  border-color: rgba(234, 179, 8, 0.32);
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.history-ticket:hover {
+  border-color: rgba(234, 179, 8, 0.5);
+  box-shadow:
+    0 24px 52px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(234, 179, 8, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.history-ticket__header span {
+  color: #eab308;
+}
+
+.history-ticket__meta {
+  border-top-color: rgba(234, 179, 8, 0.26);
+}
+
+.history-ticket__price {
+  color: #22c55e !important;
+}
+
+.history-ticket__divider {
+  background-image: linear-gradient(to bottom, rgba(234, 179, 8, 0.42) 50%, transparent 50%);
+}
+
+.history-ticket__cutout {
+  background: #090b16;
+}
+
+.history-ticket__stub {
+  background:
+    linear-gradient(180deg, rgba(234, 179, 8, 0.07), rgba(255, 255, 255, 0.025)),
+    rgba(9, 13, 26, 0.72);
+}
+
+.history-ticket__barcode {
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(226, 232, 240, 0.76),
+    rgba(226, 232, 240, 0.76) 2px,
+    transparent 2px,
+    transparent 4px,
+    rgba(226, 232, 240, 0.76) 4px,
+    rgba(226, 232, 240, 0.76) 5px,
+    transparent 5px,
+    transparent 8px,
+    rgba(226, 232, 240, 0.76) 8px,
+    rgba(226, 232, 240, 0.76) 11px,
+    transparent 11px,
+    transparent 12px
+  );
+}
+
+.history-ticket__status--active {
+  background: rgba(34, 197, 94, 0.15);
+  color: #bbf7d0;
+  border-color: rgba(34, 197, 94, 0.34);
+  box-shadow: 0 0 18px rgba(34, 197, 94, 0.08);
+}
+
+.history-cancel-button {
+  border-color: rgba(239, 68, 68, 0.34);
+  background: rgba(127, 29, 29, 0.34);
+  color: #fecaca;
+}
+
+.history-cancel-button:hover:not(:disabled) {
+  background: rgba(127, 29, 29, 0.5);
+}
+
+@media (max-width: 760px) {
+  .history-ticket__divider {
+    background-image: linear-gradient(to right, rgba(234, 179, 8, 0.42) 50%, transparent 50%);
+  }
+}
+.history-hero,
+.history-empty-card {
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background:
+    linear-gradient(135deg, rgba(245, 247, 255, 0.08), rgba(169, 177, 203, 0.04)),
+    rgba(10, 12, 22, 0.76);
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.24);
+}
+
+.history-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(280px, 0.75fr);
+  gap: 20px;
+  padding: 30px;
+}
+
+.history-kicker {
+  display: inline-flex;
+  width: fit-content;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(247, 180, 0, 0.12);
+  color: var(--primary-gold);
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.history-hero h1,
+.history-empty-card h1,
+.history-empty-card h2 {
+  margin: 14px 0 0;
+  font-size: clamp(32px, 5vw, 52px);
+  line-height: 1.04;
+  letter-spacing: -0.05em;
+}
+
+.history-hero p,
+.history-empty-card p {
+  margin: 12px 0 0;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.8;
+}
+
+.history-stats {
+  display: grid;
+  gap: 14px;
+}
+
+.history-stats div {
+  padding: 18px 20px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.history-stats strong {
+  display: block;
+  font-size: 28px;
+  line-height: 1;
+}
+
+.history-stats span {
+  display: block;
+  margin-top: 8px;
+  color: rgba(255, 255, 255, 0.66);
+}
+
+.history-list {
+  display: grid;
+  gap: 16px;
+}
+
+/* 
+  ===========================================
+  TICKET DESIGN (CINEMATIC STUB)
+  ===========================================
+*/
+.history-ticket {
+  position: relative;
+  display: flex;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(234, 179, 8, 0.12), transparent 34%),
+    linear-gradient(135deg, rgba(18, 24, 38, 0.96), rgba(11, 16, 32, 0.98));
+  border: 1px solid rgba(234, 179, 8, 0.32);
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow:
+    0 18px 42px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  -webkit-backdrop-filter: blur(16px);
+  backdrop-filter: blur(16px);
+  transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.3s ease, border-color 0.3s ease;
+  padding: 0;
+  gap: 0;
+}
+
+.history-ticket:hover {
+  transform: translateY(-5px);
+  box-shadow:
+    0 24px 52px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(234, 179, 8, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border-color: rgba(234, 179, 8, 0.5);
+}
+
+.history-ticket__main {
+  flex: 1;
+  padding: 24px 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.history-ticket__header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.history-ticket__header strong {
+  font-size: 26px;
+  color: #fff;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.history-ticket__header span {
+  color: #eab308;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.history-ticket__header small {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  margin-top: 2px;
+}
+
+.history-ticket__meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 20px 16px;
+  padding-top: 20px;
+  border-top: 1px dashed rgba(234, 179, 8, 0.26);
+}
+
+.history-ticket__meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.history-ticket__meta-item small {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 600;
+}
+
+.history-ticket__meta-item span {
+  color: #fff;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+.history-ticket__price {
+  color: #22c55e !important;
+  font-weight: 700 !important;
+}
+
+/* The dotted line dividing the ticket */
+.history-ticket__divider {
+  width: 2px;
+  background-image: linear-gradient(to bottom, rgba(234, 179, 8, 0.42) 50%, transparent 50%);
+  background-size: 2px 14px;
+  background-repeat: repeat-y;
+  position: relative;
+}
+
+/* Semi-circle cutouts on top and bottom of the divider */
+.history-ticket__cutout {
+  position: absolute;
+  left: calc(100% - 210px - 14px); /* aligns with divider assuming stub is 210px wide */
+  width: 28px;
+  height: 28px;
+  background: #090b16; /* Color of the page background to simulate hole */
+  border-radius: 50%;
+  z-index: 2;
+  box-shadow: inset 0 2px 5px rgba(0,0,0,0.4);
+}
+
+.history-ticket__cutout--top {
+  top: -14px;
+}
+
+.history-ticket__cutout--bottom {
+  bottom: -14px;
+  box-shadow: inset 0 -2px 5px rgba(0,0,0,0.4);
+}
+
+.history-ticket__stub {
+  width: 210px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  background:
+    linear-gradient(180deg, rgba(234, 179, 8, 0.07), rgba(255, 255, 255, 0.025)),
+    rgba(9, 13, 26, 0.72);
+}
+
+/* Fake barcode */
+.history-ticket__barcode {
+  width: 100%;
+  height: 48px;
+  background: repeating-linear-gradient(
+    90deg,
+    rgba(255,255,255,0.7),
+    rgba(255,255,255,0.7) 2px,
+    transparent 2px,
+    transparent 4px,
+    rgba(255,255,255,0.7) 4px,
+    rgba(255,255,255,0.7) 5px,
+    transparent 5px,
+    transparent 8px,
+    rgba(255,255,255,0.7) 8px,
+    rgba(255,255,255,0.7) 11px,
+    transparent 11px,
+    transparent 12px
+  );
+  opacity: 0.6;
+  margin-bottom: 8px;
+}
+
+.history-ticket__status {
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  width: 100%;
+  text-align: center;
+}
+
+.history-ticket__status--active {
+  background: rgba(34, 197, 94, 0.15);
+  color: #bbf7d0;
+  border: 1px solid rgba(34, 197, 94, 0.34);
+  box-shadow: 0 0 18px rgba(34, 197, 94, 0.08);
+}
+
+.history-ticket__status--cancelled {
+  background: rgba(248, 113, 113, 0.12);
+  color: #fca5a5;
+  border: 1px solid rgba(248, 113, 113, 0.25);
+}
+
+.history-ticket__actions {
+  width: 100%;
+  display: flex;
+}
+
+.history-cancel-button {
+  width: 100%;
+  min-height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(239, 68, 68, 0.34);
+  background: rgba(127, 29, 29, 0.34);
+  color: #fecaca;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.history-cancel-button:hover:not(:disabled) {
+  background: rgba(127, 29, 29, 0.5);
+  transform: translateY(-2px);
+}
+
+.history-cancel-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+.history-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.history-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  padding: 0 22px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(247, 180, 0, 0.98), rgba(242, 193, 78, 0.86));
+  color: #111;
+  font-weight: 800;
+  text-decoration: none;
 }
 
 .history-actions {
@@ -188,18 +882,33 @@
   }
 
   .history-hero,
-  .history-card,
   .history-empty-card {
     border-radius: 24px;
-  }
-
-  .history-hero,
-  .history-card,
-  .history-empty-card {
     padding: 22px 20px;
   }
 
-  .history-card__head {
+  .history-ticket {
     flex-direction: column;
+  }
+  
+  .history-ticket__main {
+    padding: 20px;
+  }
+  
+  .history-ticket__divider {
+    width: 100%;
+    height: 2px;
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.2) 50%, transparent 50%);
+    background-size: 14px 2px;
+    background-repeat: repeat-x;
+  }
+  
+  .history-ticket__cutout {
+    display: none;
+  }
+  
+  .history-ticket__stub {
+    width: 100%;
+    padding: 20px;
   }
 }

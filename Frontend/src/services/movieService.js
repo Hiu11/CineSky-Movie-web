@@ -15,7 +15,13 @@ const buildQueryString = (params = {}) => {
 };
 
 const parseResponse = async (response) => {
-  const payload = await response.json();
+  let payload = null;
+
+  try {
+    payload = await response.json();
+  } catch {
+    throw new Error(`Request failed (${response.status})`);
+  }
 
   if (!response.ok || !payload?.success) {
     if (response.status === 401 || payload?.message === "Invalid or expired token") {
@@ -99,6 +105,74 @@ export const createBooking = async (payload) => {
   return parseResponse(response);
 };
 
+export const cancelBooking = async (bookingId, payload = {}) => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/bookings/${bookingId}/cancel`, {
+    method: "PATCH",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    body: JSON.stringify(payload),
+  });
+
+  return parseResponse(response);
+};
+
+export const getMovieReviews = async (movieId, params = {}) => {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/reviews/${movieId}${buildQueryString(params)}`
+  );
+  return parseResponse(response);
+};
+
+export const createMovieReview = async (movieId, payload) => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/reviews/${movieId}`, {
+    method: "POST",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    body: JSON.stringify(payload),
+  });
+
+  return parseResponse(response);
+};
+
+export const deleteMyMovieReview = async (movieId) => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/reviews/${movieId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  return parseResponse(response);
+};
+
+export const getMyFavorites = async (params = {}) => {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/favorites${buildQueryString(params)}`,
+    {
+      headers: getAuthHeaders(),
+    }
+  );
+  return parseResponse(response);
+};
+
+export const addMyFavorite = async (movieId) => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/favorites/${movieId}`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+  });
+
+  return parseResponse(response);
+};
+
+export const removeMyFavorite = async (movieId) => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/favorites/${movieId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  });
+
+  return parseResponse(response);
+};
+
 const requestAdmin = async (path, params = {}) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/admin/${path}${buildQueryString(params)}`, {
     headers: getAuthHeaders(),
@@ -116,6 +190,8 @@ export const getAdminUsers = async (params = {}) => requestAdmin("users", params
 export const getAdminBookings = async (params = {}) => requestAdmin("bookings", params);
 
 export const getAdminDeletedMovies = async () => requestAdmin("movies/trash");
+
+export const searchAdminTmdbMovie = async (query) => requestAdmin("tmdb/search", { query });
 
 export const updateAdminUserRole = async (userId, role) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/admin/users/${userId}/role`, {

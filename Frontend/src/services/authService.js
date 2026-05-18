@@ -4,7 +4,13 @@ const USER_SESSION_KEY = "user";
 const AUTH_SESSION_KEY = "authSession";
 
 const parseResponse = async (response) => {
-  const payload = await response.json();
+  let payload = null;
+
+  try {
+    payload = await response.json();
+  } catch {
+    throw new Error(`Request failed (${response.status})`);
+  }
 
   if (!response.ok || !payload?.success) {
     throw new Error(payload?.message || "Request failed");
@@ -137,6 +143,12 @@ export const registerUser = async (payload) => {
   const responsePayload = await requestAuth("register", payload);
   return normalizeAuthSession(responsePayload);
 };
+
+export const requestPasswordReset = async (payload) =>
+  requestAuth("forgot-password", payload);
+
+export const resetPassword = async (payload) =>
+  requestAuth("reset-password", payload);
 
 export const updateStoredUser = (user) => {
   if (typeof window === "undefined") {

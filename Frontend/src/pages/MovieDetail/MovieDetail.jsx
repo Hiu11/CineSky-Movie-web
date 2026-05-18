@@ -1,7 +1,29 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
-import { getMovieById, getMovies } from "../../services/movieService";
+import {
+  addMyFavorite,
+  createMovieReview,
+  deleteMyMovieReview,
+  getMovieById,
+  getMovieReviews,
+  getMovies,
+  getMyFavorites,
+  removeMyFavorite,
+} from "../../services/movieService";
 import "./MovieDetail.css";
+
+const getSessionUser = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const rawUser = sessionStorage.getItem("user");
+    return rawUser ? JSON.parse(rawUser) : null;
+  } catch {
+    return null;
+  }
+};
 
 const DetailSkeleton = () => (
   <main className="md-page">
@@ -37,6 +59,14 @@ export default function MovieDetail() {
   const [isDetailIntroDone, setIsDetailIntroDone] = useState(false);
   const [hasTrailerIntroStarted, setHasTrailerIntroStarted] = useState(false);
   const [isTrailerIntroDone, setIsTrailerIntroDone] = useState(false);
+  const [sessionUser] = useState(() => getSessionUser());
+  const [reviews, setReviews] = useState([]);
+  const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavoriteSaving, setIsFavoriteSaving] = useState(false);
+  const [reviewForm, setReviewForm] = useState({ rating: "8", content: "" });
+  const [reviewStatus, setReviewStatus] = useState({ type: "", message: "" });
+  const [isReviewSaving, setIsReviewSaving] = useState(false);
+  const [isReviewRatingOpen, setIsReviewRatingOpen] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -99,6 +129,56 @@ export default function MovieDetail() {
 
     trailerSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, [location.hash, movie?.id]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadEngagement = async () => {
+      if (!id) {
+        return;
+      }
+
+      try {
+        const nextReviews = await getMovieReviews(id, { limit: 10 });
+
+        if (isMounted) {
+          setReviews(Array.isArray(nextReviews) ? nextReviews : []);
+        }
+      } catch {
+        if (isMounted) {
+          setReviews([]);
+        }
+      }
+
+      if (!sessionUser?.id && !sessionUser?.email) {
+        if (isMounted) {
+          setIsFavorite(false);
+        }
+        return;
+      }
+
+      try {
+        const favorites = await getMyFavorites({ limit: 50 });
+
+        if (isMounted) {
+          setIsFavorite(
+            Array.isArray(favorites) &&
+              favorites.some((favorite) => String(favorite.movieId) === String(id))
+          );
+        }
+      } catch {
+        if (isMounted) {
+          setIsFavorite(false);
+        }
+      }
+    };
+
+    loadEngagement();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [id, sessionUser]);
 
   useEffect(() => {
     if (location.hash === "#trailer") {
@@ -251,6 +331,86 @@ export default function MovieDetail() {
     navigate(`/movie/${item.id}?tab=${item.status === "coming-soon" ? "soon" : "now"}`);
   };
 
+  const handleToggleFavorite = async () => {
+    if (!sessionUser?.id && !sessionUser?.email) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      setIsFavoriteSaving(true);
+
+      if (isFavorite) {
+        await removeMyFavorite(movie.id);
+        setIsFavorite(false);
+        setReviewStatus({ type: "success", message: "Đã bỏ khỏi danh sách yêu thích." });
+      } else {
+        await addMyFavorite(movie.id);
+        setIsFavorite(true);
+        setReviewStatus({
+          type: "success",
+          message: "Đã thêm vào yêu thích. Xem lại tại Hồ sơ > Phim yêu thích.",
+        });
+      }
+    } catch (error) {
+      setReviewStatus({
+        type: "error",
+        message: error.message || "Không thể cập nhật phim yêu thích.",
+      });
+    } finally {
+      setIsFavoriteSaving(false);
+    }
+  };
+
+  const handleReviewSubmit = async (event) => {
+    event.preventDefault();
+
+    if (!sessionUser?.id && !sessionUser?.email) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      setIsReviewSaving(true);
+      setReviewStatus({ type: "", message: "" });
+
+      const savedReview = await createMovieReview(movie.id, {
+        rating: Number(reviewForm.rating),
+        content: reviewForm.content,
+      });
+
+      setReviews((currentReviews) => [
+        savedReview,
+        ...currentReviews.filter((review) => String(review.user?.id) !== String(sessionUser.id)),
+      ]);
+      setReviewForm((current) => ({ ...current, content: "" }));
+      setReviewStatus({ type: "success", message: "Đã lưu đánh giá của bạn." });
+    } catch (error) {
+      setReviewStatus({ type: "error", message: error.message || "Không thể lưu đánh giá." });
+    } finally {
+      setIsReviewSaving(false);
+    }
+  };
+
+  const handleDeleteReview = async () => {
+    if (!sessionUser?.id && !sessionUser?.email) {
+      return;
+    }
+
+    try {
+      setIsReviewSaving(true);
+      await deleteMyMovieReview(movie.id);
+      setReviews((currentReviews) =>
+        currentReviews.filter((review) => String(review.user?.id) !== String(sessionUser.id))
+      );
+      setReviewStatus({ type: "success", message: "Đã xóa đánh giá của bạn." });
+    } catch (error) {
+      setReviewStatus({ type: "error", message: error.message || "Không thể xóa đánh giá." });
+    } finally {
+      setIsReviewSaving(false);
+    }
+  };
+
   if (isLoading) {
     return <DetailSkeleton />;
   }
@@ -328,6 +488,14 @@ export default function MovieDetail() {
             </button>
             <button type="button" className="md-secondary-btn" onClick={handleScrollToTrailer}>
               Xem trailer
+            </button>
+            <button
+              type="button"
+              className={"md-secondary-btn" + (isFavorite ? " is-favorite" : "")}
+              onClick={handleToggleFavorite}
+              disabled={isFavoriteSaving}
+            >
+              {isFavorite ? "Đã yêu thích" : "Yêu thích"}
             </button>
           </div>
 
@@ -457,6 +625,110 @@ export default function MovieDetail() {
           </div>
         </section>
       ) : null}
+
+      <section className="md-extra-section md-review-section">
+        <div className="md-section-header">
+          <div>
+            <span className="md-kicker">Đánh giá</span>
+            <h2>Cảm nhận từ người xem</h2>
+          </div>
+        </div>
+
+        <div className="md-review-layout">
+          <form className="md-review-form" onSubmit={handleReviewSubmit} noValidate>
+            <label>
+              <span>Điểm</span>
+              <div className={`filter-control filter-dropdown md-rating-dropdown ${isReviewRatingOpen ? "is-open" : ""}`}>
+                <button
+                  type="button"
+                  className="filter-dropdown__trigger"
+                  onPointerDown={(event) => {
+                    event.preventDefault();
+                    setIsReviewRatingOpen((current) => !current);
+                  }}
+                  aria-expanded={isReviewRatingOpen}
+                >
+                  {reviewForm.rating}/10
+                </button>
+                <div
+                  className="filter-dropdown__menu md-rating-dropdown__menu"
+                  role="listbox"
+                  aria-label="Chọn điểm"
+                  style={
+                    isReviewRatingOpen
+                      ? { visibility: "visible", opacity: 1, pointerEvents: "auto", transform: "translateY(0) scale(1)" }
+                      : undefined
+                  }
+                >
+                  {Array.from({ length: 10 }, (_, index) => String(index + 1)).map((rating) => (
+                    <button
+                      key={rating}
+                      type="button"
+                      className={`filter-dropdown__option ${reviewForm.rating === rating ? "is-selected" : ""}`}
+                      role="option"
+                      aria-selected={reviewForm.rating === rating}
+                      onClick={() => {
+                        setReviewForm((current) => ({ ...current, rating }));
+                        setIsReviewRatingOpen(false);
+                      }}
+                    >
+                      {rating}/10
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </label>
+            <label>
+              <span>Nội dung</span>
+              <textarea
+                value={reviewForm.content}
+                onChange={(event) =>
+                  setReviewForm((current) => ({ ...current, content: event.target.value }))
+                }
+                placeholder="Chia sẻ ngắn gọn cảm nhận của bạn về phim"
+                rows="4"
+                required
+              />
+            </label>
+            {reviewStatus.message ? (
+              <p className={"md-review-status md-review-status--" + reviewStatus.type}>
+                {reviewStatus.message}
+              </p>
+            ) : null}
+            <div className="md-review-actions">
+              <button type="submit" className="md-primary-btn" disabled={isReviewSaving}>
+                {isReviewSaving ? "Đang lưu..." : sessionUser ? "Gửi đánh giá" : "Đăng nhập để đánh giá"}
+              </button>
+              {reviews.some((review) => String(review.user?.id) === String(sessionUser?.id)) ? (
+                <button
+                  type="button"
+                  className="md-secondary-btn"
+                  onClick={handleDeleteReview}
+                  disabled={isReviewSaving}
+                >
+                  Xóa đánh giá của tôi
+                </button>
+              ) : null}
+            </div>
+          </form>
+
+          <div className="md-review-list">
+            {reviews.length > 0 ? (
+              reviews.map((review) => (
+                <article key={review.id} className="md-review-card">
+                  <div>
+                    <strong>{review.user?.fullName || "Người dùng CineSky"}</strong>
+                    <span>{review.rating}/10</span>
+                  </div>
+                  <p>{review.content}</p>
+                </article>
+              ))
+            ) : (
+              <p className="md-review-empty">Chưa có đánh giá nào cho phim này.</p>
+            )}
+          </div>
+        </div>
+      </section>
 
       {relatedMovies.length > 0 ? (
         <section className="md-extra-section">

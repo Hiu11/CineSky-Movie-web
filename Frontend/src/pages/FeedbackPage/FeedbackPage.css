@@ -44,8 +44,8 @@
     0 0 24px rgba(247, 180, 0, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.34),
     inset 0 -1px 0 rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(38px) saturate(190%);
   -webkit-backdrop-filter: blur(38px) saturate(190%);
+  backdrop-filter: blur(38px) saturate(190%);
   overflow: hidden;
   transform-origin: top center;
   will-change: transform, filter, max-height;

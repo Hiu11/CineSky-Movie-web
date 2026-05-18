@@ -19,6 +19,8 @@ const serializeBooking = (booking, showtime, movie) => ({
   seatNumbers: booking.seatNumbers,
   totalPrice: booking.totalPrice,
   status: booking.status,
+  cancelledAt: booking.cancelledAt,
+  cancelReason: booking.cancelReason || "",
   customerName: booking.customerName,
   customerEmail: booking.customerEmail,
   createdAt: booking.createdAt,
@@ -214,6 +216,82 @@ const bookingsController = {
         success: true,
         message: "Create booking successfully",
         data: serializeBooking(booking, reservedShowtime, movie),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  cancelBooking: async (req, res) => {
+    try {
+      const { bookingId } = req.params || {};
+      const { reason = "" } = req.body || {};
+      const authUserId = String(req.authUser?._id || "");
+      const authUserEmail = String(req.authUser?.email || "").trim().toLowerCase();
+
+      if (!mongoose.Types.ObjectId.isValid(bookingId)) {
+        return res.status(400).send({
+          success: false,
+          message: "Invalid booking id",
+          data: null,
+        });
+      }
+
+      const booking = await BookingModel.findById(bookingId);
+
+      if (!booking) {
+        return res.status(404).send({
+          success: false,
+          message: "Booking not found",
+          data: null,
+        });
+      }
+
+      const bookingEmail = String(booking.customerEmail || "").trim().toLowerCase();
+      const isOwnerById = booking.userId && String(booking.userId) === authUserId;
+      const isOwnerByEmail = authUserEmail && bookingEmail === authUserEmail;
+
+      if (!isOwnerById && !isOwnerByEmail) {
+        return res.status(403).send({
+          success: false,
+          message: "You can only cancel your own booking",
+          data: null,
+        });
+      }
+
+      const [movie, showtime] = await Promise.all([
+        MovieModel.findOne({ legacyId: booking.movieLegacyId }),
+        ShowtimeModel.findById(booking.showtimeId),
+      ]);
+
+      if (booking.status === "cancelled") {
+        return res.status(200).send({
+          success: true,
+          message: "Booking is already cancelled",
+          data: serializeBooking(booking, showtime, movie),
+        });
+      }
+
+      await ShowtimeModel.updateOne(
+        { _id: booking.showtimeId },
+        { $pull: { bookedSeats: { $in: booking.seatNumbers } } }
+      );
+
+      booking.status = "cancelled";
+      booking.cancelledAt = new Date();
+      booking.cancelReason = String(reason).trim();
+      await booking.save();
+
+      const updatedShowtime = await ShowtimeModel.findById(booking.showtimeId);
+
+      return res.status(200).send({
+        success: true,
+        message: "Cancel booking successfully",
+        data: serializeBooking(booking, updatedShowtime, movie),
       });
     } catch (error) {
       return res.status(500).send({

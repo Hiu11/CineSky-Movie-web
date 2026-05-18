@@ -287,16 +287,6 @@ const AboutPage = () => {
     return () => observer.disconnect();
   }, []);
 
-  useEffect(() => {
-    if (document.getElementById("lottie-player-script")) return;
-
-    const script = document.createElement("script");
-    script.id = "lottie-player-script";
-    script.src = "https://unpkg.com/@lottiefiles/lottie-player@2.0.12/dist/lottie-player.js";
-    script.async = true;
-    document.body.appendChild(script);
-  }, []);
-
   const closeNotePopup = () => {
     const noteRect = noteRef.current?.getBoundingClientRect();
     const cardRect = noteCardRef.current?.getBoundingClientRect();

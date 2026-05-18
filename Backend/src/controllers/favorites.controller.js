@@ -6,6 +6,7 @@ const formatMovieId = (legacyId) => String(legacyId).padStart(3, "0");
 const serializeFavorite = (favorite, movie) => ({
   id: favorite._id,
   movieId: formatMovieId(favorite.movieLegacyId),
+  movieTitle: movie?.title || "",
   createdAt: favorite.createdAt,
   movie: movie
     ? {

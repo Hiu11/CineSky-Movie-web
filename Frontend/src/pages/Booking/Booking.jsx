@@ -526,6 +526,7 @@ export default function Booking({ showToast }) {
     : 0;
   const serviceFee = selectedSeats.length > 0 ? selectedSeats.length * 3000 : 0;
   const finalTotal = ticketSubtotal + serviceFee;
+  const seatBaseSize = isDesktopViewport ? 30 : 11;
   const isPaymentFormReady = Boolean(
     paymentForm.reference.trim() &&
       paymentForm.ownerName.trim() &&
@@ -693,7 +694,7 @@ export default function Booking({ showToast }) {
         ]
           .filter(Boolean)
           .join(" • "),
-        totalPrice: finalTotal,
+        totalPrice: booking.totalPrice ?? finalTotal,
       };
 
       sessionStorage.setItem("lastBookingReceipt", JSON.stringify(receipt));
@@ -704,13 +705,13 @@ export default function Booking({ showToast }) {
           "Đặt vé thành công cho " +
           booking.seatNumbers.join(", ") +
           ". Tổng tiền: " +
-          formatCurrency(finalTotal) +
+          formatCurrency(booking.totalPrice ?? finalTotal) +
           " VND.",
       });
       showToast?.({
         type: "success",
         title: "Booking completed",
-        message: `${movie.title} • ${booking.seatNumbers.join(", ")} • ${formatCurrency(finalTotal)} VND`,
+        message: `${movie.title} • ${booking.seatNumbers.join(", ")} • ${formatCurrency(booking.totalPrice ?? finalTotal)} VND`,
       });
       navigate("/booking/success", {
         replace: true,
@@ -936,17 +937,17 @@ export default function Booking({ showToast }) {
               </div>
               <div className="booking-page__zoom-controls">
                 <span>Thu phóng ghế</span>
-                <button type="button" onClick={() => setSeatScale((current) => Math.max(0.9, current - 0.05))}>
+                <button type="button" onClick={() => setSeatScale((current) => Math.max(0.65, current - 0.05))}>
                   -
                 </button>
                 <strong>{Math.round(seatScale * 100)}%</strong>
-                <button type="button" onClick={() => setSeatScale((current) => Math.min(1.2, current + 0.05))}>
+                <button type="button" onClick={() => setSeatScale((current) => Math.min(1.5, current + 0.05))}>
                   +
                 </button>
               </div>
             </div>
 
-            <div className="booking-page__screening" style={{ "--booking-seat-size": `${Math.round(30 * seatScale)}px` }}>
+            <div className="booking-page__screening" style={{ "--booking-seat-size": `${Math.round(seatBaseSize * seatScale)}px` }}>
               <div className="booking-page__screen-shell">
                 <span className="booking-page__screen-caption">screen</span>
                 <div className="booking-page__screen"></div>

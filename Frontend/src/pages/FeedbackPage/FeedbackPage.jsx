@@ -17,14 +17,6 @@ const feedbackFilmPosters = [
   "/assets/images/running-man.jpg",
 ];
 
-const ratingLabelMap = {
-  1: "Rất chưa hài lòng",
-  2: "Chưa hài lòng",
-  3: "Ổn",
-  4: "Hài lòng",
-  5: "Rất hài lòng",
-};
-
 const getSessionUser = () => {
   if (typeof window === "undefined") {
     return null;
@@ -124,14 +116,6 @@ const FeedbackPage = ({ showToast }) => {
       isMounted = false;
     };
   }, []);
-
-  const ratingHint = useMemo(() => {
-    if (selectedRating > 0) {
-      return `${selectedRating}/5 sao - ${ratingLabelMap[selectedRating]}`;
-    }
-
-    return "Chọn từ 1 đến 5 sao để đánh giá trải nghiệm của bạn";
-  }, [selectedRating]);
 
   const handleFieldChange = (field) => (event) => {
     if (status.message) {

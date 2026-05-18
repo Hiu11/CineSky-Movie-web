@@ -380,9 +380,13 @@ const HomeSoonShowcaseCard = ({ movie, index }) => (
       }}
     />
     <div className="home-soon-card__body">
-      <span>{movie.release}</span>
+      <span className="home-soon-card__date">{movie.release}</span>
       <h3>{movie.title}</h3>
       <p>{movie.genre}</p>
+      <div className="home-soon-card__meta">
+        <span>{movie.rating}</span>
+        <span>{movie.duration} phút</span>
+      </div>
     </div>
   </Link>
 );

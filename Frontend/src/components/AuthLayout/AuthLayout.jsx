@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { getMovies } from "../../services/movieService";
 import "./AuthLayout.css";
 
@@ -169,8 +169,10 @@ export default function AuthLayout({
   footerContent,
 }) {
   const navigate = useNavigate();
+  const location = useLocation();
   const [posterTiles, setPosterTiles] = useState([]);
   const [posterOffset, setPosterOffset] = useState(0);
+  const [isMobilePanelOpen, setIsMobilePanelOpen] = useState(Boolean(location.state?.authPanelOpen));
   const tabs =
     mode === "forgot"
       ? [
@@ -182,6 +184,10 @@ export default function AuthLayout({
           { to: "/login", label: "Login", active: mode === "login" },
           { to: "/register", label: "Register", active: mode === "register" },
         ];
+
+  useEffect(() => {
+    setIsMobilePanelOpen(Boolean(location.state?.authPanelOpen));
+  }, [location.state?.authPanelOpen, mode]);
 
   useEffect(() => {
     let isMounted = true;
@@ -272,7 +278,16 @@ export default function AuthLayout({
       <div className="auth-page__overlay" aria-hidden="true" />
 
       <div className="auth-page__content">
-        <section className="auth-page__hero">
+        <section className={`auth-page__hero${isMobilePanelOpen ? " auth-page__hero--panel-open" : ""}`}>
+          <button
+            type="button"
+            className="auth-page__mobile-close"
+            onClick={() => navigate("/")}
+            aria-label="Close and go back home"
+          >
+            <FieldGlyph name="close" />
+          </button>
+
           <Link to="/" className="auth-page__brand" aria-label="Back to home">
             <span className="auth-page__brand-mark">Cine</span>
             <span className="auth-page__brand-name">Sky</span>
@@ -297,13 +312,55 @@ export default function AuthLayout({
               </div>
             ))}
           </div>
+
+          {mode === "forgot" ? null : (
+            <div className="auth-page__mobile-actions" aria-label="Authentication actions">
+              <button
+                type="button"
+                className={mode === "login" ? "auth-page__mobile-action active" : "auth-page__mobile-action"}
+                onClick={() => {
+                  if (mode !== "login") {
+                    navigate("/login", { state: { authPanelOpen: true } });
+                    return;
+                  }
+
+                  setIsMobilePanelOpen(true);
+                }}
+              >
+                Đăng nhập
+              </button>
+              <button
+                type="button"
+                className={mode === "register" ? "auth-page__mobile-action active" : "auth-page__mobile-action"}
+                onClick={() => {
+                  if (mode !== "register") {
+                    navigate("/register", { state: { authPanelOpen: true } });
+                    return;
+                  }
+
+                  setIsMobilePanelOpen(true);
+                }}
+              >
+                Đăng ký
+              </button>
+            </div>
+          )}
         </section>
 
-        <section className={`auth-card auth-card--${mode}`}>
+        <section
+          className={`auth-card auth-card--${mode}${isMobilePanelOpen ? " auth-card--mobile-open" : ""}`}
+        >
           <button
             type="button"
             className="auth-card__close"
-            onClick={() => navigate("/")}
+            onClick={() => {
+              if (window.matchMedia("(max-width: 760px)").matches) {
+                setIsMobilePanelOpen(false);
+                return;
+              }
+
+              navigate("/");
+            }}
             aria-label="Close and go back home"
           >
             <FieldGlyph name="close" />
@@ -312,7 +369,11 @@ export default function AuthLayout({
           <div className="auth-card__tabs">
             {tabs.map((tab, index) => (
               <div key={tab.to} className="auth-card__tab-group">
-                <Link to={tab.to} className={tab.active ? "auth-card__tab active" : "auth-card__tab"}>
+                <Link
+                  to={tab.to}
+                  state={{ authPanelOpen: true }}
+                  className={tab.active ? "auth-card__tab active" : "auth-card__tab"}
+                >
                   {tab.label}
                 </Link>
                 {index < tabs.length - 1 ? <span className="auth-card__separator">|</span> : null}

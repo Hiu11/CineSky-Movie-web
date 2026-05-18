@@ -77,6 +77,9 @@ export default function Header({
   const isMovieDetail = location.pathname.startsWith("/movie/");
   const isAdminPage = location.pathname === "/admin" || location.pathname.startsWith("/admin/");
   const isAdminUser = user?.role === "admin";
+  const visibleNavItems = isAdminUser
+    ? [...navItems, { to: "/admin", label: "Quản trị", id: "admin" }]
+    : navItems;
   const movieDetailTab = isMovieDetail ? searchParams.get("tab") || "now" : null;
   const normalizedQuery = normalizeText(searchQuery).trim();
   const displayName = user?.name || user?.fullName || "User";
@@ -451,6 +454,9 @@ export default function Header({
             <Link to="/history" className="user-menu__item">
               Lịch sử đặt vé
             </Link>
+            <Link to="/profile#favorites" className="user-menu__item">
+              Phim yêu thích
+            </Link>
             <Link to="/feedback" className="user-menu__item">
               Gửi góp ý
             </Link>
@@ -527,9 +533,8 @@ export default function Header({
         </div>
       </div>
 
-      {!isAdminPage ? (
-        <div className="movie-tabs-navigation">
-        {navItems.map((item) => {
+      <div className="movie-tabs-navigation">
+        {visibleNavItems.map((item) => {
           let isActive = false;
 
           if (item.id === "home") {
@@ -540,6 +545,8 @@ export default function Header({
           } else if (item.id === "soon") {
             isActive =
               ((location.pathname === "/" && hasMovieTab && tabParam === "soon") || movieDetailTab === "soon");
+          } else if (item.id === "admin") {
+            isActive = isAdminPage;
           } else {
             isActive = location.pathname === item.to;
           }
@@ -548,7 +555,7 @@ export default function Header({
             <Link
               key={item.id}
               to={item.to}
-              className={isActive ? "tab-btn active" : "tab-btn"}
+              className={(isActive ? "tab-btn active" : "tab-btn") + (item.id === "admin" ? " tab-btn--admin" : "")}
               onClick={(event) => handleNavTransition(event, item.to)}
             >
               {item.label}
@@ -557,15 +564,17 @@ export default function Header({
             <NavLink
               key={item.id}
               to={item.to}
-              className={({ isActive: routeActive }) => (routeActive ? "tab-btn active" : "tab-btn")}
+              className={({ isActive: routeActive }) =>
+                (routeActive || isActive ? "tab-btn active" : "tab-btn") +
+                (item.id === "admin" ? " tab-btn--admin" : "")
+              }
               onClick={(event) => handleNavTransition(event, item.to)}
             >
               {item.label}
             </NavLink>
           );
         })}
-        </div>
-      ) : null}
+      </div>
 
       {isMobileMenuOpen ? (
         <>
@@ -589,14 +598,14 @@ export default function Header({
             </div>
 
             <nav className="mobile-nav">
-              {navItems.map((item) => (
+              {visibleNavItems.map((item) => (
                 <Link
                   key={item.id}
                   to={item.to}
-                  className="mobile-nav__link"
+                  className={"mobile-nav__link" + (item.id === "admin" ? " mobile-nav__link--admin" : "")}
                   onClick={(event) => handleNavTransition(event, item.to)}
                 >
-                  <span className="mobile-link-icon" aria-hidden="true">{mobileNavIcons[item.id]}</span>
+                  <span className="mobile-link-icon" aria-hidden="true">{mobileNavIcons[item.id] || "★"}</span>
                   <span>{item.label}</span>
                 </Link>
               ))}
@@ -610,6 +619,9 @@ export default function Header({
                   </Link>
                   <Link to="/history" className="mobile-auth-link">
                     Lịch sử đặt vé
+                  </Link>
+                  <Link to="/profile#favorites" className="mobile-auth-link">
+                    Phim yêu thích
                   </Link>
                   {isAdminUser ? <Link to="/admin" className="mobile-auth-link">Quản trị</Link> : null}
                   <button

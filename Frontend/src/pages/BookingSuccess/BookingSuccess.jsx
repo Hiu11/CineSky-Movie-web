@@ -22,12 +22,12 @@ export default function BookingSuccess() {
     return (
       <main className="booking-success-page">
         <section className="booking-success-card booking-success-card--empty">
-          <span className="booking-success-kicker">Booking</span>
-          <h1>No completed booking was found.</h1>
-          <p>Please go back to the movie list and continue your booking flow from there.</p>
+          <span className="booking-success-kicker">Lỗi truy cập</span>
+          <h1>Không tìm thấy thông tin đặt vé.</h1>
+          <p>Có vẻ như bạn chưa đặt vé hoặc phiên giao dịch đã hết hạn. Vui lòng quay lại trang chủ để chọn phim.</p>
           <div className="booking-success-actions">
             <Link to="/?tab=now" className="booking-success-primary">
-              Back to movies
+              Quay lại danh sách phim
             </Link>
           </div>
         </section>
@@ -35,50 +35,75 @@ export default function BookingSuccess() {
     );
   }
 
-  const metaRows = [
-    { label: "Movie", value: receipt.movieTitle || "CineSky" },
-    { label: "Cinema", value: receipt.cinemaName || "CineSky" },
-    { label: "Room", value: receipt.roomName || "Updating" },
-    { label: "Showtime", value: [receipt.displayDate, receipt.displayTime].filter(Boolean).join(" • ") || "Updating" },
-    { label: "Seats", value: receipt.seatNumbers?.join(", ") || "Updating" },
-    { label: "Payment", value: receipt.paymentLabel || "Card / bank" },
-  ];
-
   return (
     <main className="booking-success-page">
-      <section className="booking-success-card">
-        <div className="booking-success-hero">
-          <span className="booking-success-kicker">Booking Completed</span>
-          <h1>Your CineSky ticket is ready.</h1>
+      {/* Background glowing effects */}
+      <div className="booking-success__glow booking-success__glow--1"></div>
+      <div className="booking-success__glow booking-success__glow--2"></div>
+
+      <section className="booking-success-ticket">
+        <div className="booking-success-ticket__header">
+          <span className="booking-success-kicker">Thành công</span>
+          <h1>Vé của bạn đã sẵn sàng!</h1>
           <p>
-            The booking has been saved successfully. You can review it below, continue exploring movies,
-            or open your booking history at any time.
+            Cảm ơn bạn đã lựa chọn CineSky. Dưới đây là thông tin vé điện tử của bạn. 
+            Vui lòng xuất trình mã vạch này tại quầy để nhận vé cứng.
           </p>
         </div>
 
-        <div className="booking-success-grid">
-          {metaRows.map((item) => (
-            <article key={item.label} className="booking-success-row">
-              <span>{item.label}</span>
-              <strong>{item.value}</strong>
-            </article>
-          ))}
+        <div className="booking-success-ticket__body">
+          <div className="booking-success-ticket__cutout booking-success-ticket__cutout--left"></div>
+          <div className="booking-success-ticket__cutout booking-success-ticket__cutout--right"></div>
+          
+          <div className="booking-success-ticket__content">
+            <div className="booking-success-ticket__main-info">
+              <small>Tên phim</small>
+              <h2>{receipt.movieTitle || "CineSky"}</h2>
+            </div>
 
-          <article className="booking-success-row booking-success-row--total">
-            <span>Total paid</span>
-            <strong>{Number(receipt.totalPrice || 0).toLocaleString("vi-VN")} VND</strong>
-          </article>
+            <div className="booking-success-ticket__grid">
+              <div className="booking-success-ticket__item">
+                <small>Rạp chiếu</small>
+                <strong>{receipt.cinemaName || "CineSky"}</strong>
+              </div>
+              <div className="booking-success-ticket__item">
+                <small>Phòng chiếu</small>
+                <strong>{receipt.roomName || "Đang cập nhật"}</strong>
+              </div>
+              <div className="booking-success-ticket__item">
+                <small>Suất chiếu</small>
+                <strong>{[receipt.displayDate, receipt.displayTime].filter(Boolean).join(" • ") || "Đang cập nhật"}</strong>
+              </div>
+              <div className="booking-success-ticket__item">
+                <small>Ghế ngồi</small>
+                <strong>{receipt.seatNumbers?.join(", ") || "Đang cập nhật"}</strong>
+              </div>
+              <div className="booking-success-ticket__item">
+                <small>Phương thức</small>
+                <strong>{receipt.paymentLabel || "Card / bank"}</strong>
+              </div>
+              <div className="booking-success-ticket__item booking-success-ticket__item--total">
+                <small>Tổng thanh toán</small>
+                <strong>{Number(receipt.totalPrice || 0).toLocaleString("vi-VN")} VND</strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="booking-success-ticket__divider"></div>
+
+          <div className="booking-success-ticket__barcode-section">
+            <div className="booking-success-ticket__barcode"></div>
+            <span className="booking-success-ticket__id">{receipt.bookingId || "CINEMA-123456"}</span>
+            <span className="booking-success-ticket__scan-hint">Quét mã vạch tại quầy</span>
+          </div>
         </div>
 
         <div className="booking-success-actions">
           <Link to="/history" className="booking-success-secondary">
-            Open booking history
-          </Link>
-          <Link to="/profile" className="booking-success-secondary">
-            View profile
+            Xem lịch sử vé
           </Link>
           <Link to="/?tab=now" className="booking-success-primary">
-            Continue browsing
+            Tiếp tục khám phá phim
           </Link>
         </div>
       </section>

@@ -1,6 +1,7 @@
 import GenreModel from "../models/genre.model.js";
 import { createShowtimesFromMovies } from "../data/seedShowtimes.js";
 import MovieModel from "../models/movie.model.js";
+import ReviewModel from "../models/review.model.js";
 import ShowtimeModel from "../models/showtime.model.js";
 
 const ratingClassMap = {
@@ -140,8 +141,9 @@ const hasTrailerPanelContent = (panel) =>
 
 const formatMovieId = (legacyId) => String(legacyId).padStart(3, "0");
 
-const serializeMovie = (movie, timeMap = new Map()) => {
+const serializeMovie = (movie, timeMap = new Map(), reviewMap = new Map()) => {
   const movieTimes = getMovieTimes(movie, timeMap);
+  const reviewStats = reviewMap.get(movie.legacyId) || { averageRating: 0, reviewCount: 0 };
 
   return {
   id: formatMovieId(movie.legacyId),
@@ -161,6 +163,9 @@ const serializeMovie = (movie, timeMap = new Map()) => {
   statusOrder: movie.statusOrder ?? 0,
   catalogOrder: movie.catalogOrder ?? 999,
   heroOrder: movie.heroOrder ?? null,
+  averageRating: reviewStats.averageRating,
+  reviewCount: reviewStats.reviewCount,
+  popularityScore: movieTimes.length * 10 + reviewStats.reviewCount,
   release: movie.releaseDate,
   trailer: movie.trailer,
   description: movie.description,
@@ -271,11 +276,24 @@ const moviesController = {
         displayTime: { $regex: /^\d{2}:\d{2}$/ },
       }).sort({ startTime: 1 });
       const timeMap = createTimeMap(showtimes);
+      const reviewStats = await ReviewModel.aggregate([
+        { $match: { movieLegacyId: { $in: movies.map((movie) => movie.legacyId) } } },
+        { $group: { _id: "$movieLegacyId", averageRating: { $avg: "$rating" }, reviewCount: { $sum: 1 } } },
+      ]);
+      const reviewMap = new Map(
+        reviewStats.map((item) => [
+          item._id,
+          {
+            averageRating: Math.round(Number(item.averageRating || 0) * 10) / 10,
+            reviewCount: item.reviewCount || 0,
+          },
+        ])
+      );
 
       res.status(200).send({
         success: true,
         message: "Get movies successfully",
-        data: movies.map((movie) => serializeMovie(movie, timeMap)),
+        data: movies.map((movie) => serializeMovie(movie, timeMap, reviewMap)),
         pagination: {
           page,
           limit,

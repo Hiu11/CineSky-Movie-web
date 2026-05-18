@@ -11,6 +11,7 @@ adminRouter.get("/activity", adminController.getActivity);
 adminRouter.get("/users", adminController.getUsers);
 adminRouter.get("/bookings", adminController.getBookings);
 adminRouter.get("/movies/trash", adminController.getDeletedMovies);
+adminRouter.get("/tmdb/search", adminController.searchTmdbMovie);
 adminRouter.post("/uploads/poster", adminController.uploadPoster);
 adminRouter.post("/movies", adminController.createMovie);
 adminRouter.put("/movies/:movieId", adminController.updateMovie);

@@ -40,6 +40,19 @@ const normalizeGender = (gender = "") => {
   return "";
 };
 
+const normalizeGenderSafe = (gender = "") => {
+  const normalizedValue = String(gender)
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  if (["male", "nam"].includes(normalizedValue)) return "Nam";
+  if (["female", "nu"].includes(normalizedValue)) return "Nữ";
+  if (["other", "khac"].includes(normalizedValue)) return "Khác";
+  return "";
+};
+
 const hashLegacyPassword = (password = "") =>
   crypto.createHash("sha256").update(password).digest("hex");
 
@@ -52,6 +65,11 @@ const isBcryptHash = (hashedPassword = "") =>
   String(hashedPassword).startsWith("$2y$");
 
 const hashPassword = async (password = "") => bcrypt.hash(password, 10);
+
+const hashResetToken = (token = "") =>
+  crypto.createHash("sha256").update(token).digest("hex");
+
+const createResetPasswordToken = () => crypto.randomBytes(32).toString("hex");
 
 const slugify = (value = "") =>
   String(value)
@@ -222,7 +240,7 @@ const authController = {
         email: normalizedEmail,
         password: hashedPassword,
         phone: phone.trim(),
-        gender: normalizeGender(gender),
+        gender: normalizeGenderSafe(gender),
         birthday: birthday || "",
       });
 
@@ -291,6 +309,123 @@ const authController = {
         success: true,
         message: "Login successfully",
         data: createAuthPayload(user, accessToken, refreshToken),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  forgotPassword: async (req, res) => {
+    try {
+      const { email = "" } = req.body || {};
+      const normalizedEmail = normalizeEmail(email);
+
+      if (!normalizedEmail) {
+        return res.status(400).send({
+          success: false,
+          message: "Email là bắt buộc",
+          data: null,
+        });
+      }
+
+      const user = await UserModel.findOne({ email: normalizedEmail }).select(
+        "+resetPasswordTokenHash +resetPasswordExpiresAt"
+      );
+
+      if (user) {
+        const resetToken = createResetPasswordToken();
+        user.resetPasswordTokenHash = hashResetToken(resetToken);
+        user.resetPasswordExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
+        await user.save();
+
+        const resetUrl = `${getFrontendUrl()}/forgot-password?token=${resetToken}&email=${encodeURIComponent(
+          normalizedEmail
+        )}`;
+
+        // Demo project chưa cấu hình SMTP, nên backend tạo token thật trong DB và log link để test luồng reset.
+        console.log(`Password reset link for ${normalizedEmail}: ${resetUrl}`);
+
+        return res.status(200).send({
+          success: true,
+          message: "Nếu email tồn tại, hệ thống đã tạo liên kết đặt lại mật khẩu.",
+          data: {
+            email: normalizedEmail,
+            expiresInMinutes: 15,
+            resetUrl,
+          },
+        });
+      }
+
+      return res.status(200).send({
+        success: true,
+        message: "Nếu email tồn tại, hệ thống đã tạo liên kết đặt lại mật khẩu.",
+        data: {
+          email: normalizedEmail,
+          expiresInMinutes: 15,
+        },
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  resetPassword: async (req, res) => {
+    try {
+      const { email = "", token = "", password = "" } = req.body || {};
+      const normalizedEmail = normalizeEmail(email);
+
+      if (!normalizedEmail || !token || !password) {
+        return res.status(400).send({
+          success: false,
+          message: "Email, token và mật khẩu mới là bắt buộc",
+          data: null,
+        });
+      }
+
+      if (String(password).length < 6) {
+        return res.status(400).send({
+          success: false,
+          message: "Mật khẩu mới phải có ít nhất 6 ký tự",
+          data: null,
+        });
+      }
+
+      const user = await UserModel.findOne({ email: normalizedEmail }).select(
+        "+password +resetPasswordTokenHash +resetPasswordExpiresAt +refreshToken"
+      );
+
+      if (
+        !user ||
+        !user.resetPasswordTokenHash ||
+        user.resetPasswordTokenHash !== hashResetToken(token) ||
+        !user.resetPasswordExpiresAt ||
+        user.resetPasswordExpiresAt.getTime() < Date.now()
+      ) {
+        return res.status(400).send({
+          success: false,
+          message: "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn",
+          data: null,
+        });
+      }
+
+      user.password = await hashPassword(password);
+      user.refreshToken = "";
+      user.resetPasswordTokenHash = "";
+      user.resetPasswordExpiresAt = null;
+      await user.save();
+
+      return res.status(200).send({
+        success: true,
+        message: "Đặt lại mật khẩu thành công",
+        data: null,
       });
     } catch (error) {
       return res.status(500).send({
@@ -513,7 +648,7 @@ const authController = {
       }
 
       if (typeof gender === "string") {
-        user.gender = normalizeGender(gender);
+        user.gender = normalizeGenderSafe(gender);
       }
 
       if (typeof birthday === "string") {

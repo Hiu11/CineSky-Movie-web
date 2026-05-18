@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { getBookingHistory } from "../../services/movieService";
+import { getBookingHistory, getMyFavorites } from "../../services/movieService";
 import {
   getMyProfile,
   normalizeAuthUser,
@@ -26,6 +26,7 @@ const getSessionUser = () => {
 export default function Profile() {
   const [user, setUser] = useState(() => getSessionUser());
   const [recentBookings, setRecentBookings] = useState([]);
+  const [favoriteMovies, setFavoriteMovies] = useState([]);
   const [formData, setFormData] = useState({
     fullName: "",
     phone: "",
@@ -98,6 +99,34 @@ export default function Profile() {
     };
 
     loadRecentBookings();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [user]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadFavorites = async () => {
+      if (!user?.id && !user?.email) {
+        return;
+      }
+
+      try {
+        const favorites = await getMyFavorites({ limit: 8 });
+
+        if (isMounted) {
+          setFavoriteMovies(Array.isArray(favorites) ? favorites : []);
+        }
+      } catch {
+        if (isMounted) {
+          setFavoriteMovies([]);
+        }
+      }
+    };
+
+    loadFavorites();
 
     return () => {
       isMounted = false;
@@ -221,13 +250,15 @@ export default function Profile() {
     <main className="profile-page">
       <section className="profile-hero">
         <div className="profile-identity">
-          {user.avatar ? (
-            <img src={user.avatar} alt={user.fullName || user.name} className="profile-avatar" />
-          ) : (
-            <div className="profile-avatar profile-avatar--fallback">
-              {(user.fullName || user.name || "U").trim().charAt(0).toUpperCase()}
-            </div>
-          )}
+          <div className="profile-avatar-wrapper">
+            {user.avatar ? (
+              <img src={user.avatar} alt={user.fullName || user.name} className="profile-avatar" />
+            ) : (
+              <div className="profile-avatar--fallback">
+                {(user.fullName || user.name || "U").trim().charAt(0).toUpperCase()}
+              </div>
+            )}
+          </div>
 
           <div className="profile-copy">
             <span className="profile-kicker">Hồ sơ</span>
@@ -351,11 +382,48 @@ export default function Profile() {
             <Link to="/?tab=now" className="profile-secondary">
               Xem phim đang chiếu
             </Link>
+            <a href="#favorites" className="profile-secondary">
+              Phim yêu thích
+            </a>
             <Link to="/feedback" className="profile-primary">
               Gửi góp ý
             </Link>
           </div>
         </article>
+      </section>
+
+      <section className="profile-card" id="favorites">
+        <div className="profile-card__header">
+          <h2>Phim yêu thích</h2>
+          <Link to="/filter" className="profile-inline-link">
+            Khám phá thêm
+          </Link>
+        </div>
+
+        {favoriteMovies.length > 0 ? (
+          <div className="profile-favorites">
+            {favoriteMovies.map((favorite) => {
+              const favoriteTitle = favorite.movieTitle || favorite.movie?.title || "Phim yêu thích";
+              const favoritePoster = favorite.moviePoster || favorite.movie?.poster;
+
+              return (
+              <Link key={favorite.id} to={`/movie/${favorite.movieId}`} className="profile-favorite">
+                {favoritePoster ? (
+                  <img src={favoritePoster} alt={favoriteTitle} className="profile-favorite-poster" />
+                ) : (
+                  <div className="profile-favorite-fallback-poster" />
+                )}
+                <div className="profile-favorite-info">
+                  <strong>{favoriteTitle}</strong>
+                  <span>Đã lưu vào danh sách yêu thích</span>
+                </div>
+              </Link>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="profile-muted">Bạn chưa lưu phim yêu thích nào. Bấm “Yêu thích” ở trang chi tiết phim để thêm vào đây.</p>
+        )}
       </section>
 
       <section className="profile-card">
@@ -370,11 +438,14 @@ export default function Profile() {
           <div className="profile-bookings">
             {recentBookings.map((booking) => (
               <article key={booking.id} className="profile-booking">
-                <div>
+                <div className="profile-booking-main">
                   <strong>{booking.movieTitle || "Vé xem phim"}</strong>
                   <span>{[booking.displayDate, booking.displayTime].filter(Boolean).join(" • ")}</span>
                 </div>
-                <small>{(booking.seatNumbers || []).join(", ") || "Chưa chọn ghế"}</small>
+                <div className="profile-booking-seats">
+                  <small>{(booking.seatNumbers || []).join(", ") || "Chưa chọn ghế"}</small>
+                  <div className="profile-booking-badge">Đã đặt</div>
+                </div>
               </article>
             ))}
           </div>
@@ -385,3 +456,4 @@ export default function Profile() {
     </main>
   );
 }
+

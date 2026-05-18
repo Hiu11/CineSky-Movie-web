@@ -10,6 +10,7 @@ import MovieModel from "../models/movie.model.js";
 import ReviewModel from "../models/review.model.js";
 import ShowtimeModel from "../models/showtime.model.js";
 import UserModel from "../models/user.model.js";
+import tmdbService from "../services/tmdb.service.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -49,6 +50,8 @@ const serializeBooking = (booking, movie, showtime) => ({
   seatNumbers: booking.seatNumbers || [],
   totalPrice: booking.totalPrice || 0,
   status: booking.status,
+  cancelledAt: booking.cancelledAt,
+  cancelReason: booking.cancelReason || "",
   customerName: booking.customerName || "",
   customerEmail: booking.customerEmail || "",
   createdAt: booking.createdAt,
@@ -226,6 +229,7 @@ const serializeAdminMovie = (movie) => ({
   gallery: movie.gallery || [],
   trailerFacts: movie.trailerFacts || [],
   trailerPanel: movie.trailerPanel || null,
+  deletedAt: movie.deletedAt || null,
 });
 
 const serializeMovieForSeed = (movie) => ({
@@ -273,6 +277,10 @@ const syncAdminSeedMovie = async (movie) => {
 const buildMoviePayload = (body = {}) => {
   const title = String(body.title || body.name || "").trim();
   const slug = slugify(body.slug || title);
+  const heroOrder =
+    body.heroOrder === "" || body.heroOrder === null || body.heroOrder === undefined
+      ? null
+      : Number(body.heroOrder);
 
   return {
     legacyId: Number(body.legacyId || body.id) || undefined,
@@ -287,7 +295,7 @@ const buildMoviePayload = (body = {}) => {
     status: ["now-showing", "coming-soon"].includes(body.status) ? body.status : "now-showing",
     statusOrder: Number(body.statusOrder) || 0,
     catalogOrder: Number(body.catalogOrder) || 999,
-    heroOrder: body.heroOrder === "" || body.heroOrder === null ? null : Number(body.heroOrder),
+    heroOrder: Number.isFinite(heroOrder) ? heroOrder : null,
     showtimes: normalizeStringList(body.showtimes),
     releaseDate: String(body.releaseDate || body.release || "").trim(),
     trailer: normalizeYoutubeTrailer(body.trailer),
@@ -397,6 +405,24 @@ const buildSearchFilter = (search = "") => {
 };
 
 const adminController = {
+  searchTmdbMovie: async (req, res) => {
+    try {
+      const metadata = await tmdbService.searchMovieMetadata(req.query.query);
+
+      return res.status(200).send({
+        success: true,
+        message: "Get TMDB metadata successfully",
+        data: metadata,
+      });
+    } catch (error) {
+      return res.status(error.statusCode || 500).send({
+        success: false,
+        message: error.message || "Cannot get TMDB metadata",
+        data: null,
+      });
+    }
+  },
+
   uploadPoster: async (req, res) => {
     try {
       const { fileName = "", fileData = "" } = req.body || {};
@@ -444,12 +470,31 @@ const adminController = {
 
   getDashboardOverview: async (req, res) => {
     try {
-      const [users, bookings, reviews, favorites, feedbackEntries] = await Promise.all([
+      const [
+        users,
+        bookings,
+        reviews,
+        favorites,
+        feedbackEntries,
+        activeMovies,
+        comingSoonMovies,
+        showtimes,
+        bookedRevenue,
+        cancelledBookings,
+      ] = await Promise.all([
         UserModel.countDocuments(),
         BookingModel.countDocuments(),
         ReviewModel.countDocuments(),
         FavoriteModel.countDocuments(),
         FeedbackModel.countDocuments(),
+        MovieModel.countDocuments({ deletedAt: null, status: "now-showing" }),
+        MovieModel.countDocuments({ deletedAt: null, status: "coming-soon" }),
+        ShowtimeModel.countDocuments(),
+        BookingModel.aggregate([
+          { $match: { status: "booked" } },
+          { $group: { _id: null, total: { $sum: "$totalPrice" } } },
+        ]),
+        BookingModel.countDocuments({ status: "cancelled" }),
       ]);
 
       return res.status(200).send({
@@ -461,6 +506,11 @@ const adminController = {
           reviews,
           favorites,
           feedbackEntries,
+          activeMovies,
+          comingSoonMovies,
+          showtimes,
+          cancelledBookings,
+          revenue: bookedRevenue?.[0]?.total || 0,
         },
       });
     } catch (error) {

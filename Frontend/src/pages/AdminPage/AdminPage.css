@@ -104,8 +104,9 @@
 .admin-header select,
 .admin-toolbar select,
 .admin-form select {
+  -webkit--webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
-  -webkit-appearance: none;
   padding-right: 42px;
   background:
     linear-gradient(45deg, transparent 50%, rgba(255, 255, 255, 0.92) 50%) right 20px center / 7px 7px no-repeat,
@@ -115,8 +116,8 @@
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.12),
     0 14px 32px rgba(0, 0, 0, 0.22);
-  backdrop-filter: blur(18px) saturate(145%);
   -webkit-backdrop-filter: blur(18px) saturate(145%);
+  backdrop-filter: blur(18px) saturate(145%);
 }
 
 .admin-header select:hover,
@@ -299,32 +300,69 @@
 
 .admin-table {
   width: 100%;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0 8px;
   min-width: 760px;
 }
 
-.admin-table th,
-.admin-table td {
-  padding: 14px 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  text-align: left;
+.admin-table th {
+  padding: 12px 16px;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: none;
 }
 
-.admin-table th {
-  color: rgba(255, 255, 255, 0.56);
-  font-size: 12px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.admin-table td {
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.02);
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.admin-table td:first-child {
+  border-left: 1px solid rgba(255, 255, 255, 0.04);
+  border-top-left-radius: 14px;
+  border-bottom-left-radius: 14px;
+}
+
+.admin-table td:last-child {
+  border-right: 1px solid rgba(255, 255, 255, 0.04);
+  border-top-right-radius: 14px;
+  border-bottom-right-radius: 14px;
+}
+
+.admin-table tr {
+  transition: transform 0.25s ease;
+}
+
+.admin-table tr:hover td {
+  background: rgba(247, 180, 0, 0.05);
+  border-color: rgba(247, 180, 0, 0.15);
+  color: #fff;
+}
+
+.admin-table tr:hover td:first-child {
+  border-left: 3px solid var(--primary-gold);
 }
 
 .admin-status {
   display: inline-flex;
-  padding: 6px 10px;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
   border-radius: 999px;
-  background: rgba(247, 180, 0, 0.12);
+  background: rgba(247, 180, 0, 0.1);
+  border: 1px solid rgba(247, 180, 0, 0.2);
   color: var(--primary-gold);
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  box-shadow: 0 4px 12px rgba(247, 180, 0, 0.1);
 }
 
 .admin-row-actions {
@@ -569,4 +607,98 @@
     border-radius: 18px;
     padding: 0 16px;
   }
+}
+
+/* PREMIUM ADMIN SIDEBAR GLOW */
+
+.admin-nav button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.admin-nav button.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 15%;
+  bottom: 15%;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: var(--primary-gold);
+  box-shadow: 0 0 12px var(--primary-gold);
+}
+.admin-nav button.active {
+  background: linear-gradient(90deg, rgba(247, 180, 0, 0.15), transparent) !important;
+  border-color: rgba(247, 180, 0, 0.3) !important;
+  text-shadow: 0 0 8px rgba(247, 180, 0, 0.4);
+}
+.admin-nav button:hover:not(.active) {
+  transform: translateX(4px);
+}
+
+/* PREMIUM ADMIN DASHBOARD (PROMAX) */
+.admin-promax {}
+
+/* Glass Data Table */
+.admin-table-wrap {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  overflow: hidden;
+}
+.admin-table tbody tr {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  background: transparent;
+}
+.admin-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  transform: scale(1.01) translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 10;
+}
+/* 3D Stat Cards */
+.admin-stat-card {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  transform-style: preserve-3d;
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.4s ease;
+}
+.admin-stat-card:hover {
+  transform: translateY(-8px) scale(1.02) rotateX(5deg) rotateY(2deg);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(247, 180, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.3) !important;
+}
+.admin-stat-card strong {
+  color: #fff;
+  text-shadow: 0 0 12px rgba(255, 255, 255, 0.4);
+}
+.admin-stat-card svg {
+  filter: drop-shadow(0 0 8px currentColor);
+}
+/* Vercel-like Split Form */
+.admin-form {
+  background: radial-gradient(circle at 100% 0%, rgba(247, 180, 0, 0.05), transparent 50%), rgba(10, 12, 18, 0.8) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(150%) !important;
+  backdrop-filter: blur(24px) saturate(150%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 24px !important;
+  padding: 32px !important;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.5) !important;
+}
+.admin-form input, .admin-form textarea, .admin-form select {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  transition: all 0.3s ease;
+}
+.admin-form input:focus, .admin-form textarea:focus, .admin-form select:focus {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: var(--primary-gold) !important;
+  box-shadow: 0 0 0 4px rgba(247, 180, 0, 0.15) !important;
 }
