@@ -336,9 +336,9 @@
   gap: 24px;
   padding: 34px;
   background:
-    radial-gradient(circle at 0% 0%, rgba(255, 255, 255, 0.08), transparent 20%),
-    radial-gradient(circle at 100% 0%, rgba(247, 180, 0, 0.18), transparent 24%),
-    linear-gradient(155deg, rgba(18, 21, 37, 0.98), rgba(8, 10, 20, 0.95));
+    radial-gradient(circle at 0% 0%, rgba(247, 180, 0, 0.16), transparent 24%),
+    radial-gradient(circle at 100% 0%, rgba(96, 165, 250, 0.16), transparent 24%),
+    linear-gradient(155deg, rgba(18, 24, 42, 0.98), rgba(8, 10, 20, 0.96));
 }
 
 .about-hero__content {
@@ -579,20 +579,16 @@
   color: #ffffff;
 }
 
-.about-hero__actions .about-solid-link {
-  display: none;
-}
-
 .about-hero__actions .about-ghost-link:nth-of-type(1) {
-  border-color: rgba(255, 255, 255, 0.16);
-  background: linear-gradient(135deg, rgba(36, 41, 47, 0.98), rgba(17, 24, 39, 0.92));
-  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.24);
+  border-color: rgba(247, 180, 0, 0.34);
+  background: linear-gradient(135deg, rgba(247, 180, 0, 0.16), rgba(255, 255, 255, 0.05));
+  box-shadow: 0 14px 30px rgba(247, 180, 0, 0.12);
 }
 
 .about-hero__actions .about-ghost-link:nth-of-type(2) {
-  border-color: rgba(24, 119, 242, 0.56);
-  background: linear-gradient(135deg, #1877f2, #0b5ed7);
-  box-shadow: 0 14px 30px rgba(24, 119, 242, 0.32);
+  border-color: rgba(96, 165, 250, 0.36);
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.18), rgba(255, 255, 255, 0.05));
+  box-shadow: 0 14px 30px rgba(96, 165, 250, 0.12);
 }
 
 .about-solid-link:hover,
@@ -612,11 +608,10 @@
   display: grid;
   align-content: center;
   background:
-    radial-gradient(circle at 12% 0%, rgba(255, 255, 255, 0.34), transparent 26%),
-    radial-gradient(circle at 100% 0%, rgba(247, 180, 0, 0.16), transparent 28%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.09)),
-    rgba(34, 36, 48, 0.88);
-  border-color: rgba(255, 255, 255, 0.24);
+    radial-gradient(circle at 12% 0%, rgba(247, 180, 0, 0.2), transparent 28%),
+    radial-gradient(circle at 100% 0%, rgba(96, 165, 250, 0.16), transparent 30%),
+    linear-gradient(145deg, rgba(20, 24, 38, 0.96), rgba(8, 10, 18, 0.94));
+  border-color: rgba(247, 180, 0, 0.18);
   -webkit-backdrop-filter: blur(28px) saturate(165%);
   backdrop-filter: blur(28px) saturate(165%);
   box-shadow:
@@ -649,9 +644,9 @@
 
 .about-highlight-card p {
   margin: 0;
-  color: rgba(245, 247, 255, 0.86);
-  line-height: 1.82;
-  font-size: 15px;
+  color: rgba(245, 247, 255, 0.9);
+  line-height: 1.9;
+  font-size: 16px;
 }
 
 .about-creator-facts {

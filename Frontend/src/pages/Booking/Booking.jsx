@@ -5,6 +5,7 @@ import {
   getBookingHistory,
   getMovieShowtimes,
 } from "../../services/movieService";
+import { updateStoredUser } from "../../services/authService";
 import "./Booking.css";
 
 const PAYMENT_PROVIDERS = {
@@ -372,12 +373,12 @@ export default function Booking({ showToast }) {
 
       try {
         setIsHistoryLoading(true);
-        const history = await getBookingHistory({
+        const historyPayload = await getBookingHistory({
           limit: 6,
         });
 
         if (isMounted) {
-          setBookingHistory(Array.isArray(history) ? history : []);
+          setBookingHistory(Array.isArray(historyPayload?.bookings) ? historyPayload.bookings : []);
         }
       } catch {
         if (isMounted) {
@@ -667,7 +668,14 @@ export default function Booking({ showToast }) {
         movieId: movie.id,
         showtimeId: selectedShowtime.id,
         seatNumbers: selectedSeats,
+        paymentMethod: selectedPaymentMethod,
+        paymentProvider: selectedProvider,
+        paymentReference: paymentForm.reference,
       });
+
+      if (booking.membership) {
+        updateStoredUser({ ...sessionUser, membership: booking.membership });
+      }
 
       setShowtimes((currentShowtimes) =>
         currentShowtimes.map((showtime) =>
@@ -682,6 +690,7 @@ export default function Booking({ showToast }) {
 
       const receipt = {
         bookingId: booking.id,
+        ticketCode: booking.ticketCode,
         movieTitle: movie.title,
         cinemaName: selectedShowtime.cinemaName,
         roomName: selectedShowtime.roomName,
@@ -695,6 +704,7 @@ export default function Booking({ showToast }) {
           .filter(Boolean)
           .join(" • "),
         totalPrice: booking.totalPrice ?? finalTotal,
+        paymentStatus: booking.paymentStatus || "mock_paid",
       };
 
       sessionStorage.setItem("lastBookingReceipt", JSON.stringify(receipt));

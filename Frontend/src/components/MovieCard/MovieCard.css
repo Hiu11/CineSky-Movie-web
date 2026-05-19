@@ -133,6 +133,18 @@
   padding: 20px;
 }
 
+.movie-card-notice {
+  margin-bottom: 10px;
+  border: 1px solid rgba(247, 180, 0, 0.32);
+  border-radius: 10px;
+  background: rgba(247, 180, 0, 0.12);
+  color: #ffe8a3;
+  padding: 8px 10px;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
 .movie-title {
   margin: 0 0 10px;
   color: #fff;

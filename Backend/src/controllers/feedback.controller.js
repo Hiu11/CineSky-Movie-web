@@ -24,9 +24,11 @@ const serializeFeedback = (feedback) => ({
   userId: feedback.userId || null,
   fullName: feedback.fullName,
   email: feedback.email,
-  rating: feedback.rating,
+  rating: Math.max(1, Math.min(5, Number(feedback.rating) || 1)),
   headline: buildHeadline(feedback.headline, feedback.message),
   message: feedback.message,
+  response: feedback.response || "",
+  respondedAt: feedback.respondedAt || null,
   createdAt: feedback.createdAt,
 });
 
@@ -34,7 +36,7 @@ const feedbackController = {
   getFeedbackEntries: async (req, res) => {
     try {
       const safeLimit = Math.min(Math.max(Number(req.query.limit) || 6, 1), 12);
-      const feedbackEntries = await FeedbackModel.find()
+      const feedbackEntries = await FeedbackModel.find({ isHidden: { $ne: true }, isSpam: { $ne: true } })
         .sort({ createdAt: -1 })
         .limit(safeLimit);
 

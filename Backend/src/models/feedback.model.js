@@ -45,6 +45,60 @@ const feedbackSchema = new mongoose.Schema(
       default: "feedback-page",
       trim: true,
     },
+    status: {
+      type: String,
+      enum: ["new", "in_progress", "responded", "closed"],
+      default: "new",
+    },
+    category: {
+      type: String,
+      enum: ["booking_issue", "payment", "interface", "movie_showtime", "cinema_service", "other"],
+      default: "other",
+    },
+    priority: {
+      type: String,
+      enum: ["low", "medium", "high", "urgent"],
+      default: "medium",
+    },
+    adminNotes: [
+      {
+        note: { type: String, required: true, trim: true },
+        adminId: { type: mongoose.Schema.Types.ObjectId, ref: "users", default: null },
+        adminName: { type: String, default: "", trim: true },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
+    response: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    respondedAt: {
+      type: Date,
+      default: null,
+    },
+    isSpam: {
+      type: Boolean,
+      default: false,
+    },
+    isHidden: {
+      type: Boolean,
+      default: false,
+    },
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+    history: [
+      {
+        action: { type: String, required: true, trim: true },
+        from: { type: String, default: "", trim: true },
+        to: { type: String, default: "", trim: true },
+        adminId: { type: mongoose.Schema.Types.ObjectId, ref: "users", default: null },
+        adminName: { type: String, default: "", trim: true },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
   },
   {
     timestamps: true,

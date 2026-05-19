@@ -16,6 +16,9 @@ import MovieDetail from "./pages/MovieDetail/MovieDetail";
 import BookingSuccess from "./pages/BookingSuccess/BookingSuccess";
 import BookingHistory from "./pages/BookingHistory/BookingHistory";
 import Profile from "./pages/Profile/Profile";
+import Notifications from "./pages/Notifications/Notifications";
+import Promotions from "./pages/Promotions/Promotions";
+import CinemaNews from "./pages/CinemaNews/CinemaNews";
 import AdminPage from "./pages/AdminPage/AdminPage";
 import NotFound from "./pages/NotFound/NotFound";
 import { clearAuthSession, normalizeAuthUser } from "./services/authService";
@@ -200,6 +203,9 @@ function AppContent() {
         <Route path="/booking/success" element={<BookingSuccess />} />
         <Route path="/history" element={<BookingHistory />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/notifications" element={isLoggedIn ? <Notifications /> : <Navigate to="/login" replace />} />
+        <Route path="/promotions" element={<Promotions />} />
+        <Route path="/news" element={<CinemaNews />} />
         <Route
           path="/admin"
           element={user?.role === "admin" ? <AdminPage /> : <Navigate to="/login" replace />}

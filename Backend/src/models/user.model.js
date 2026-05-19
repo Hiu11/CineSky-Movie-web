@@ -45,6 +45,23 @@ const userSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    membership: {
+      points: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      totalTickets: {
+        type: Number,
+        default: 0,
+        min: 0,
+      },
+      tier: {
+        type: String,
+        enum: ["Member", "Silver", "Gold", "Diamond"],
+        default: "Member",
+      },
+    },
     refreshToken: {
       type: String,
       default: "",

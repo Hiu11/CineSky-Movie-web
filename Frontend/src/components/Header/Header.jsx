@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { getMovies } from "../../services/movieService";
+import { getUnreadNotificationCount } from "../../services/notificationService";
 import "./Header.css";
 
 const RECENT_SEARCHES_KEY = "cineSkyRecentSearches";
@@ -16,6 +17,8 @@ const navItems = [
   { to: "/?tab=now", label: "Phim đang chiếu", id: "now" },
   { to: "/?tab=soon", label: "Phim sắp chiếu", id: "soon" },
   { to: "/filter", label: "Lọc phim", id: "filter" },
+  { to: "/promotions", label: "Ưu đãi", id: "promotions" },
+  { to: "/news", label: "Tin tức", id: "news" },
   { to: "/about", label: "Giới thiệu", id: "about" },
   { to: "/feedback", label: "Góp ý", id: "feedback" },
 ];
@@ -25,8 +28,65 @@ const mobileNavIcons = {
   now: "▶",
   soon: "⏱",
   filter: "⌕",
+  promotions: "%",
+  news: "N",
   about: "i",
   feedback: "✎",
+};
+
+const navGroups = [
+  {
+    id: "movies",
+    label: "Phim",
+    title: "Lịch phim CineSky",
+    description: "Xem nhanh trang chủ, phim đang chiếu và phim sắp ra mắt.",
+    spotlight: "Đặt vé nhanh theo suất chiếu hôm nay",
+    items: navItems.filter((item) => ["home", "now", "soon"].includes(item.id)),
+  },
+  {
+    id: "search",
+    label: "Tìm phim",
+    title: "Bộ lọc thông minh",
+    description: "Thu hẹp danh sách phim theo thể loại, quốc gia và thời lượng.",
+    spotlight: "Tìm đúng phim trước khi đặt vé",
+    items: navItems.filter((item) => ["filter"].includes(item.id)),
+  },
+  {
+    id: "promotions",
+    label: "Ưu đãi",
+    title: "Voucher & combo",
+    description: "Các ưu đãi theo hạng thành viên và combo tiết kiệm.",
+    spotlight: "Voucher thành viên Silver, Gold, Diamond",
+    items: navItems.filter((item) => ["promotions"].includes(item.id)),
+  },
+  {
+    id: "news",
+    label: "Tin tức",
+    title: "Góc điện ảnh",
+    description: "Tin phim mới, review nhanh, hậu trường và thông tin CineSky.",
+    spotlight: "Cập nhật phim sắp ra mắt mỗi tuần",
+    items: navItems.filter((item) => ["news", "about"].includes(item.id)),
+  },
+  {
+    id: "support",
+    label: "Hỗ trợ",
+    title: "Kết nối với CineSky",
+    description: "Gửi góp ý để cải thiện trải nghiệm đặt vé và xem phim.",
+    spotlight: "Phản hồi của bạn sẽ được admin xử lý",
+    items: navItems.filter((item) => ["feedback"].includes(item.id)),
+  },
+];
+
+const navItemDescriptions = {
+  home: "Tổng quan phim và suất chiếu nổi bật",
+  now: "Danh sách phim có thể đặt vé ngay",
+  soon: "Các tựa phim chuẩn bị ra rạp",
+  filter: "Tìm phim theo thể loại, quốc gia, thời lượng",
+  promotions: "Voucher, combo và quyền lợi hội viên",
+  news: "Review nhanh, hậu trường và lịch chiếu hot",
+  about: "Thông tin dự án và hệ thống rạp",
+  feedback: "Gửi góp ý hoặc báo vấn đề trải nghiệm",
+  admin: "Quản lý dữ liệu hệ thống",
 };
 
 const readRecentSearches = () => {
@@ -71,6 +131,7 @@ export default function Header({
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [transitionTarget, setTransitionTarget] = useState(null);
+  const [notificationCount, setNotificationCount] = useState(0);
   const searchParams = new URLSearchParams(location.search);
   const hasMovieTab = searchParams.has("tab");
   const tabParam = searchParams.get("tab") || "now";
@@ -80,14 +141,64 @@ export default function Header({
   const visibleNavItems = isAdminUser
     ? [...navItems, { to: "/admin", label: "Quản trị", id: "admin" }]
     : navItems;
+  const visibleNavGroups = isAdminUser
+    ? [
+        ...navGroups,
+        {
+          id: "admin",
+          label: "Admin",
+          title: "Khu quản trị",
+          description: "Theo dõi và vận hành dữ liệu CineSky.",
+          spotlight: "Dashboard, phim, booking và users",
+          items: [{ to: "/admin", label: "Quản trị", id: "admin" }],
+        },
+      ]
+    : navGroups;
   const movieDetailTab = isMovieDetail ? searchParams.get("tab") || "now" : null;
   const normalizedQuery = normalizeText(searchQuery).trim();
   const displayName = user?.name || user?.fullName || "User";
   const userInitial = displayName.trim().charAt(0).toUpperCase() || "U";
+  const membershipLabel =
+    typeof user?.membership === "string"
+      ? user.membership
+      : user?.membership?.tier || user?.membershipTier || "Member CineSky";
 
   useEffect(() => {
     setAvatarFailed(false);
   }, [user?.avatar]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadNotificationCount = async () => {
+      if (!isLoggedIn || !user?.id) {
+        setNotificationCount(0);
+        return;
+      }
+
+      try {
+        const payload = await getUnreadNotificationCount();
+
+        if (isMounted) {
+          setNotificationCount(Number(payload?.unreadCount || 0));
+        }
+      } catch {
+        if (isMounted) {
+          setNotificationCount(0);
+        }
+      }
+    };
+
+    loadNotificationCount();
+    const refreshTimer = window.setInterval(loadNotificationCount, 30000);
+    window.addEventListener("notifications:updated", loadNotificationCount);
+
+    return () => {
+      isMounted = false;
+      window.clearInterval(refreshTimer);
+      window.removeEventListener("notifications:updated", loadNotificationCount);
+    };
+  }, [isLoggedIn, user?.id]);
 
   useEffect(() => {
     let isMounted = true;
@@ -341,6 +452,26 @@ export default function Header({
     });
   };
 
+  const getNavItemActive = (item) => {
+    if (item.id === "home") {
+      return location.pathname === "/" && !hasMovieTab;
+    }
+
+    if (item.id === "now") {
+      return ((location.pathname === "/" && hasMovieTab && tabParam === "now") || movieDetailTab === "now");
+    }
+
+    if (item.id === "soon") {
+      return ((location.pathname === "/" && hasMovieTab && tabParam === "soon") || movieDetailTab === "soon");
+    }
+
+    if (item.id === "admin") {
+      return isAdminPage;
+    }
+
+    return location.pathname === item.to;
+  };
+
   const renderSearchPanel = () => {
     if (!isSuggestionVisible) {
       return null;
@@ -444,24 +575,53 @@ export default function Header({
               {userInitial}
             </div>
           )}
+          {notificationCount > 0 ? (
+            <span className="user-menu__badge">{notificationCount > 99 ? "99+" : notificationCount}</span>
+          ) : null}
         </button>
 
         {isUserMenuOpen ? (
           <div className="user-menu__panel">
-            <Link to="/profile" className="user-menu__item">
-              Hồ sơ cá nhân
-            </Link>
-            <Link to="/history" className="user-menu__item">
-              Lịch sử đặt vé
-            </Link>
-            <Link to="/profile#favorites" className="user-menu__item">
-              Phim yêu thích
-            </Link>
-            <Link to="/feedback" className="user-menu__item">
-              Gửi góp ý
-            </Link>
+            <div className="user-menu__profile-card">
+              {!avatarFailed && user?.avatar ? (
+                <img src={user.avatar} alt={displayName} />
+              ) : (
+                <div className="user-menu__profile-avatar">{userInitial}</div>
+              )}
+              <div>
+                <strong>{displayName}</strong>
+                <span>{isAdminUser ? "Admin CineSky" : membershipLabel}</span>
+              </div>
+            </div>
+
+            <div className="user-menu__section">
+              <Link to="/profile" className="user-menu__item">
+                <span className="user-menu__icon">U</span>
+                Hồ sơ cá nhân
+              </Link>
+              <Link to="/history" className="user-menu__item">
+                <span className="user-menu__icon">T</span>
+                Lịch sử đặt vé
+              </Link>
+              <Link to="/profile#favorites" className="user-menu__item">
+                <span className="user-menu__icon">★</span>
+                Phim yêu thích
+              </Link>
+            </div>
+
+            <div className="user-menu__section">
+              <Link to="/feedback" className="user-menu__item">
+                <span className="user-menu__icon">?</span>
+                Gửi góp ý
+              </Link>
+              <Link to="/notifications" className="user-menu__item user-menu__item--notify">
+                <span><span className="user-menu__icon">!</span>Thông báo</span>
+                {notificationCount > 0 ? <strong>{notificationCount > 99 ? "99+" : notificationCount}</strong> : null}
+              </Link>
+            </div>
             {isAdminUser ? <Link to="/admin" className="user-menu__item">Quản trị</Link> : null}
             <button type="button" className="user-menu__item user-menu__item--danger" onClick={handleLogoutClick}>
+              <span className="user-menu__icon">X</span>
               Đăng xuất
             </button>
           </div>
@@ -534,44 +694,77 @@ export default function Header({
       </div>
 
       <div className="movie-tabs-navigation">
-        {visibleNavItems.map((item) => {
-          let isActive = false;
+        {visibleNavGroups.map((group) => {
+          const isGroupActive = group.items.some(getNavItemActive);
+          const singleItem = group.items[0];
 
-          if (item.id === "home") {
-            isActive = location.pathname === "/" && !hasMovieTab;
-          } else if (item.id === "now") {
-            isActive =
-              ((location.pathname === "/" && hasMovieTab && tabParam === "now") || movieDetailTab === "now");
-          } else if (item.id === "soon") {
-            isActive =
-              ((location.pathname === "/" && hasMovieTab && tabParam === "soon") || movieDetailTab === "soon");
-          } else if (item.id === "admin") {
-            isActive = isAdminPage;
-          } else {
-            isActive = location.pathname === item.to;
-          }
-
-          return item.id === "home" || item.to.startsWith("/?") ? (
+          return group.items.length === 1 ? (
             <Link
-              key={item.id}
-              to={item.to}
-              className={(isActive ? "tab-btn active" : "tab-btn") + (item.id === "admin" ? " tab-btn--admin" : "")}
-              onClick={(event) => handleNavTransition(event, item.to)}
+              key={group.id}
+              to={singleItem.to}
+              className={(isGroupActive ? "tab-btn nav-direct active" : "tab-btn nav-direct") + (singleItem.id === "admin" ? " tab-btn--admin" : "")}
+              onClick={(event) => handleNavTransition(event, singleItem.to)}
             >
-              {item.label}
+              {group.label}
             </Link>
           ) : (
-            <NavLink
-              key={item.id}
-              to={item.to}
-              className={({ isActive: routeActive }) =>
-                (routeActive || isActive ? "tab-btn active" : "tab-btn") +
-                (item.id === "admin" ? " tab-btn--admin" : "")
-              }
-              onClick={(event) => handleNavTransition(event, item.to)}
-            >
-              {item.label}
-            </NavLink>
+            <div key={group.id} className={"nav-dropdown" + (isGroupActive ? " active" : "")}>
+              <button type="button" className="tab-btn nav-dropdown__trigger">
+                {group.label}
+                <span className="nav-dropdown__chevron" aria-hidden="true"></span>
+              </button>
+              <div className="nav-dropdown__panel">
+                <div className="nav-dropdown__intro">
+                  <strong>{group.title}</strong>
+                  <p>{group.description}</p>
+                </div>
+
+                <div className="nav-dropdown__content">
+                  <div className="nav-dropdown__items">
+                    {group.items.map((item) => {
+                      const isActive = getNavItemActive(item);
+                      const itemContent = (
+                        <>
+                          <span>{mobileNavIcons[item.id] || "•"}</span>
+                          <span>
+                            <strong>{item.label}</strong>
+                            <small>{navItemDescriptions[item.id]}</small>
+                          </span>
+                        </>
+                      );
+
+                      return item.id === "home" || item.to.startsWith("/?") ? (
+                        <Link
+                          key={item.id}
+                          to={item.to}
+                          className={(isActive ? "nav-dropdown__item active" : "nav-dropdown__item") + (item.id === "admin" ? " nav-dropdown__item--admin" : "")}
+                          onClick={(event) => handleNavTransition(event, item.to)}
+                        >
+                          {itemContent}
+                        </Link>
+                      ) : (
+                        <NavLink
+                          key={item.id}
+                          to={item.to}
+                          className={({ isActive: routeActive }) =>
+                            (routeActive || isActive ? "nav-dropdown__item active" : "nav-dropdown__item") +
+                            (item.id === "admin" ? " nav-dropdown__item--admin" : "")
+                          }
+                          onClick={(event) => handleNavTransition(event, item.to)}
+                        >
+                          {itemContent}
+                        </NavLink>
+                      );
+                    })}
+                  </div>
+
+                  <div className="nav-dropdown__spotlight">
+                    <span>{group.label}</span>
+                    <strong>{group.spotlight}</strong>
+                  </div>
+                </div>
+              </div>
+            </div>
           );
         })}
       </div>

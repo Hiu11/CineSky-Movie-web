@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import JsBarcode from "jsbarcode";
+import QRCode from "qrcode";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { cancelBooking, getBookingHistory } from "../../services/movieService";
-import { normalizeAuthUser } from "../../services/authService";
+import { normalizeAuthUser, updateStoredUser } from "../../services/authService";
 import "./BookingHistory.css";
 
 const getSessionUser = () => {
@@ -38,44 +40,124 @@ const formatBookedAt = (value) => {
   }).format(date);
 };
 
+const getMembershipTheme = (tier = "Member") =>
+  ({
+    Member: "member",
+    Silver: "silver",
+    Gold: "gold",
+    Diamond: "diamond",
+  }[tier] || "member");
+
+const TicketBarcode = ({ value }) => {
+  const svgRef = useRef(null);
+  const safeValue = String(value || "CSKTICKET").toUpperCase();
+
+  useEffect(() => {
+    if (!svgRef.current) {
+      return;
+    }
+
+    try {
+      JsBarcode(svgRef.current, safeValue, {
+        format: "CODE128",
+        displayValue: false,
+        width: 1.45,
+        height: 52,
+        margin: 0,
+        background: "transparent",
+        lineColor: "#f8fafc",
+      });
+    } catch {
+      svgRef.current.innerHTML = "";
+    }
+  }, [safeValue]);
+
+  return (
+    <div className="history-ticket__barcode" aria-label={`Mã vạch vé ${safeValue}`}>
+      <svg ref={svgRef} role="img" focusable="false"></svg>
+      <span>{safeValue}</span>
+    </div>
+  );
+};
+
+const TicketQrCode = ({ value }) => {
+  const canvasRef = useRef(null);
+  const safeValue = String(value || "CSKTICKET").toUpperCase();
+
+  useEffect(() => {
+    if (!canvasRef.current) {
+      return;
+    }
+
+    QRCode.toCanvas(canvasRef.current, safeValue, {
+      width: 82,
+      margin: 1,
+      color: {
+        dark: "#0f172a",
+        light: "#f8fafc",
+      },
+    }).catch(() => {});
+  }, [safeValue]);
+
+  return (
+    <div className="history-ticket__qr" aria-label={`QR check-in vé ${safeValue}`}>
+      <canvas ref={canvasRef} width="82" height="82"></canvas>
+    </div>
+  );
+};
+
 export default function BookingHistory() {
   const [user] = useState(() => getSessionUser());
   const [bookings, setBookings] = useState([]);
+  const [membership, setMembership] = useState(() => user?.membership || null);
   const [isLoading, setIsLoading] = useState(false);
   const [cancellingId, setCancellingId] = useState("");
+  const [pendingCancelBooking, setPendingCancelBooking] = useState(null);
+  const [historyMessage, setHistoryMessage] = useState("");
+
+  const loadHistory = useCallback(async ({ silent = false } = {}) => {
+    if (!user?.id && !user?.email) {
+      return;
+    }
+
+    try {
+      if (!silent) {
+        setIsLoading(true);
+      }
+      const history = await getBookingHistory({ limit: 20 });
+
+      setBookings(Array.isArray(history?.bookings) ? history.bookings : []);
+      setMembership(history?.membership || user?.membership || null);
+    } catch {
+      if (!silent) {
+        setBookings([]);
+      }
+    } finally {
+      if (!silent) {
+        setIsLoading(false);
+      }
+    }
+  }, [user]);
 
   useEffect(() => {
-    let isMounted = true;
+    loadHistory();
+  }, [loadHistory]);
 
-    const loadHistory = async () => {
-      if (!user?.id && !user?.email) {
-        return;
-      }
-
-      try {
-        setIsLoading(true);
-        const history = await getBookingHistory({ limit: 20 });
-
-        if (isMounted) {
-          setBookings(Array.isArray(history) ? history : []);
-        }
-      } catch {
-        if (isMounted) {
-          setBookings([]);
-        }
-      } finally {
-        if (isMounted) {
-          setIsLoading(false);
-        }
+  useEffect(() => {
+    const refreshWhenVisible = () => {
+      if (document.visibilityState === "visible") {
+        loadHistory({ silent: true });
       }
     };
 
-    loadHistory();
+    window.addEventListener("focus", refreshWhenVisible);
+    document.addEventListener("visibilitychange", refreshWhenVisible);
 
     return () => {
-      isMounted = false;
+      window.removeEventListener("focus", refreshWhenVisible);
+      document.removeEventListener("visibilitychange", refreshWhenVisible);
     };
-  }, [user]);
+  }, [loadHistory]);
 
   const totalSpent = useMemo(
     () =>
@@ -85,16 +167,28 @@ export default function BookingHistory() {
       ),
     [bookings]
   );
+  const currentMembership =
+    membership || { tier: "Member", points: 0, totalTickets: 0, nextTierPoints: 500, pointsToNextTier: 500 };
+  const progressMax = Math.max(Number(currentMembership.nextTierPoints || 500), 1);
+  const progressValue = Math.min(Math.round((Number(currentMembership.points || 0) / progressMax) * 100), 100);
 
   const handleCancelBooking = async (booking) => {
-    if (!booking?.id || booking.status === "cancelled") {
+    if (!booking?.id || booking.status === "cancelled" || booking.status === "used") {
       return;
     }
 
-    if (!window.confirm("Bạn chắc chắn muốn hủy vé này? Ghế đã đặt sẽ được mở lại.")) {
+    setPendingCancelBooking(booking);
+  };
+
+  const confirmCancelBooking = async () => {
+    const booking = pendingCancelBooking;
+
+    if (!booking?.id) {
+      setPendingCancelBooking(null);
       return;
     }
 
+    setPendingCancelBooking(null);
     try {
       setCancellingId(booking.id);
       const cancelledBooking = await cancelBooking(booking.id, {
@@ -104,8 +198,13 @@ export default function BookingHistory() {
       setBookings((current) =>
         current.map((item) => (item.id === booking.id ? { ...item, ...cancelledBooking } : item))
       );
+      if (cancelledBooking.membership) {
+        setMembership(cancelledBooking.membership);
+        updateStoredUser({ ...user, membership: cancelledBooking.membership });
+      }
+      setHistoryMessage("Đã hủy vé và mở lại ghế đã đặt.");
     } catch (error) {
-      window.alert(error.message || "Không thể hủy vé lúc này.");
+      setHistoryMessage(error.message || "Không thể hủy vé lúc này.");
     } finally {
       setCancellingId("");
     }
@@ -138,6 +237,21 @@ export default function BookingHistory() {
         </div>
 
         <div className="history-stats">
+          <div className={`history-membership history-membership--${getMembershipTheme(currentMembership.tier)}`}>
+            <div className="history-membership__top">
+              <span>CineSky</span>
+              <small>{currentMembership.tier || "Member"}</small>
+            </div>
+            <div className="history-membership__chip" aria-hidden="true"></div>
+            <strong>{Number(currentMembership.points || 0).toLocaleString("vi-VN")} pts</strong>
+            <small>{Number(currentMembership.totalTickets || 0)} vé đã tích lũy</small>
+            <i><b style={{ width: `${progressValue}%` }}></b></i>
+            <small>
+              {currentMembership.pointsToNextTier > 0
+                ? `Còn ${Number(currentMembership.pointsToNextTier).toLocaleString("vi-VN")} điểm để lên hạng tiếp theo`
+                : "Bạn đang ở hạng cao nhất"}
+            </small>
+          </div>
           <div>
             <strong>{bookings.length}</strong>
             <span>Lượt đặt vé</span>
@@ -150,6 +264,7 @@ export default function BookingHistory() {
       </section>
 
       {isLoading ? <p className="history-loading">Đang tải lịch sử đặt vé...</p> : null}
+      {historyMessage ? <p className="history-inline-message">{historyMessage}</p> : null}
 
       {!isLoading && bookings.length === 0 ? (
         <section className="history-empty-card">
@@ -167,6 +282,7 @@ export default function BookingHistory() {
         <section className="history-list">
           {bookings.map((booking) => {
             const bookedAt = formatBookedAt(booking.createdAt);
+            const ticketCode = booking.ticketCode || String(booking.id || "").toUpperCase();
 
             return (
               <article key={booking.id} className="history-card history-ticket">
@@ -174,6 +290,10 @@ export default function BookingHistory() {
                 <div className="history-ticket__cutout history-ticket__cutout--bottom"></div>
                 
                 <div className="history-ticket__main">
+                  <div className="history-ticket__pass-head">
+                    <span>CineSky Pass</span>
+                    <small>#{ticketCode}</small>
+                  </div>
                   <div className="history-ticket__header">
                     <strong>{booking.movieTitle || "Vé xem phim"}</strong>
                     <span>
@@ -181,6 +301,12 @@ export default function BookingHistory() {
                         "Suất chiếu đang cập nhật"}
                     </span>
                     <small>{bookedAt ? `Đặt lúc ${bookedAt}` : ""}</small>
+                  </div>
+
+                  <div className="history-ticket__route">
+                    <span>Booking confirmed</span>
+                    <i></i>
+                    <span>Enjoy your show</span>
                   </div>
 
                   <div className="history-ticket__meta">
@@ -206,20 +332,24 @@ export default function BookingHistory() {
                 <div className="history-ticket__divider"></div>
 
                 <div className="history-ticket__stub">
-                  <div className="history-ticket__barcode"></div>
+                  <span className="history-ticket__stub-label">E-Ticket</span>
+                  <TicketQrCode value={ticketCode} />
+                  <TicketBarcode value={ticketCode} />
                   
                   <span
                     className={
                       "history-ticket__status " +
                       (booking.status === "cancelled"
                         ? "history-ticket__status--cancelled"
+                        : booking.status === "used"
+                        ? "history-ticket__status--used"
                         : "history-ticket__status--active")
                     }
                   >
-                    {booking.status === "cancelled" ? "Đã hủy" : "Đã thanh toán"}
+                    {booking.status === "cancelled" ? "Đã hủy" : booking.status === "used" ? "Đã sử dụng" : "Đã thanh toán"}
                   </span>
 
-                  {booking.status === "cancelled" ? null : (
+                  {booking.status === "cancelled" || booking.status === "used" ? null : (
                     <div className="history-ticket__actions">
                       <button
                         type="button"
@@ -236,6 +366,18 @@ export default function BookingHistory() {
             );
           })}
         </section>
+      ) : null}
+      {pendingCancelBooking ? (
+        <div className="history-confirm-backdrop" role="presentation" onClick={() => setPendingCancelBooking(null)}>
+          <section className="history-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="history-confirm-title" onClick={(event) => event.stopPropagation()}>
+            <h2 id="history-confirm-title">Hủy vé</h2>
+            <p>Bạn chắc chắn muốn hủy vé này? Ghế đã đặt sẽ được mở lại.</p>
+            <div className="history-confirm-actions">
+              <button type="button" onClick={() => setPendingCancelBooking(null)}>Giữ vé</button>
+              <button type="button" onClick={confirmCancelBooking}>Hủy vé</button>
+            </div>
+          </section>
+        </div>
       ) : null}
     </main>
   );

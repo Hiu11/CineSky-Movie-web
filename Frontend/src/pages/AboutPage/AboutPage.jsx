@@ -21,17 +21,17 @@ const projectPoints = [
 ];
 
 const stats = [
-  { value: "Full-stack", label: "React 19 frontend kết nối Express API và MongoDB cho dữ liệu phim, user, booking, feedback." },
-  { value: "Auth", label: "Có đăng ký, đăng nhập email/password, Google/Facebook OAuth, JWT/session, profile và phân quyền user/admin." },
-  { value: "Booking", label: "Có chọn phim, chọn suất chiếu, tạo vé và xem lại lịch sử đặt vé." },
-  { value: "Admin", label: "Có dashboard quản lý phim, user, booking, thùng rác và overview." },
+  { value: "3", label: "cụm rạp CineSky tại TP.HCM, thuận tiện cho các lịch hẹn xem phim sau giờ học, sau giờ làm." },
+  { value: "6", label: "phòng chiếu với nhiều khung giờ trong ngày, ưu tiên suất tối và cuối tuần cho phim hot." },
+  { value: "1.432", label: "ghế ngồi được bố trí theo từng phòng, có khu vực ghế đôi và hàng giữa dễ quan sát." },
+  { value: "Online", label: "đặt vé, chọn ghế, xem lịch chiếu và nhận thông báo trước khi ra rạp." },
 ];
 
-const creatorHighlights = [
-  { label: "Người thực hiện", value: "Đỗ Trọng Hiếu" },
-  { label: "Định hướng", value: "Frontend Developer" },
-  { label: "Loại dự án", value: "Dự án cá nhân" },
-  { label: "Trạng thái", value: "Chạy local, chưa deploy" },
+const cinemaHighlights = [
+  { label: "Không gian", value: "Rạp phim đô thị" },
+  { label: "Trải nghiệm", value: "Đặt vé online" },
+  { label: "Dịch vụ", value: "Bắp nước & combo" },
+  { label: "Thành viên", value: "Silver / Gold / Diamond" },
 ];
 
 const journeySteps = [
@@ -200,18 +200,18 @@ const creatorTimeline = [
 const cinemaMission = [
   {
     number: "01",
-    title: "Tìm phim nhanh",
-    description: "Trang chủ, tab phim, search gợi ý và filter giúp người dùng tiếp cận đúng phim mình muốn xem.",
+    title: "Không gian xem phim dễ chịu",
+    description: "CineSky được hình dung như một cụm rạp đô thị có sảnh chờ gọn, phòng chiếu tối ưu tầm nhìn và âm thanh ổn định.",
   },
   {
     number: "02",
-    title: "Đặt vé có tài khoản",
-    description: "Luồng booking gắn với user để lưu lịch sử, kiểm tra lại vé và tạo cảm giác như sản phẩm thật.",
+    title: "Đặt vé trước khi đến rạp",
+    description: "Khách có thể xem lịch chiếu, chọn ghế, giữ vé và chuẩn bị combo trước để giảm thời gian chờ tại quầy.",
   },
   {
     number: "03",
-    title: "Quản trị nội dung",
-    description: "Admin quản lý phim, user, booking và thùng rác để dữ liệu phía người dùng có thể vận hành đồng bộ.",
+    title: "Ưu đãi theo hạng thành viên",
+    description: "Silver, Gold và Diamond có voucher riêng, ưu đãi sinh nhật và combo tiết kiệm cho các buổi xem phim thường xuyên.",
   },
 ];
 
@@ -240,15 +240,15 @@ const cinemaLocations = [
 ];
 
 const cinemaServices = [
-  "Trang chủ, phim đang chiếu, phim sắp chiếu, tìm kiếm gợi ý và lọc phim",
-  "Trang chi tiết phim có trailer, mô tả, thông tin nhanh, review/favorite",
-  "Đặt vé theo suất chiếu, chọn ghế, trang thành công và lịch sử booking",
-  "Đăng ký, đăng nhập, quên mật khẩu, profile và phân quyền user/admin",
-  "Admin Dashboard quản lý phim, user, booking, thùng rác và overview",
+  "Lịch chiếu theo từng cụm rạp, từng phòng chiếu và từng khung giờ trong ngày",
+  "Đặt vé online, chọn ghế trước và kiểm tra lại thông tin vé trước khi ra rạp",
+  "Combo bắp nước, ưu đãi hội viên và voucher theo từng chiến dịch phim",
+  "Tin tức điện ảnh, review nhanh, hậu trường và gợi ý phim sắp ra mắt",
+  "Kênh góp ý để khách phản hồi chất lượng dịch vụ, phòng chiếu và trải nghiệm đặt vé",
 ];
 
 const aboutNoteText =
-  "Trang About được chia rõ 2 phần: phía trên giới thiệu CineSky như một hệ thống rạp phim/website đặt vé để người dùng hiểu dịch vụ; phía dưới mới là phần nói về dự án cá nhân, công nghệ và người thực hiện. CineSky hiện là sản phẩm mô phỏng chạy local phục vụ học tập và portfolio, chưa deploy production, nhưng đã có auth, booking, history, feedback và admin dashboard; thanh toán và một số module vận hành vẫn ở mức mô phỏng.";
+  "Trang About được chia rõ 2 phần: Phần 1 giới thiệu CineSky như một rạp phim giả tưởng đang vận hành thật, tập trung vào trải nghiệm khách hàng, cụm rạp, dịch vụ và ưu đãi. Phần 2 mới nói về dự án cá nhân, công nghệ, người thực hiện và trạng thái triển khai.";
 
 const AboutPage = () => {
   const pageRef = useRef(null);
@@ -332,8 +332,8 @@ const AboutPage = () => {
 
       <section className="about-hero">
         <div className="about-hero__content">
-          <span className="about-kicker">Về rạp CineSky</span>
-          <h1>CineSky là website đặt vé xem phim full-stack với luồng tìm phim, đặt vé, tài khoản người dùng và admin dashboard.</h1>
+          <span className="about-kicker">Phần 1 • Về rạp CineSky</span>
+          <h1>CineSky là rạp phim đô thị dành cho những buổi hẹn xem phim gọn, nhanh và có nhiều ưu đãi thành viên.</h1>
 
           <div ref={noteRef} className={`about-project-note${isNoteLanding ? " about-project-note--landing" : ""}`}>
             <strong>Ghi chú nhanh</strong>
@@ -347,22 +347,12 @@ const AboutPage = () => {
             <Link to="/?tab=now" className="about-solid-link">
               Xem phim đang chiếu
             </Link>
-            <a
-              href="https://github.com/Hiu11"
-              target="_blank"
-              rel="noreferrer"
-              className="about-ghost-link"
-            >
-              GitHub cá nhân
-            </a>
-            <a
-              href="https://www.facebook.com/otronghieu.343642"
-              target="_blank"
-              rel="noreferrer"
-              className="about-ghost-link"
-            >
-              Facebook cá nhân
-            </a>
+            <Link to="/promotions" className="about-ghost-link">
+              Xem ưu đãi
+            </Link>
+            <Link to="/news" className="about-ghost-link">
+              Tin tức điện ảnh
+            </Link>
           </div>
         </div>
 
@@ -370,12 +360,12 @@ const AboutPage = () => {
           <div className="about-highlight-card">
             <span className="about-highlight-card__label">Trải nghiệm tại CineSky</span>
             <p>
-              CineSky hiện kết nối React frontend với Express API và MongoDB. Các phần auth, movie, booking, feedback,
-              review/favorite và admin được tổ chức thành một luồng sản phẩm mô phỏng khá đầy đủ cho portfolio.
+              Hãy tưởng tượng CineSky như một rạp phim thật: khách xem lịch chiếu online, chọn ghế trước, mua combo,
+              nhận ưu đãi theo hạng thành viên và đến rạp chỉ để tận hưởng bộ phim.
             </p>
 
             <div className="about-creator-facts">
-              {creatorHighlights.map((item) => (
+              {cinemaHighlights.map((item) => (
                 <div key={item.label} className="about-creator-fact">
                   <span>{item.label}</span>
                   <strong>{item.value}</strong>
@@ -399,7 +389,7 @@ const AboutPage = () => {
       <section className="about-cinema-block">
         <div className="about-section-heading about-section-heading--center">
           <span className="about-kicker">Hệ thống rạp</span>
-          <h2>CineSky mô phỏng một hệ thống đặt vé phim có dữ liệu rạp, phòng chiếu, suất chiếu và ghế.</h2>
+          <h2>Phần 1 chỉ nói về CineSky như một rạp phim thật: khách đến xem phim, đặt vé, mua combo và nhận ưu đãi.</h2>
         </div>
 
         <div className="about-mission-grid">
@@ -415,17 +405,17 @@ const AboutPage = () => {
 
       <section className="about-location-system">
         <div className="about-section-heading">
-          <span className="about-kicker">Cụm rạp mô phỏng</span>
+          <span className="about-kicker">Cụm rạp CineSky</span>
         </div>
 
         <div className="about-location-layout">
           <div className="about-cinema-summary" aria-label="Tổng quan cụm rạp CineSky">
-            <span className="about-highlight-card__label">Dữ liệu hiện tại</span>
+            <span className="about-highlight-card__label">Hệ thống rạp</span>
             <strong>3</strong>
-            <p>cụm rạp trong hệ thống booking</p>
+            <p>cụm rạp CineSky tại TP.HCM</p>
             <div>
               <span>6 phòng chiếu</span>
-              <span>1.432 ghế mô phỏng</span>
+              <span>1.432 ghế</span>
               <span>TP.HCM</span>
             </div>
           </div>

@@ -1,0 +1,416 @@
+.promotions-page {
+  position: relative;
+  min-height: 100vh;
+  padding: 132px 5% 90px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 16% 8%, rgba(250, 204, 21, 0.28), transparent 24%),
+    radial-gradient(circle at 84% 12%, rgba(56, 189, 248, 0.18), transparent 26%),
+    radial-gradient(circle at 52% 100%, rgba(148, 163, 184, 0.16), transparent 32%),
+    linear-gradient(180deg, #1a2233 0%, #121827 48%, #0b1020 100%);
+  overflow: hidden;
+}
+
+.promotions-page::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(120deg, transparent 0 42%, rgba(255, 255, 255, 0.08) 42% 43%, transparent 43% 100%),
+    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 96px);
+  opacity: 0.72;
+}
+
+.promotions-page + .complex-footer {
+  margin-top: 0;
+}
+
+.promotions-hero,
+.promotions-grid,
+.promotions-combos {
+  position: relative;
+  z-index: 1;
+  width: min(1180px, 100%);
+  margin-inline: auto;
+}
+
+.promotions-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 390px);
+  gap: 24px;
+  align-items: stretch;
+  margin-bottom: 30px;
+}
+
+.promotions-hero > div:first-child,
+.promotions-ticket,
+.promotion-card,
+.promotions-combos {
+  position: relative;
+  border: 1px solid rgba(247, 180, 0, 0.26);
+  border-radius: 8px;
+  background: rgba(16, 19, 31, 0.92);
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.42),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.promotions-hero > div:first-child {
+  padding: 34px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 12% 18%, rgba(250, 204, 21, 0.18), transparent 28%),
+    linear-gradient(135deg, rgba(18, 24, 38, 0.96), rgba(8, 11, 23, 0.98) 52%, rgba(15, 23, 42, 0.96)),
+    #080b16;
+}
+
+.promotions-lottie {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  pointer-events: none;
+  z-index: 2;
+  mix-blend-mode: screen;
+}
+
+.promotions-page span,
+.promotions-ticket small {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  min-height: 28px;
+  padding: 0 12px;
+  border: 1px solid rgba(247, 180, 0, 0.34);
+  background: rgba(6, 7, 12, 0.42);
+  color: #f7b400;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.promotions-hero h1 {
+  max-width: 780px;
+  margin: 18px 0 14px;
+  font-size: clamp(36px, 5vw, 66px);
+  line-height: 1.02;
+  text-shadow: 0 8px 28px rgba(0, 0, 0, 0.48);
+}
+
+.promotions-hero p,
+.promotion-card p,
+.promotions-combo-list p {
+  margin: 0;
+  color: rgba(241, 245, 249, 0.82);
+  line-height: 1.72;
+}
+
+.promotions-hero a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 48px;
+  margin-top: 22px;
+  padding: 0 22px;
+  border-radius: 6px;
+  background: #f7b400;
+  color: #111827;
+  font-weight: 900;
+  text-decoration: none;
+  box-shadow: 0 14px 28px rgba(247, 180, 0, 0.22);
+}
+
+.promotions-ticket {
+  display: grid;
+  align-content: center;
+  gap: 14px;
+  min-height: 280px;
+  padding: 32px 34px;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 0 50%, transparent 0 22px, rgba(255, 255, 255, 0.08) 23px 24px, transparent 25px),
+    radial-gradient(circle at 100% 50%, transparent 0 22px, rgba(255, 255, 255, 0.08) 23px 24px, transparent 25px),
+    linear-gradient(135deg, #f7b400 0 36%, #c2410c 36% 38%, #1f2937 38% 100%);
+  color: #111827;
+  transform-origin: 50% 55%;
+  animation:
+    promotion-ticket-float 2.4s ease-in-out infinite,
+    promotion-ticket-glow 1.8s ease-in-out infinite;
+}
+
+.promotions-ticket::before {
+  content: "";
+  position: absolute;
+  top: 18px;
+  bottom: 18px;
+  left: 38%;
+  width: 1px;
+  border-left: 2px dashed rgba(17, 24, 39, 0.36);
+}
+
+.promotions-ticket::after {
+  content: "";
+  position: absolute;
+  inset: -40% auto -40% -58%;
+  width: 46%;
+  transform: rotate(22deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.68), transparent);
+  animation: promotion-ticket-shine 1.65s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 3;
+}
+
+.promotions-ticket small {
+  border-color: rgba(17, 24, 39, 0.22);
+  background: rgba(17, 24, 39, 0.12);
+  color: #111827;
+  position: relative;
+  z-index: 4;
+}
+
+.promotions-ticket strong {
+  max-width: 260px;
+  color: #f8fafc;
+  font-size: clamp(48px, 8vw, 82px);
+  line-height: 0.9;
+  letter-spacing: -0.04em;
+  text-shadow:
+    0 2px 0 rgba(17, 24, 39, 0.92),
+    0 12px 30px rgba(0, 0, 0, 0.42);
+  position: relative;
+  z-index: 4;
+}
+
+.promotions-ticket p {
+  max-width: 250px;
+  color: rgba(248, 250, 252, 0.9);
+  font-weight: 800;
+  text-shadow: 0 4px 14px rgba(0, 0, 0, 0.42);
+  position: relative;
+  z-index: 4;
+}
+
+.promotions-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-bottom: 30px;
+}
+
+.promotion-card {
+  min-height: 300px;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  padding: 24px 24px 28px;
+  overflow: hidden;
+  background-color: var(--voucher-bg, #111827);
+  background-image:
+    linear-gradient(135deg, var(--voucher-glow, rgba(250, 204, 21, 0.14)), transparent 34%),
+    radial-gradient(circle, rgba(255, 255, 255, 0.18) 0 1px, transparent 1px),
+    repeating-linear-gradient(0deg, transparent 0 20px, rgba(255, 255, 255, 0.045) 20px 21px);
+  background-size: auto, 18px 18px, 100% 42px;
+  border-color: var(--voucher-border, rgba(247, 180, 0, 0.26));
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.42),
+    0 0 42px var(--voucher-shadow, rgba(250, 204, 21, 0.08)),
+    inset 0 0 0 7px var(--voucher-rail, rgba(255, 255, 255, 0.05)),
+    inset 0 -84px 0 rgba(2, 6, 23, 0.32);
+}
+
+.promotion-card::before,
+.promotion-card::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #070912;
+  transform: translateY(-50%);
+  z-index: 2;
+}
+
+.promotion-card::before {
+  left: -16px;
+}
+
+.promotion-card::after {
+  right: -16px;
+}
+
+.promotion-card span::after {
+  content: "";
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  top: 58%;
+  border-top: 2px dashed var(--voucher-dash, rgba(255, 255, 255, 0.22));
+}
+
+.promotion-card--silver {
+  --voucher-bg: #142033;
+  --voucher-border: rgba(203, 213, 225, 0.62);
+  --voucher-dash: rgba(203, 213, 225, 0.48);
+  --voucher-rail: rgba(226, 232, 240, 0.1);
+  --voucher-glow: rgba(226, 232, 240, 0.2);
+  --voucher-shadow: rgba(203, 213, 225, 0.14);
+}
+
+.promotion-card--gold {
+  --voucher-bg: #19120a;
+  --voucher-border: rgba(250, 204, 21, 0.72);
+  --voucher-dash: rgba(250, 204, 21, 0.54);
+  --voucher-rail: rgba(250, 204, 21, 0.13);
+  --voucher-glow: rgba(250, 204, 21, 0.28);
+  --voucher-shadow: rgba(250, 204, 21, 0.2);
+}
+
+.promotion-card--diamond {
+  --voucher-bg: #071827;
+  --voucher-border: rgba(56, 189, 248, 0.74);
+  --voucher-dash: rgba(56, 189, 248, 0.52);
+  --voucher-rail: rgba(56, 189, 248, 0.13);
+  --voucher-glow: rgba(56, 189, 248, 0.3);
+  --voucher-shadow: rgba(56, 189, 248, 0.2);
+}
+
+.promotion-card h2,
+.promotions-combos h2 {
+  margin: 12px 0 4px;
+  font-size: 27px;
+  line-height: 1.2;
+}
+
+.promotion-card strong {
+  display: block;
+  margin: 28px 0 10px;
+  width: fit-content;
+  padding: 8px 12px;
+  border: 2px solid var(--voucher-border, rgba(247, 180, 0, 0.42));
+  color: #fff;
+  font-size: 38px;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  transform: rotate(-2deg);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.03)),
+    rgba(2, 6, 23, 0.58);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  text-transform: uppercase;
+}
+
+.promotions-combos {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.7fr) 1fr;
+  gap: 22px;
+  padding: 28px;
+  background:
+    radial-gradient(circle at 100% 0%, rgba(56, 189, 248, 0.18), transparent 32%),
+    radial-gradient(circle at 0% 100%, rgba(250, 204, 21, 0.16), transparent 32%),
+    linear-gradient(90deg, rgba(8, 13, 28, 0.98), rgba(26, 16, 34, 0.96)),
+    #070a14;
+}
+
+.promotions-combo-list {
+  display: grid;
+  gap: 12px;
+}
+
+.promotions-combo-list p {
+  position: relative;
+  min-height: 62px;
+  padding: 16px 20px 16px 54px;
+  border: 1px solid rgba(250, 204, 21, 0.34);
+  border-radius: 6px;
+  background:
+    radial-gradient(circle at 0 50%, transparent 0 12px, rgba(255, 255, 255, 0.1) 13px 14px, transparent 15px),
+    linear-gradient(90deg, rgba(250, 204, 21, 0.16), rgba(56, 189, 248, 0.1)),
+    rgba(15, 23, 42, 0.72);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+.promotions-combo-list p::before {
+  content: "";
+  position: absolute;
+  top: 12px;
+  bottom: 12px;
+  left: 36px;
+  border-left: 2px dashed rgba(247, 180, 0, 0.34);
+}
+
+@keyframes promotion-ticket-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg) scale(1);
+  }
+
+  50% {
+    transform: translateY(-18px) rotate(2.4deg) scale(1.035);
+  }
+}
+
+@keyframes promotion-ticket-glow {
+  0%,
+  100% {
+    box-shadow:
+      0 24px 64px rgba(0, 0, 0, 0.42),
+      0 0 0 rgba(247, 180, 0, 0),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+  }
+
+  50% {
+    box-shadow:
+      0 30px 72px rgba(0, 0, 0, 0.5),
+      0 0 42px rgba(247, 180, 0, 0.36),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.14);
+  }
+}
+
+@keyframes promotion-ticket-shine {
+  0% {
+    left: -58%;
+    opacity: 0;
+  }
+
+  22% {
+    opacity: 1;
+  }
+
+  56% {
+    left: 126%;
+    opacity: 1;
+  }
+
+  100% {
+    left: 126%;
+    opacity: 0;
+  }
+}
+
+@media (max-width: 860px) {
+  .promotions-page {
+    padding: 112px 16px 72px;
+  }
+
+  .promotions-hero,
+  .promotions-grid,
+  .promotions-combos {
+    grid-template-columns: 1fr;
+  }
+
+  .promotions-ticket::before {
+    left: 50%;
+  }
+
+  .promotions-lottie {
+    opacity: 0.42;
+  }
+
+  .promotion-card {
+    min-height: 260px;
+  }
+}

@@ -1114,6 +1114,60 @@ const HomePage = ({ searchQuery = "" }) => {
           ))}
         </div>
       </section>
+      <section className="home-section home-membership-section" data-reveal>
+        <div className="home-section__header">
+          <div>
+            <h2>Các hạng thành viên</h2>
+          </div>
+          <Link to="/history" className="home-inline-link">
+            Xem hạng của tôi
+          </Link>
+        </div>
+
+        <div className="home-membership-promo">
+          <div className="home-membership-promo__copy">
+            <span className="home-kicker">CineSky Rewards</span>
+            <div className="home-membership-copy-stack">
+              <div className="home-membership-copy-panel home-membership-copy-panel--default">
+                <h3>Tích điểm sau mỗi vé, mở khóa ưu đãi theo hạng.</h3>
+                <p>100 điểm cho mỗi vé thành công. Điểm tự cập nhật trong lịch sử đặt vé.</p>
+              </div>
+              <div className="home-membership-copy-panel home-membership-copy-panel--member">
+                <h3>Member</h3>
+                <p>Bắt đầu từ 0 điểm. Mỗi vé thành công cộng 100 điểm vào tài khoản.</p>
+              </div>
+              <div className="home-membership-copy-panel home-membership-copy-panel--silver">
+                <h3>Silver</h3>
+                <p>Đạt 500 điểm để lên Silver và mở khóa các ưu đãi cơ bản.</p>
+              </div>
+              <div className="home-membership-copy-panel home-membership-copy-panel--gold">
+                <h3>Gold</h3>
+                <p>Đạt 1.500 điểm để lên Gold, dành cho khách đặt vé thường xuyên.</p>
+              </div>
+              <div className="home-membership-copy-panel home-membership-copy-panel--diamond">
+                <h3>Diamond</h3>
+                <p>Đạt 3.000 điểm để lên Diamond, hạng cao nhất của CineSky Rewards.</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="home-membership-promo__tiers" aria-label="Các hạng thành viên">
+            {["Member", "Silver", "Gold", "Diamond"].map((tier, index) => (
+              <article key={tier} className={`home-membership-tier home-membership-tier--${tier.toLowerCase()}`}>
+                <div className="home-membership-tier__shine"></div>
+                <div className="home-membership-tier__top">
+                  <span>CineSky</span>
+                  <small>{tier}</small>
+                </div>
+                <div className="home-membership-tier__chip" aria-hidden="true"></div>
+                <div className="home-membership-tier__body">
+                  <strong>{[0, 500, 1500, 3000][index].toLocaleString("vi-VN")}+</strong>
+                </div>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
 
       <section className="home-section home-section--insights">
         <div className="home-section__header">

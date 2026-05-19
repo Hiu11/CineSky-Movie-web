@@ -1,10 +1,11 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./MovieCard.css";
 
 const MovieCard = ({ movie }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const [notice, setNotice] = useState("");
   const currentTab = new URLSearchParams(location.search).get("tab") || "now";
   const isComingSoon = Array.isArray(movie.times) && movie.times.includes("Chưa có lịch");
 
@@ -20,7 +21,8 @@ const MovieCard = ({ movie }) => {
     event.stopPropagation();
 
     if (isComingSoon) {
-      alert("Phim chưa có lịch chiếu. Vui lòng quay lại sau.");
+      setNotice("Phim chưa có lịch chiếu. Vui lòng quay lại sau.");
+      window.setTimeout(() => setNotice(""), 2600);
       return;
     }
 
@@ -46,6 +48,7 @@ const MovieCard = ({ movie }) => {
         </div>
 
         <div className="movie-info">
+          {notice ? <div className="movie-card-notice">{notice}</div> : null}
           <h3 className="movie-title">{movie.title}</h3>
 
           <p className="movie-meta">

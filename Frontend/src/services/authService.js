@@ -49,6 +49,11 @@ export const normalizeAuthUser = (user) => ({
   birthday: user?.birthday || "",
   role: user?.role || "user",
   avatar: user?.avatar || "",
+  membership: {
+    tier: user?.membership?.tier || "Member",
+    points: Number(user?.membership?.points || 0),
+    totalTickets: Number(user?.membership?.totalTickets || 0),
+  },
 });
 
 const normalizeAuthSession = (payload = {}) => {

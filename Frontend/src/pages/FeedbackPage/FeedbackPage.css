@@ -580,6 +580,28 @@
   line-height: 1.7;
 }
 
+.feedback-review-card__reply {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 14px;
+  background: rgba(247, 180, 0, 0.12);
+  border: 1px solid rgba(247, 180, 0, 0.24);
+}
+
+.feedback-review-card__reply strong {
+  display: block;
+  margin-bottom: 6px;
+  color: #f7b400;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.feedback-review-card__reply p {
+  margin: 0;
+  color: #fff7d6;
+  line-height: 1.5;
+}
+
 @keyframes feedback-scroll-unroll {
   0% {
     opacity: 0;

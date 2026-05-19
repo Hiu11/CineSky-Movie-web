@@ -1,17 +1,21 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   createAdminMovie,
+  checkInAdminTicket,
   deleteAdminMovie,
   getAdminActivity,
   getAdminBookings,
   getAdminDeletedMovies,
+  getAdminFeedback,
   getAdminOverview,
   getAdminUsers,
+  lookupAdminTicket,
   getMovieById,
   getMovies,
   restoreAdminMovie,
   searchAdminTmdbMovie,
+  updateAdminFeedback,
   updateAdminUserRole,
   updateAdminMovie,
   uploadAdminPoster,
@@ -20,14 +24,77 @@ import "./AdminPage.css";
 
 const moduleConfig = [
   { key: "movies", label: "Phim", statusLabel: "Trạng thái" },
+  { key: "promotions", label: "Ưu đãi", statusLabel: "Hạng / loại" },
   { key: "showtimes", label: "Suất chiếu", statusLabel: "Giờ chiếu" },
   { key: "cinemas", label: "Rạp / phòng", statusLabel: "Trạng thái" },
   { key: "users", label: "Người dùng", statusLabel: "Vai trò" },
   { key: "orders", label: "Vé / đơn đặt", statusLabel: "Thanh toán" },
   { key: "payments", label: "Thanh toán", statusLabel: "Trạng thái" },
+  { key: "checkin", label: "Check-in vé", statusLabel: "Trạng thái" },
+  { key: "feedback", label: "Góp ý", statusLabel: "Xử lý" },
   { key: "trash", label: "Thùng rác", statusLabel: "Đã xóa" },
   { key: "activity", label: "Nhật ký", statusLabel: "Hành động" },
 ];
+
+
+const adminNavGroups = [
+  { key: "overview", label: "Tổng quan", items: [{ key: "dashboard", label: "Dashboard" }] },
+  {
+    key: "content",
+    label: "Nội dung",
+    items: [
+      { key: "movies", label: "Phim" },
+      { key: "promotions", label: "Ưu đãi" },
+      { key: "showtimes", label: "Suất chiếu" },
+    ],
+  },
+  {
+    key: "cinema",
+    label: "Vận hành rạp",
+    items: [
+      { key: "cinemas", label: "Rạp / phòng" },
+      { key: "checkin", label: "Check-in vé" },
+    ],
+  },
+  {
+    key: "business",
+    label: "Kinh doanh",
+    items: [
+      { key: "orders", label: "Vé / đơn đặt" },
+      { key: "payments", label: "Thanh toán" },
+    ],
+  },
+  {
+    key: "customers",
+    label: "Khách hàng",
+    items: [
+      { key: "users", label: "Người dùng" },
+      { key: "feedback", label: "Góp ý" },
+    ],
+  },
+  {
+    key: "system",
+    label: "Hệ thống",
+    items: [
+      { key: "trash", label: "Thùng rác" },
+      { key: "activity", label: "Nhật ký" },
+    ],
+  },
+];
+const ADMIN_MODULE_STORAGE_KEY = "cinesky-admin-active-module";
+const adminModuleKeys = new Set(["dashboard", ...moduleConfig.map((module) => module.key)]);
+
+const getInitialAdminModule = () => {
+  if (typeof window === "undefined") {
+    return "movies";
+  }
+
+  const urlModule = new URLSearchParams(window.location.search).get("module");
+  const storedModule = window.localStorage.getItem(ADMIN_MODULE_STORAGE_KEY);
+  const preferredModule = urlModule || storedModule;
+
+  return adminModuleKeys.has(preferredModule) ? preferredModule : "movies";
+};
 
 const initialData = {
   movies: [
@@ -35,6 +102,12 @@ const initialData = {
     { id: "MV002", name: "Mưa Đỏ", status: "Đang chiếu", time: "22/08/2025", value: "96 vé" },
     { id: "MV003", name: "Cải Mả", status: "Đang chiếu", time: "31/10/2025", value: "74 vé" },
     { id: "MV004", name: "Supergirl", status: "Sắp chiếu", time: "26/06/2026", value: "42 quan tâm" },
+  ],
+  promotions: [
+    { id: "PR001", name: "Silver Movie Night", status: "Silver", time: "Đang áp dụng", value: "Giảm 15%" },
+    { id: "PR002", name: "Gold Combo Plus", status: "Gold", time: "Đang áp dụng", value: "Combo 69K" },
+    { id: "PR003", name: "Diamond Premiere", status: "Diamond", time: "Theo tháng sinh nhật", value: "1 vé miễn phí" },
+    { id: "PR004", name: "Hot voucher online", status: "Voucher", time: "Hóa đơn từ 199K", value: "Giảm 30K" },
   ],
   showtimes: [
     { id: "ST001", name: "Song Hỷ - Phòng 01", status: "20:40", time: "05/05/2026", value: "83% ghế" },
@@ -61,6 +134,8 @@ const initialData = {
     { id: "PM002", name: "Momo - OD002", status: "Momo", time: "05/05/2026", value: "Đang xử lý" },
     { id: "PM003", name: "Tiền mặt - OD003", status: "Counter", time: "04/05/2026", value: "Đã hủy" },
   ],
+  checkin: [],
+  feedback: [],
   trash: [],
   activity: [
     { id: "LOG001", name: "Cập nhật phim Mưa Đỏ", status: "UPDATE", time: "05/05/2026", value: "Sửa lịch chiếu và trạng thái" },
@@ -79,7 +154,7 @@ const createEmptyAdminData = () =>
   );
 
 const readOnlyModules = new Set(
-  moduleConfig.map((module) => module.key).filter((key) => !["movies", "trash", "activity"].includes(key))
+  moduleConfig.map((module) => module.key).filter((key) => !["movies", "promotions", "trash", "activity"].includes(key))
 );
 const initialRevenueTrend = [0, 0, 0, 0, 0, 0, 0];
 const initialMovieRevenue = [];
@@ -87,6 +162,39 @@ const initialPaymentState = [
   { label: "Đã thanh toán", value: 0, color: "#f7b400" },
   { label: "Đã hủy", value: 0, color: "#ef4444" },
 ];
+
+const feedbackStatusOptions = [
+  { value: "new", label: "Mới" },
+  { value: "in_progress", label: "Đang xử lý" },
+  { value: "responded", label: "Đã phản hồi" },
+  { value: "closed", label: "Đã đóng" },
+];
+
+const feedbackCategoryOptions = [
+  { value: "booking_issue", label: "Lỗi đặt vé" },
+  { value: "payment", label: "Thanh toán" },
+  { value: "interface", label: "Giao diện" },
+  { value: "movie_showtime", label: "Phim / suất chiếu" },
+  { value: "cinema_service", label: "Dịch vụ rạp" },
+  { value: "other", label: "Khác" },
+];
+
+const feedbackPriorityOptions = [
+  { value: "low", label: "Thấp" },
+  { value: "medium", label: "Trung bình" },
+  { value: "high", label: "Cao" },
+  { value: "urgent", label: "Khẩn cấp" },
+];
+
+const feedbackDateFilters = {
+  all: 0,
+  today: 1,
+  week: 7,
+  month: 30,
+};
+
+const getOptionLabel = (options, value) => options.find((item) => item.value === value)?.label || value || "";
+const normalizeFeedbackRating = (rating) => Math.max(1, Math.min(5, Number(rating) || 1));
 
 const dateRangeLabels = {
   day: "hôm nay",
@@ -250,6 +358,20 @@ const mapDeletedMovieToRecord = (movie) => ({
   deletedMovie: movie,
 });
 
+const mapFeedbackToRecord = (feedback) => ({
+  ...feedback,
+  id: String(feedback.id),
+  name: `${feedback.fullName || "Người dùng"} - ${feedback.headline || "Góp ý"}`,
+  status: getOptionLabel(feedbackStatusOptions, feedback.status || "new"),
+  statusKey: feedback.status || "new",
+  statusTone: `feedback-${feedback.status || "new"}`,
+  categoryLabel: getOptionLabel(feedbackCategoryOptions, feedback.category || "other"),
+  priorityLabel: getOptionLabel(feedbackPriorityOptions, feedback.priority || "medium"),
+  time: formatAdminDateTime(feedback.createdAt),
+  rating: normalizeFeedbackRating(feedback.rating),
+  value: `${normalizeFeedbackRating(feedback.rating)}/5 - ${feedback.email || "No email"}`,
+});
+
 const mapMovieToForm = (movie) => ({
   id: String(movie.id || ""),
   title: movie.title || "",
@@ -360,21 +482,36 @@ const formatDetailValue = (value) => {
 };
 
 export default function AdminPage() {
-  const [activeModule, setActiveModule] = useState("movies");
+  const [activeModule, setActiveModule] = useState(getInitialAdminModule);
   const [records, setRecords] = useState(createEmptyAdminData);
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [feedbackRatingFilter, setFeedbackRatingFilter] = useState("all");
+  const [feedbackDateFilter, setFeedbackDateFilter] = useState("all");
   const [sortDir, setSortDir] = useState("asc");
   const [page, setPage] = useState(1);
   const [form, setForm] = useState(createMovieForm);
   const [editingId, setEditingId] = useState("");
   const [isCrudMode, setIsCrudMode] = useState(false);
   const [selectedDetail, setSelectedDetail] = useState(null);
+  const [feedbackDraft, setFeedbackDraft] = useState({
+    status: "new",
+    category: "other",
+    priority: "medium",
+    adminNote: "",
+    response: "",
+  });
   const [formError, setFormError] = useState("");
   const [dateRange, setDateRange] = useState("month");
   const [activePaymentLabel, setActivePaymentLabel] = useState("");
+  const confirmResolverRef = useRef(null);
+  const [confirmDialog, setConfirmDialog] = useState(null);
   const [isPosterUploading, setIsPosterUploading] = useState(false);
   const [isTmdbSyncing, setIsTmdbSyncing] = useState(false);
+  const [ticketSearch, setTicketSearch] = useState("");
+  const [ticketLookup, setTicketLookup] = useState(null);
+  const [ticketMessage, setTicketMessage] = useState("");
+  const [isTicketChecking, setIsTicketChecking] = useState(false);
   const [revenueTrend, setRevenueTrend] = useState(initialRevenueTrend);
   const [movieRevenue, setMovieRevenue] = useState(initialMovieRevenue);
   const [paymentState, setPaymentState] = useState(initialPaymentState);
@@ -386,7 +523,12 @@ export default function AdminPage() {
     { label: "Phim đang chiếu", value: "0", helper: "Catalog hoạt động" },
     { label: "Phim sắp chiếu", value: "0", helper: "Chuẩn bị ra mắt" },
     { label: "Đánh giá", value: "0", helper: "Review người dùng" },
+    { label: "Tổng góp ý", value: "0", helper: "Feedback đã nhận" },
+    { label: "Góp ý mới", value: "0", helper: "Chưa mở xử lý" },
+    { label: "Rating góp ý", value: "0", helper: "Điểm trung bình" },
+    { label: "Chưa xử lý", value: "0", helper: "Mới / đang xử lý" },
     { label: "Vé đã hủy", value: "0", helper: "Đơn không còn hiệu lực" },
+    { label: "Hạng VIP", value: "0", helper: "Gold / Diamond members" },
   ]);
 
   useEffect(() => {
@@ -408,7 +550,12 @@ export default function AdminPage() {
           { label: "Phim đang chiếu", value: String(overview.activeMovies || 0), helper: "Catalog hoạt động" },
           { label: "Phim sắp chiếu", value: String(overview.comingSoonMovies || 0), helper: "Chuẩn bị ra mắt" },
           { label: "Đánh giá", value: String(overview.reviews || 0), helper: `${overview.feedbackEntries || 0} phản hồi` },
+          { label: "Tổng góp ý", value: String(overview.feedbackEntries || 0), helper: "Feedback đã nhận" },
+          { label: "Góp ý mới", value: String(overview.newFeedbackEntries || 0), helper: "Chưa mở xử lý" },
+          { label: "Rating góp ý", value: String(overview.averageFeedbackRating || 0), helper: "Điểm trung bình /5" },
+          { label: "Chưa xử lý", value: String(overview.unresolvedFeedbackEntries || 0), helper: "Mới / đang xử lý" },
           { label: "Vé đã hủy", value: String(overview.cancelledBookings || 0), helper: `${overview.favorites || 0} lượt yêu thích` },
+          { label: "Hạng VIP", value: String(overview.premiumMembers || 0), helper: "Gold / Diamond members" },
         ]);
 
         const totalBookings = Number(overview.bookings || 0);
@@ -475,10 +622,11 @@ export default function AdminPage() {
 
     const loadAdminRecords = async () => {
       try {
-        const [users, bookings, activity] = await Promise.all([
+        const [users, bookings, activity, feedbackEntries] = await Promise.all([
           getAdminUsers({ limit: 20 }),
           getAdminBookings({ limit: 50 }),
           getAdminActivity({ limit: 50 }).catch(() => []),
+          getAdminFeedback({ limit: 100 }).catch(() => []),
         ]);
 
         if (!isMounted) {
@@ -490,7 +638,12 @@ export default function AdminPage() {
 
         setRevenueTrend(nextCharts.revenueTrend);
         setMovieRevenue(nextCharts.movieRevenue);
-        if ((!Array.isArray(users) || users.length === 0) && safeBookings.length === 0 && (!Array.isArray(activity) || activity.length === 0)) {
+        if (
+          (!Array.isArray(users) || users.length === 0) &&
+          safeBookings.length === 0 &&
+          (!Array.isArray(activity) || activity.length === 0) &&
+          (!Array.isArray(feedbackEntries) || feedbackEntries.length === 0)
+        ) {
           return;
         }
 
@@ -499,11 +652,12 @@ export default function AdminPage() {
           users: Array.isArray(users) && users.length > 0 ? users.map((user) => ({
             id: String(user.id),
             name: user.fullName || user.email,
-            status: user.role === "admin" ? "Quản trị" : "Thành viên",
+            status: user.role === "admin" ? "Quản trị" : user.membership?.tier || "Member",
             time: formatAdminDateTime(user.createdAt),
-            value: `${user.stats?.bookings || 0} orders • ${user.email || "No email"}`,
+            value: `${user.membership?.points || 0} điểm • ${user.stats?.bookings || 0} orders • ${user.email || "No email"}`,
             role: user.role || "user",
             email: user.email || "",
+            membership: user.membership || null,
           })) : current.users,
           showtimes: safeBookings.length > 0 ? safeBookings.map((booking, index) => ({
             id: `ST${String(index + 1).padStart(3, "0")}`,
@@ -529,17 +683,20 @@ export default function AdminPage() {
           orders: safeBookings.length > 0 ? safeBookings.map((booking) => ({
             id: String(booking.id),
             name: `${(booking.seatNumbers || []).length} vé ${booking.movieTitle || "Vé xem phim"}`,
-            status: booking.status === "cancelled" ? "Đã hủy" : "Đã thanh toán",
+            status: booking.status === "cancelled" ? "Đã hủy" : booking.status === "used" ? "Đã check-in" : "Đã thanh toán",
             time: [booking.displayDate, booking.displayTime].filter(Boolean).join(" • ") || formatAdminDateTime(booking.createdAt),
-            value: `${Number(booking.totalPrice || 0).toLocaleString("vi-VN")} VND • ${booking.customerName || booking.customerEmail || "Guest"}`,
+            value: `${booking.ticketCode || String(booking.id).slice(-6)} • ${Number(booking.totalPrice || 0).toLocaleString("vi-VN")} VND • ${booking.customerName || booking.customerEmail || "Guest"}`,
           })) : current.orders,
           payments: safeBookings.length > 0 ? safeBookings.map((booking) => ({
             id: String(booking.id),
-            name: `Đơn ${String(booking.id).slice(-6)}`,
-            status: booking.status === "cancelled" ? "Đã hủy" : "Đã thanh toán",
+            name: `Mock payment ${booking.ticketCode || String(booking.id).slice(-6)}`,
+            status: booking.status === "cancelled" ? "Đã hủy" : booking.paymentStatus === "mock_paid" ? "Mock paid" : "Đã thanh toán",
             time: formatAdminDateTime(booking.createdAt),
-            value: `${Number(booking.totalPrice || 0).toLocaleString("vi-VN")} VND`,
+            value: `${Number(booking.totalPrice || 0).toLocaleString("vi-VN")} VND • ${booking.paymentProvider || booking.paymentMethod || "Mock"}`,
           })) : current.payments,
+          feedback: Array.isArray(feedbackEntries) && feedbackEntries.length > 0
+            ? feedbackEntries.map(mapFeedbackToRecord)
+            : current.feedback,
           activity: Array.isArray(activity) && activity.length > 0
             ? activity.map((item) => ({
                 id: String(item.id),
@@ -562,6 +719,20 @@ export default function AdminPage() {
     };
   }, []);
 
+  useEffect(() => {
+    if (activeModule !== "feedback" || !selectedDetail) {
+      return;
+    }
+
+    setFeedbackDraft({
+      status: selectedDetail.statusKey || selectedDetail.status || "new",
+      category: selectedDetail.category || "other",
+      priority: selectedDetail.priority || "medium",
+      adminNote: "",
+      response: selectedDetail.response || "",
+    });
+  }, [activeModule, selectedDetail]);
+
   const activeConfig = moduleConfig.find((item) => item.key === activeModule) || moduleConfig[0];
   const activeRecords = useMemo(() => records[activeModule] || [], [activeModule, records]);
   const statuses = Array.from(new Set(activeRecords.map((item) => item.status)));
@@ -574,17 +745,30 @@ export default function AdminPage() {
         const matchesSearch =
           !normalizedSearch ||
           item.name.toLowerCase().includes(normalizedSearch) ||
-          item.id.toLowerCase().includes(normalizedSearch);
+          item.id.toLowerCase().includes(normalizedSearch) ||
+          String(item.email || "").toLowerCase().includes(normalizedSearch) ||
+          String(item.message || "").toLowerCase().includes(normalizedSearch) ||
+          String(item.value || "").toLowerCase().includes(normalizedSearch);
         const matchesStatus = statusFilter === "all" || item.status === statusFilter;
+        const matchesRating =
+          activeModule !== "feedback" ||
+          feedbackRatingFilter === "all" ||
+          Number(item.rating) === Number(feedbackRatingFilter);
+        const dateWindow = feedbackDateFilters[feedbackDateFilter] || 0;
+        const createdAt = item.createdAt ? new Date(item.createdAt).getTime() : 0;
+        const matchesDate =
+          activeModule !== "feedback" ||
+          !dateWindow ||
+          (createdAt && Date.now() - createdAt <= dateWindow * 86400000);
 
-        return matchesSearch && matchesStatus;
+        return matchesSearch && matchesStatus && matchesRating && matchesDate;
       })
       .sort((first, second) =>
         sortDir === "asc"
           ? first.name.localeCompare(second.name, "vi")
           : second.name.localeCompare(first.name, "vi")
       );
-  }, [activeRecords, search, sortDir, statusFilter]);
+  }, [activeModule, activeRecords, feedbackDateFilter, feedbackRatingFilter, search, sortDir, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredRecords.length / 5));
   const visibleRecords = filteredRecords.slice((page - 1) * 5, page * 5);
@@ -676,6 +860,21 @@ export default function AdminPage() {
     reader.readAsDataURL(file);
   };
 
+  const askConfirm = ({ title = "Xác nhận thao tác", message = "", confirmText = "Xác nhận" }) =>
+    new Promise((resolve) => {
+      confirmResolverRef.current = resolve;
+      setConfirmDialog({ title, message, confirmText });
+    });
+
+  const closeConfirm = (confirmed) => {
+    const resolver = confirmResolverRef.current;
+    confirmResolverRef.current = null;
+    setConfirmDialog(null);
+    if (resolver) {
+      resolver(Boolean(confirmed));
+    }
+  };
+
   const handleSyncTmdbMetadata = async () => {
     if (!form.title.trim()) {
       setFormError("Nhập tên phim trước khi đồng bộ TMDB.");
@@ -713,14 +912,26 @@ export default function AdminPage() {
   };
 
   const switchModule = (moduleKey) => {
-    setActiveModule(moduleKey);
+    const nextModule = adminModuleKeys.has(moduleKey) ? moduleKey : "movies";
+
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(ADMIN_MODULE_STORAGE_KEY, nextModule);
+      const nextUrl = new URL(window.location.href);
+      nextUrl.searchParams.set("module", nextModule);
+      window.history.replaceState(null, "", nextUrl);
+    }
+
+    setActiveModule(nextModule);
     setSearch("");
     setStatusFilter("all");
+    setFeedbackRatingFilter("all");
+    setFeedbackDateFilter("all");
     setPage(1);
-    setForm(moduleKey === "movies" ? createMovieForm() : createEmptyForm());
+    setForm(nextModule === "movies" ? createMovieForm() : createEmptyForm());
     setEditingId("");
     setIsCrudMode(false);
     setSelectedDetail(null);
+    setFeedbackDraft({ status: "new", category: "other", priority: "medium", adminNote: "", response: "" });
     setFormError("");
   };
 
@@ -768,9 +979,11 @@ export default function AdminPage() {
         return;
       }
 
-      const confirmed = window.confirm(
-        editingId ? "Xác nhận lưu thay đổi phim này?" : "Xác nhận thêm phim mới?"
-      );
+      const confirmed = await askConfirm({
+        title: editingId ? "Lưu thay đổi phim" : "Thêm phim mới",
+        message: editingId ? "Xác nhận lưu thay đổi phim này?" : "Xác nhận thêm phim mới?",
+        confirmText: editingId ? "Lưu thay đổi" : "Thêm phim",
+      });
 
       if (!confirmed) {
         return;
@@ -814,7 +1027,6 @@ export default function AdminPage() {
         setSelectedDetail(nextRecord);
         setFormError("");
       } catch (error) {
-        window.alert(error.message || "Khong the luu phim.");
         setFormError(error.message || "Không thể lưu phim.");
       }
 
@@ -876,7 +1088,11 @@ export default function AdminPage() {
       return;
     }
 
-    if (!window.confirm("Xác nhận xóa phim này? Thao tác này không thể hoàn tác.")) {
+    if (!(await askConfirm({
+      title: "Xóa phim",
+      message: "Xác nhận xóa phim này? Thao tác này không thể hoàn tác.",
+      confirmText: "Xóa phim",
+    }))) {
       return;
     }
 
@@ -925,7 +1141,11 @@ export default function AdminPage() {
       return;
     }
 
-    if (!window.confirm("Khôi phục phim này từ thùng rác?")) {
+    if (!(await askConfirm({
+      title: "Khôi phục phim",
+      message: "Khôi phục phim này từ thùng rác?",
+      confirmText: "Khôi phục",
+    }))) {
       return;
     }
 
@@ -954,7 +1174,15 @@ export default function AdminPage() {
   const handleUndoActivity = async (activity) => {
     const undo = activity.undo;
 
-    if (!undo || !window.confirm("Hoàn tác thao tác này?")) {
+    if (!undo) {
+      return;
+    }
+
+    if (!(await askConfirm({
+      title: "Hoàn tác",
+      message: "Hoàn tác thao tác này?",
+      confirmText: "Hoàn tác",
+    }))) {
       return;
     }
 
@@ -1017,7 +1245,11 @@ export default function AdminPage() {
   const handleToggleUserRole = async (record) => {
     const nextRole = record.role === "admin" ? "user" : "admin";
 
-    if (!window.confirm(`Đổi role của ${record.name} thành ${nextRole}?`)) {
+    if (!(await askConfirm({
+      title: "Đổi quyền người dùng",
+      message: `Đổi role của ${record.name} thành ${nextRole}?`,
+      confirmText: "Đổi role",
+    }))) {
       return;
     }
 
@@ -1051,6 +1283,147 @@ export default function AdminPage() {
     }
   };
 
+  const syncFeedbackRecord = (feedback) => {
+    const nextRecord = mapFeedbackToRecord(feedback);
+
+    setRecords((current) => ({
+      ...current,
+      feedback: current.feedback.map((item) => (item.id === nextRecord.id ? nextRecord : item)),
+    }));
+    setSelectedDetail(nextRecord);
+    return nextRecord;
+  };
+
+  const handleSaveFeedbackWork = async (mode = "save") => {
+    if (!selectedDetail?.id) {
+      return;
+    }
+
+    if (mode === "respond" && selectedDetail.response) {
+      setFormError("Phản hồi đã gửi cho khách thì không thể sửa.");
+      return;
+    }
+
+    const payload = {
+      status: feedbackDraft.status,
+      category: feedbackDraft.category,
+      priority: feedbackDraft.priority,
+    };
+
+    if (feedbackDraft.adminNote.trim()) {
+      payload.adminNote = feedbackDraft.adminNote.trim();
+    }
+
+    if (mode === "respond") {
+      if (!feedbackDraft.response.trim()) {
+        setFormError("Vui lòng nhập nội dung phản hồi.");
+        return;
+      }
+      payload.response = feedbackDraft.response.trim();
+    }
+
+    try {
+      const updatedFeedback = await updateAdminFeedback(selectedDetail.id, payload);
+      syncFeedbackRecord(updatedFeedback);
+      setFeedbackDraft((current) => ({ ...current, adminNote: "" }));
+      setFormError(mode === "respond" ? "Đã lưu phản hồi mock vào DB." : "Đã lưu cập nhật góp ý.");
+    } catch (error) {
+      setFormError(error.message || "Không thể cập nhật góp ý.");
+    }
+  };
+
+  const handleMarkFeedbackSpam = async (record) => {
+    if (!(await askConfirm({
+      title: "Đánh dấu spam",
+      message: "Đánh dấu góp ý này là spam?",
+      confirmText: "Đánh dấu spam",
+    }))) {
+      return;
+    }
+
+    try {
+      const updatedFeedback = await updateAdminFeedback(record.id, { isSpam: true, status: "closed" });
+      syncFeedbackRecord(updatedFeedback);
+      setFormError("Đã đánh dấu spam và đóng góp ý.");
+    } catch (error) {
+      setFormError(error.message || "Không thể đánh dấu spam.");
+    }
+  };
+
+  const syncCheckedInTicketRecord = (booking) => {
+    if (!booking?.id) {
+      return;
+    }
+
+    setRecords((current) => ({
+      ...current,
+      orders: current.orders.map((record) =>
+        record.id === String(booking.id)
+          ? {
+              ...record,
+              status: booking.status === "used" ? "Đã check-in" : record.status,
+              value: `${booking.ticketCode || String(booking.id).slice(-6)} • ${Number(booking.totalPrice || 0).toLocaleString("vi-VN")} VND • ${booking.customerName || booking.customerEmail || "Guest"}`,
+            }
+          : record
+      ),
+      checkin: [
+        {
+          id: booking.ticketCode || String(booking.id),
+          name: booking.movieTitle || "Vé xem phim",
+          status: booking.status === "used" ? "Đã check-in" : booking.status === "cancelled" ? "Đã hủy" : "Hợp lệ",
+          time: booking.checkedInAt ? formatAdminDateTime(booking.checkedInAt) : [booking.displayDate, booking.displayTime].filter(Boolean).join(" • "),
+          value: `${(booking.seatNumbers || []).join(", ")} • ${booking.customerName || booking.customerEmail || "Guest"}`,
+        },
+        ...current.checkin.filter((record) => record.id !== (booking.ticketCode || String(booking.id))),
+      ].slice(0, 20),
+    }));
+  };
+
+  const handleLookupTicket = async (event) => {
+    event?.preventDefault();
+    const code = ticketSearch.trim().toUpperCase();
+
+    if (!code) {
+      setTicketMessage("Nhập hoặc scan mã vé trước.");
+      return;
+    }
+
+    try {
+      setIsTicketChecking(true);
+      setTicketMessage("");
+      const booking = await lookupAdminTicket(code);
+      setTicketLookup(booking);
+      syncCheckedInTicketRecord(booking);
+      setTicketMessage("Đã tìm thấy vé.");
+    } catch (error) {
+      setTicketLookup(null);
+      setTicketMessage(error.message || "Không tìm thấy vé.");
+    } finally {
+      setIsTicketChecking(false);
+    }
+  };
+
+  const handleCheckInTicket = async () => {
+    const code = String(ticketLookup?.ticketCode || ticketSearch).trim().toUpperCase();
+
+    if (!code) {
+      return;
+    }
+
+    try {
+      setIsTicketChecking(true);
+      setTicketMessage("");
+      const booking = await checkInAdminTicket(code);
+      setTicketLookup(booking);
+      syncCheckedInTicketRecord(booking);
+      setTicketMessage(booking.status === "used" ? "Check-in vé thành công." : "Đã cập nhật vé.");
+    } catch (error) {
+      setTicketMessage(error.message || "Không thể check-in vé.");
+    } finally {
+      setIsTicketChecking(false);
+    }
+  };
+
   return (
     <main className="admin-page">
       <aside className="admin-sidebar">
@@ -1058,14 +1431,25 @@ export default function AdminPage() {
           CineSky
         </Link>
         <nav className="admin-nav">
-          <button className={activeModule === "dashboard" ? "active" : ""} onClick={() => switchModule("dashboard")}>
-            Tổng quan
-          </button>
-          {moduleConfig.map((module) => (
-            <button key={module.key} className={activeModule === module.key ? "active" : ""} onClick={() => switchModule(module.key)}>
-              {module.label}
-            </button>
-          ))}
+          {adminNavGroups.map((group) => {
+            const isGroupActive = group.items.some((item) => item.key === activeModule);
+
+            return (
+              <details key={group.key} className={"admin-nav-group" + (isGroupActive ? " is-active" : "")} open={isGroupActive}>
+                <summary>
+                  <span>{group.label}</span>
+                  <i aria-hidden="true"></i>
+                </summary>
+                <div className="admin-nav-group__items">
+                  {group.items.map((item) => (
+                    <button key={item.key} className={activeModule === item.key ? "active" : ""} onClick={() => switchModule(item.key)}>
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </details>
+            );
+          })}
         </nav>
       </aside>
 
@@ -1083,7 +1467,69 @@ export default function AdminPage() {
           </select>
         </header>
 
-        {activeModule === "dashboard" ? (
+        {activeModule === "checkin" ? (
+          <div className="admin-checkin-grid">
+            <section className="admin-panel admin-checkin-card">
+              <span>Ticket gate</span>
+              <h2>Scan / nhập mã vé</h2>
+              <form onSubmit={handleLookupTicket} className="admin-checkin-form">
+                <input
+                  value={ticketSearch}
+                  onChange={(event) => setTicketSearch(event.target.value.toUpperCase())}
+                  placeholder="VD: CSK01ABC234DE"
+                />
+                <button type="submit" disabled={isTicketChecking}>
+                  {isTicketChecking ? "Đang kiểm tra..." : "Tra vé"}
+                </button>
+              </form>
+              {ticketMessage ? <p className="admin-checkin-message">{ticketMessage}</p> : null}
+            </section>
+
+            <section className="admin-panel admin-checkin-result">
+              {ticketLookup ? (
+                <>
+                  <div className="admin-checkin-result__head">
+                    <div>
+                      <span>{ticketLookup.ticketCode}</span>
+                      <h2>{ticketLookup.movieTitle || "Vé xem phim"}</h2>
+                    </div>
+                    <strong className={`admin-checkin-status admin-checkin-status--${ticketLookup.status}`}>
+                      {ticketLookup.status === "used" ? "Đã check-in" : ticketLookup.status === "cancelled" ? "Đã hủy" : "Hợp lệ"}
+                    </strong>
+                  </div>
+                  <div className="admin-checkin-meta">
+                    <div>
+                      <small>Suất chiếu</small>
+                      <strong>{[ticketLookup.displayDate, ticketLookup.displayTime].filter(Boolean).join(" • ") || "Chưa có lịch"}</strong>
+                    </div>
+                    <div>
+                      <small>Phòng / ghế</small>
+                      <strong>{ticketLookup.roomName || "Phòng chiếu"} • {(ticketLookup.seatNumbers || []).join(", ")}</strong>
+                    </div>
+                    <div>
+                      <small>Khách hàng</small>
+                      <strong>{ticketLookup.customerName || ticketLookup.customerEmail || "Guest"}</strong>
+                    </div>
+                    <div>
+                      <small>Thanh toán</small>
+                      <strong>{Number(ticketLookup.totalPrice || 0).toLocaleString("vi-VN")} VND • {ticketLookup.paymentProvider || ticketLookup.paymentMethod || "Mock payment"}</strong>
+                    </div>
+                  </div>
+                  <button
+                    className="admin-checkin-confirm"
+                    type="button"
+                    onClick={handleCheckInTicket}
+                    disabled={isTicketChecking || ticketLookup.status === "cancelled" || ticketLookup.status === "used"}
+                  >
+                    {ticketLookup.status === "used" ? "Vé đã sử dụng" : "Xác nhận check-in"}
+                  </button>
+                </>
+              ) : (
+                <p className="admin-checkin-empty">Thông tin vé sẽ hiện ở đây sau khi tra mã.</p>
+              )}
+            </section>
+          </div>
+        ) : activeModule === "dashboard" ? (
           <div className="admin-dashboard">
             <div className="admin-stat-grid">
               {dashboardStats.map((item) => (
@@ -1182,6 +1628,22 @@ export default function AdminPage() {
                     <option key={status} value={status}>{status}</option>
                   ))}
                 </select>
+                {activeModule === "feedback" ? (
+                  <>
+                    <select value={feedbackRatingFilter} onChange={(event) => { setFeedbackRatingFilter(event.target.value); setPage(1); }}>
+                      <option value="all">Tất cả rating</option>
+                      {[5, 4, 3, 2, 1].map((rating) => (
+                        <option key={rating} value={rating}>{rating} sao</option>
+                      ))}
+                    </select>
+                    <select value={feedbackDateFilter} onChange={(event) => { setFeedbackDateFilter(event.target.value); setPage(1); }}>
+                      <option value="all">Mọi ngày gửi</option>
+                      <option value="today">Hôm nay</option>
+                      <option value="week">7 ngày</option>
+                      <option value="month">30 ngày</option>
+                    </select>
+                  </>
+                ) : null}
                 <button onClick={() => setSortDir((current) => (current === "asc" ? "desc" : "asc"))}>
                   Sắp xếp {sortDir === "asc" ? "A-Z" : "Z-A"}
                 </button>
@@ -1209,7 +1671,7 @@ export default function AdminPage() {
                       <tr key={record.id}>
                         <td>{record.id}</td>
                         <td>{record.name}</td>
-                        <td><span className="admin-status">{record.status}</span></td>
+                        <td><span className={`admin-status ${record.statusTone ? `admin-status--${record.statusTone}` : ""}`}>{record.status}</span></td>
                         <td>{record.time}</td>
                         <td>{record.value}</td>
                         <td>
@@ -1226,7 +1688,12 @@ export default function AdminPage() {
                                 {record.role === "admin" ? "Chuyển thành user" : "Cấp admin"}
                               </button>
                             ) : null}
-                            {activeModule !== "trash" && activeModule !== "activity" ? (
+                            {activeModule === "feedback" ? (
+                              <>
+                                <button onClick={() => handleMarkFeedbackSpam(record)}>Spam</button>
+                              </>
+                            ) : null}
+                            {activeModule !== "trash" && activeModule !== "activity" && activeModule !== "feedback" ? (
                               <>
                                 {activeModule !== "users" ? <button onClick={() => handleEdit(record)}>Sửa</button> : null}
                                 {activeModule !== "users" ? <button onClick={() => handleDelete(record.id)}>Xóa</button> : null}
@@ -1249,7 +1716,7 @@ export default function AdminPage() {
             ) : null}
 
             <aside className="admin-side-panels">
-              {activeModule !== "trash" && activeModule !== "activity" ? (
+              {activeModule !== "trash" && activeModule !== "activity" && activeModule !== "feedback" ? (
               <form className="admin-panel admin-form" onSubmit={handleSubmit}>
                 <div className="admin-form-head">
                   <div>
@@ -1368,7 +1835,57 @@ export default function AdminPage() {
               {!isCrudMode ? (
               <article className="admin-panel admin-detail">
                 <h2>Chi tiết</h2>
-                {selectedDetail ? (
+                {activeModule === "feedback" && selectedDetail ? (
+                  <div className="admin-feedback-detail">
+                    <div className="admin-feedback-meta">
+                      <strong>{selectedDetail.fullName}</strong>
+                      <span>{selectedDetail.email}</span>
+                      <span>{normalizeFeedbackRating(selectedDetail.rating)}/5 sao • {selectedDetail.time}</span>
+                    </div>
+                    <p className="admin-feedback-message">{selectedDetail.message}</p>
+                    <div className="admin-form-grid">
+                      <select value={feedbackDraft.status} onChange={(event) => setFeedbackDraft({ ...feedbackDraft, status: event.target.value })}>
+                        {feedbackStatusOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                      </select>
+                      <select value={feedbackDraft.category} onChange={(event) => setFeedbackDraft({ ...feedbackDraft, category: event.target.value })}>
+                        {feedbackCategoryOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                      </select>
+                      <select value={feedbackDraft.priority} onChange={(event) => setFeedbackDraft({ ...feedbackDraft, priority: event.target.value })}>
+                        {feedbackPriorityOptions.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+                      </select>
+                    </div>
+                    <textarea
+                      value={feedbackDraft.adminNote}
+                      onChange={(event) => setFeedbackDraft({ ...feedbackDraft, adminNote: event.target.value })}
+                      placeholder="Admin note nội bộ"
+                      aria-label="Admin note nội bộ"
+                      rows="3"
+                      className="admin-feedback-note"
+                    />
+                    <textarea
+                      value={feedbackDraft.response}
+                      onChange={(event) => setFeedbackDraft({ ...feedbackDraft, response: event.target.value })}
+                      placeholder="Phản hồi cho khách"
+                      aria-label="Phản hồi cho khách"
+                      rows="4"
+                      className="admin-feedback-response"
+                      disabled={Boolean(selectedDetail.response)}
+                    />
+                    <div className="admin-form-actions">
+                      <button type="button" onClick={() => handleSaveFeedbackWork("save")}>Lưu note/trạng thái</button>
+                      <button type="button" onClick={() => handleSaveFeedbackWork("respond")} disabled={Boolean(selectedDetail.response)}>
+                        {selectedDetail.response ? "Đã gửi phản hồi" : "Gửi phản hồi"}
+                      </button>
+                    </div>
+                    <dl>
+                      <div><dt>Category</dt><dd>{selectedDetail.categoryLabel}</dd></div>
+                      <div><dt>Priority</dt><dd>{selectedDetail.priorityLabel}</dd></div>
+                      <div className="admin-feedback-response-box"><dt>Phản hồi cho khách</dt><dd>{selectedDetail.response || "Chưa phản hồi"}</dd></div>
+                      <div className="admin-feedback-note-box"><dt>Admin note</dt><dd>{(selectedDetail.adminNotes || []).map((item) => `${item.adminName || "Admin"}: ${item.note}`).join(" | ") || "Chưa có"}</dd></div>
+                      <div><dt>Lịch sử</dt><dd>{(selectedDetail.history || []).map((item) => `${formatAdminDateTime(item.createdAt)}: ${item.action} ${item.to || ""}`).join(" | ") || "Chưa có"}</dd></div>
+                    </dl>
+                  </div>
+                ) : selectedDetail ? (
                   <dl>
                     {Object.entries(selectedDetail).map(([key, value]) => (
                       <div key={key}>
@@ -1386,6 +1903,22 @@ export default function AdminPage() {
           </div>
         )}
       </section>
+      {confirmDialog ? (
+        <div className="admin-confirm-backdrop" role="presentation" onClick={() => closeConfirm(false)}>
+          <section className="admin-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="admin-confirm-title" onClick={(event) => event.stopPropagation()}>
+            <h2 id="admin-confirm-title">{confirmDialog.title}</h2>
+            <p>{confirmDialog.message}</p>
+            <div className="admin-confirm-actions">
+              <button type="button" onClick={() => closeConfirm(false)}>Hủy</button>
+              <button type="button" onClick={() => closeConfirm(true)}>{confirmDialog.confirmText}</button>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </main>
   );
 }
+
+
+
+

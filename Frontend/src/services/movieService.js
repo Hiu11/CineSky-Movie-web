@@ -90,7 +90,11 @@ export const getBookingHistory = async (params = {}) => {
       headers: getAuthHeaders(),
     }
   );
-  return parseResponse(response);
+  const historyPayload = await parseResponse(response);
+  return {
+    bookings: Array.isArray(historyPayload) ? historyPayload : historyPayload?.bookings || [],
+    membership: historyPayload?.membership || null,
+  };
 };
 
 export const createBooking = async (payload) => {
@@ -189,6 +193,21 @@ export const getAdminUsers = async (params = {}) => requestAdmin("users", params
 
 export const getAdminBookings = async (params = {}) => requestAdmin("bookings", params);
 
+export const getAdminFeedback = async (params = {}) => requestAdmin("feedback", params);
+
+export const lookupAdminTicket = async (ticketCode) => requestAdmin("tickets/lookup", { ticketCode });
+
+export const checkInAdminTicket = async (ticketCode) => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/tickets/${encodeURIComponent(ticketCode)}/check-in`, {
+    method: "PATCH",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+  });
+
+  return parseResponse(response);
+};
+
 export const getAdminDeletedMovies = async () => requestAdmin("movies/trash");
 
 export const searchAdminTmdbMovie = async (query) => requestAdmin("tmdb/search", { query });
@@ -200,6 +219,27 @@ export const updateAdminUserRole = async (userId, role) => {
       "Content-Type": "application/json",
     }),
     body: JSON.stringify({ role }),
+  });
+
+  return parseResponse(response);
+};
+
+export const updateAdminFeedback = async (feedbackId, payload) => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/feedback/${feedbackId}`, {
+    method: "PATCH",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    body: JSON.stringify(payload),
+  });
+
+  return parseResponse(response);
+};
+
+export const deleteAdminFeedback = async (feedbackId) => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/feedback/${feedbackId}`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
   });
 
   return parseResponse(response);

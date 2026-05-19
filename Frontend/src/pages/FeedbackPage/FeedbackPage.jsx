@@ -363,6 +363,12 @@ const FeedbackPage = ({ showToast }) => {
                   </p>
                   <h4>{review.headline}</h4>
                   <p className="feedback-review-card__message">{review.message}</p>
+                  {review.response ? (
+                    <div className="feedback-review-card__reply">
+                      <strong>CineSky phản hồi</strong>
+                      <p>{review.response}</p>
+                    </div>
+                  ) : null}
                 </article>
               ))
             ) : (

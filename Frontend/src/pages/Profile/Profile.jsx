@@ -89,7 +89,11 @@ export default function Profile() {
         });
 
         if (isMounted) {
-          setRecentBookings(Array.isArray(history) ? history : []);
+          setRecentBookings(Array.isArray(history?.bookings) ? history.bookings : []);
+          if (history?.membership) {
+            const normalizedUser = updateStoredUser({ ...user, membership: history.membership });
+            setUser(normalizedUser);
+          }
         }
       } catch {
         if (isMounted) {
@@ -103,7 +107,7 @@ export default function Profile() {
     return () => {
       isMounted = false;
     };
-  }, [user]);
+  }, [user?.id, user?.email]);
 
   useEffect(() => {
     let isMounted = true;
@@ -131,18 +135,20 @@ export default function Profile() {
     return () => {
       isMounted = false;
     };
-  }, [user]);
+  }, [user?.id, user?.email]);
 
   const profileStats = useMemo(
     () => [
       { label: "Lượt đặt vé", value: recentBookings.length || 0 },
+      { label: "Hạng thành viên", value: user?.membership?.tier || "Member" },
+      { label: "Điểm tích lũy", value: Number(user?.membership?.points || 0).toLocaleString("vi-VN") },
       {
         label: "Đã chi tiêu",
         value: `${recentBookings.reduce((sum, booking) => sum + Number(booking.totalPrice || 0), 0).toLocaleString("vi-VN")} VND`,
       },
       { label: "Kênh tài khoản", value: user?.email ? "Tài khoản email" : "Hồ sơ khách" },
     ],
-    [recentBookings, user?.email]
+    [recentBookings, user?.email, user?.membership]
   );
 
   const handleFieldChange = (event) => {
@@ -456,4 +462,3 @@ export default function Profile() {
     </main>
   );
 }
-

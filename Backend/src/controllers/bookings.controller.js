@@ -4,9 +4,60 @@ import MovieModel from "../models/movie.model.js";
 import ShowtimeModel from "../models/showtime.model.js";
 
 const formatMovieId = (legacyId) => String(legacyId).padStart(3, "0");
+const POINTS_PER_TICKET = 100;
+
+const buildTicketCode = (bookingId) =>
+  `CSK${String(bookingId || "")
+    .replace(/[^a-z0-9]/gi, "")
+    .slice(-10)
+    .toUpperCase()
+    .padStart(10, "0")}`;
+
+const getMembershipTier = (points = 0) => {
+  if (points >= 3000) return "Diamond";
+  if (points >= 1500) return "Gold";
+  if (points >= 500) return "Silver";
+  return "Member";
+};
+
+const serializeMembership = (membership = {}) => {
+  const points = Number(membership.points || 0);
+  const totalTickets = Number(membership.totalTickets || 0);
+  const tier = membership.tier || getMembershipTier(points);
+  const nextTierPoints = tier === "Member" ? 500 : tier === "Silver" ? 1500 : tier === "Gold" ? 3000 : points;
+
+  return {
+    tier,
+    points,
+    totalTickets,
+    nextTierPoints,
+    pointsToNextTier: Math.max(nextTierPoints - points, 0),
+  };
+};
+
+const updateUserMembership = async (user, ticketDelta = 0) => {
+  if (!user?._id || !ticketDelta) {
+    return serializeMembership(user?.membership);
+  }
+
+  const currentTickets = Number(user.membership?.totalTickets || 0);
+  const currentPoints = Number(user.membership?.points || 0);
+  const totalTickets = Math.max(currentTickets + ticketDelta, 0);
+  const points = Math.max(currentPoints + ticketDelta * POINTS_PER_TICKET, 0);
+
+  user.membership = {
+    points,
+    totalTickets,
+    tier: getMembershipTier(points),
+  };
+  await user.save();
+
+  return serializeMembership(user.membership);
+};
 
 const serializeBooking = (booking, showtime, movie) => ({
   id: booking._id,
+  ticketCode: booking.ticketCode || buildTicketCode(booking._id),
   movieId: formatMovieId(booking.movieLegacyId),
   movieTitle: movie?.title || "",
   showtimeId: booking.showtimeId,
@@ -18,7 +69,12 @@ const serializeBooking = (booking, showtime, movie) => ({
   displayTime: showtime?.displayTime || "",
   seatNumbers: booking.seatNumbers,
   totalPrice: booking.totalPrice,
+  paymentMethod: booking.paymentMethod || "bank",
+  paymentProvider: booking.paymentProvider || "",
+  paymentStatus: booking.paymentStatus || "mock_paid",
+  paymentReference: booking.paymentReference || "",
   status: booking.status,
+  checkedInAt: booking.checkedInAt,
   cancelledAt: booking.cancelledAt,
   cancelReason: booking.cancelReason || "",
   customerName: booking.customerName,
@@ -76,13 +132,16 @@ const bookingsController = {
       return res.status(200).send({
         success: true,
         message: "Get booking history successfully",
-        data: bookings.map((booking) =>
-          serializeBooking(
-            booking,
-            showtimeMap.get(String(booking.showtimeId)),
-            movieMap.get(Number(booking.movieLegacyId))
-          )
-        ),
+        data: {
+          bookings: bookings.map((booking) =>
+            serializeBooking(
+              booking,
+              showtimeMap.get(String(booking.showtimeId)),
+              movieMap.get(Number(booking.movieLegacyId))
+            )
+          ),
+          membership: serializeMembership(req.authUser?.membership),
+        },
       });
     } catch (error) {
       return res.status(500).send({
@@ -101,6 +160,9 @@ const bookingsController = {
         screeningDate = "",
         screeningDateLabel = "",
         seatNumbers = [],
+        paymentMethod = "bank",
+        paymentProvider = "",
+        paymentReference = "",
       } = req.body || {};
       const authUser = req.authUser;
       const customerName = String(authUser?.fullName || "").trim();
@@ -191,10 +253,13 @@ const bookingsController = {
       }
 
       let booking;
+      const bookingId = new mongoose.Types.ObjectId();
 
       try {
         booking = await BookingModel.create({
+          _id: bookingId,
           userId: authUser._id,
+          ticketCode: buildTicketCode(bookingId),
           customerName,
           customerEmail,
           movieLegacyId: legacyId,
@@ -203,6 +268,10 @@ const bookingsController = {
           screeningDateLabel: String(screeningDateLabel).trim(),
           seatNumbers,
           totalPrice: reservedShowtime.price * seatNumbers.length,
+          paymentMethod,
+          paymentProvider: String(paymentProvider).trim(),
+          paymentReference: String(paymentReference).trim(),
+          paymentStatus: "mock_paid",
         });
       } catch (error) {
         await ShowtimeModel.updateOne(
@@ -212,10 +281,15 @@ const bookingsController = {
         throw error;
       }
 
+      const membership = await updateUserMembership(authUser, seatNumbers.length);
+
       return res.status(201).send({
         success: true,
         message: "Create booking successfully",
-        data: serializeBooking(booking, reservedShowtime, movie),
+        data: {
+          ...serializeBooking(booking, reservedShowtime, movie),
+          membership,
+        },
       });
     } catch (error) {
       return res.status(500).send({
@@ -276,22 +350,35 @@ const bookingsController = {
         });
       }
 
+      if (booking.status === "used") {
+        return res.status(409).send({
+          success: false,
+          message: "Checked-in tickets cannot be cancelled",
+          data: serializeBooking(booking, showtime, movie),
+        });
+      }
+
       await ShowtimeModel.updateOne(
         { _id: booking.showtimeId },
         { $pull: { bookedSeats: { $in: booking.seatNumbers } } }
       );
 
       booking.status = "cancelled";
+      booking.paymentStatus = "refunded";
       booking.cancelledAt = new Date();
       booking.cancelReason = String(reason).trim();
       await booking.save();
+      const membership = await updateUserMembership(req.authUser, -booking.seatNumbers.length);
 
       const updatedShowtime = await ShowtimeModel.findById(booking.showtimeId);
 
       return res.status(200).send({
         success: true,
         message: "Cancel booking successfully",
-        data: serializeBooking(booking, updatedShowtime, movie),
+        data: {
+          ...serializeBooking(booking, updatedShowtime, movie),
+          membership,
+        },
       });
     } catch (error) {
       return res.status(500).send({

@@ -7,6 +7,7 @@ import BookingModel from "../models/booking.model.js";
 import FavoriteModel from "../models/favorite.model.js";
 import FeedbackModel from "../models/feedback.model.js";
 import MovieModel from "../models/movie.model.js";
+import NotificationModel from "../models/notification.model.js";
 import ReviewModel from "../models/review.model.js";
 import ShowtimeModel from "../models/showtime.model.js";
 import UserModel from "../models/user.model.js";
@@ -17,6 +18,24 @@ const __dirname = path.dirname(__filename);
 const posterUploadDir = path.resolve(__dirname, "../../../Frontend/public/assets/images");
 const adminSeedMoviesPath = path.resolve(__dirname, "../data/adminSeedMovies.js");
 
+const getMembershipTier = (points = 0) => {
+  if (points >= 3000) return "Diamond";
+  if (points >= 1500) return "Gold";
+  if (points >= 500) return "Silver";
+  return "Member";
+};
+
+const serializeMembership = (membership = {}) => {
+  const points = Number(membership.points || 0);
+  const tier = membership.tier || getMembershipTier(points);
+
+  return {
+    tier,
+    points,
+    totalTickets: Number(membership.totalTickets || 0),
+  };
+};
+
 const serializeAdminUser = (user, stats = {}) => ({
   id: user._id,
   fullName: user.fullName,
@@ -26,6 +45,7 @@ const serializeAdminUser = (user, stats = {}) => ({
   birthday: user.birthday || "",
   role: user.role,
   avatar: user.avatar || "",
+  membership: serializeMembership(user.membership),
   createdAt: user.createdAt,
   stats: {
     bookings: stats.bookings || 0,
@@ -37,6 +57,7 @@ const serializeAdminUser = (user, stats = {}) => ({
 
 const serializeBooking = (booking, movie, showtime) => ({
   id: booking._id,
+  ticketCode: booking.ticketCode || buildTicketCode(booking._id),
   userId: booking.userId || null,
   movieId: formatMovieId(booking.movieLegacyId),
   movieTitle: movie?.title || "",
@@ -49,7 +70,12 @@ const serializeBooking = (booking, movie, showtime) => ({
   roomName: showtime?.roomName || "",
   seatNumbers: booking.seatNumbers || [],
   totalPrice: booking.totalPrice || 0,
+  paymentMethod: booking.paymentMethod || "bank",
+  paymentProvider: booking.paymentProvider || "",
+  paymentStatus: booking.paymentStatus || "mock_paid",
+  paymentReference: booking.paymentReference || "",
   status: booking.status,
+  checkedInAt: booking.checkedInAt,
   cancelledAt: booking.cancelledAt,
   cancelReason: booking.cancelReason || "",
   customerName: booking.customerName || "",
@@ -76,12 +102,67 @@ const serializeFavorite = (favorite, movie) => ({
 
 const serializeFeedback = (feedback) => ({
   id: feedback._id,
-  rating: feedback.rating,
+  userId: feedback.userId || null,
+  fullName: feedback.fullName || "",
+  email: feedback.email || "",
+  rating: Math.max(1, Math.min(5, Number(feedback.rating) || 1)),
   headline: feedback.headline || "",
   message: feedback.message,
   source: feedback.source || "",
+  status: feedback.status || "new",
+  category: feedback.category || "other",
+  priority: feedback.priority || "medium",
+  adminNotes: feedback.adminNotes || [],
+  response: feedback.response || "",
+  respondedAt: feedback.respondedAt || null,
+  isSpam: Boolean(feedback.isSpam),
+  isHidden: Boolean(feedback.isHidden),
+  history: feedback.history || [],
+  updatedAt: feedback.updatedAt,
   createdAt: feedback.createdAt,
 });
+
+const feedbackStatusLabels = {
+  new: "Mới",
+  in_progress: "Đang xử lý",
+  responded: "Đã phản hồi",
+  closed: "Đã đóng",
+};
+
+const feedbackCategories = new Set([
+  "booking_issue",
+  "payment",
+  "interface",
+  "movie_showtime",
+  "cinema_service",
+  "other",
+]);
+
+const feedbackPriorities = new Set(["low", "medium", "high", "urgent"]);
+const feedbackStatuses = new Set(["new", "in_progress", "responded", "closed"]);
+
+const notifyFeedbackResponse = async (feedback) => {
+  if (!feedback?.response) {
+    return null;
+  }
+
+  const targetUser = feedback.userId
+    ? await UserModel.findById(feedback.userId)
+    : await UserModel.findOne({ email: feedback.email });
+
+  if (!targetUser) {
+    return null;
+  }
+
+  return NotificationModel.create({
+    userId: targetUser._id,
+    title: "CineSky đã phản hồi góp ý của bạn",
+    message: feedback.response,
+    type: "feedback_response",
+    sourceId: feedback._id,
+    sourceType: "feedback",
+  });
+};
 
 const slugify = (value = "") =>
   String(value)
@@ -177,6 +258,24 @@ const normalizeYoutubeTrailer = (value = "") => {
 };
 
 const formatMovieId = (legacyId) => String(legacyId).padStart(3, "0");
+
+const buildTicketCode = (bookingId) =>
+  `CSK${String(bookingId || "")
+    .replace(/[^a-z0-9]/gi, "")
+    .slice(-10)
+    .toUpperCase()
+    .padStart(10, "0")}`;
+
+const findBookingByTicketLookup = (lookupValue) => {
+  const ticketCode = String(lookupValue || "").trim().toUpperCase();
+  const filters = [{ ticketCode }];
+
+  if (mongoose.Types.ObjectId.isValid(ticketCode)) {
+    filters.push({ _id: ticketCode });
+  }
+
+  return BookingModel.findOne({ $or: filters });
+};
 
 const serializeAdminActivity = (activity) => ({
   id: activity._id,
@@ -481,12 +580,16 @@ const adminController = {
         showtimes,
         bookedRevenue,
         cancelledBookings,
+        premiumMembers,
+        newFeedbackEntries,
+        unresolvedFeedbackEntries,
+        feedbackRatingStats,
       ] = await Promise.all([
         UserModel.countDocuments(),
         BookingModel.countDocuments(),
         ReviewModel.countDocuments(),
         FavoriteModel.countDocuments(),
-        FeedbackModel.countDocuments(),
+        FeedbackModel.countDocuments({ isHidden: { $ne: true } }),
         MovieModel.countDocuments({ deletedAt: null, status: "now-showing" }),
         MovieModel.countDocuments({ deletedAt: null, status: "coming-soon" }),
         ShowtimeModel.countDocuments(),
@@ -495,6 +598,18 @@ const adminController = {
           { $group: { _id: null, total: { $sum: "$totalPrice" } } },
         ]),
         BookingModel.countDocuments({ status: "cancelled" }),
+        UserModel.countDocuments({
+          $or: [
+            { "membership.tier": { $in: ["Gold", "Diamond"] } },
+            { "membership.points": { $gte: 1500 } },
+          ],
+        }),
+        FeedbackModel.countDocuments({ isHidden: { $ne: true }, status: "new" }),
+        FeedbackModel.countDocuments({ isHidden: { $ne: true }, status: { $in: ["new", "in_progress"] } }),
+        FeedbackModel.aggregate([
+          { $match: { isHidden: { $ne: true } } },
+          { $group: { _id: null, averageRating: { $avg: "$rating" } } },
+        ]),
       ]);
 
       return res.status(200).send({
@@ -510,6 +625,10 @@ const adminController = {
           comingSoonMovies,
           showtimes,
           cancelledBookings,
+          premiumMembers,
+          newFeedbackEntries,
+          unresolvedFeedbackEntries,
+          averageFeedbackRating: Number((feedbackRatingStats?.[0]?.averageRating || 0).toFixed(1)),
           revenue: bookedRevenue?.[0]?.total || 0,
         },
       });
@@ -1004,6 +1123,273 @@ const adminController = {
         success: true,
         message: "Update user role successfully",
         data: serializeAdminUser(user),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  getFeedbackEntries: async (req, res) => {
+    try {
+      const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 100);
+      const filter = { isHidden: { $ne: true } };
+      const search = String(req.query.search || "").trim();
+
+      if (feedbackStatuses.has(req.query.status)) {
+        filter.status = req.query.status;
+      }
+
+      if (feedbackCategories.has(req.query.category)) {
+        filter.category = req.query.category;
+      }
+
+      if (feedbackPriorities.has(req.query.priority)) {
+        filter.priority = req.query.priority;
+      }
+
+      if (req.query.rating) {
+        filter.rating = Number(req.query.rating);
+      }
+
+      if (req.query.from || req.query.to) {
+        filter.createdAt = {};
+        if (req.query.from) filter.createdAt.$gte = new Date(req.query.from);
+        if (req.query.to) filter.createdAt.$lte = new Date(req.query.to);
+      }
+
+      if (search) {
+        filter.$or = [
+          { fullName: { $regex: search, $options: "i" } },
+          { email: { $regex: search, $options: "i" } },
+          { headline: { $regex: search, $options: "i" } },
+          { message: { $regex: search, $options: "i" } },
+        ];
+      }
+
+      const entries = await FeedbackModel.find(filter).sort({ createdAt: -1 }).limit(limit);
+
+      return res.status(200).send({
+        success: true,
+        message: "Get admin feedback successfully",
+        data: entries.map(serializeFeedback),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  updateFeedbackEntry: async (req, res) => {
+    try {
+      const feedback = await FeedbackModel.findById(req.params.feedbackId);
+
+      if (!feedback || feedback.isHidden) {
+        return res.status(404).send({ success: false, message: "Feedback not found", data: null });
+      }
+
+      const adminName = req.authUser?.fullName || req.authUser?.email || "";
+      const history = [];
+      const { status, category, priority, adminNote, response, isSpam } = req.body || {};
+      const previousResponse = feedback.response || "";
+
+      if (status && feedbackStatuses.has(status) && feedback.status !== status) {
+        history.push({ action: "status", from: feedbackStatusLabels[feedback.status] || feedback.status, to: feedbackStatusLabels[status] || status });
+        feedback.status = status;
+      }
+
+      if (category && feedbackCategories.has(category)) {
+        feedback.category = category;
+      }
+
+      if (priority && feedbackPriorities.has(priority)) {
+        feedback.priority = priority;
+      }
+
+      if (typeof response === "string") {
+        const nextResponse = response.trim();
+
+        if (previousResponse && nextResponse !== previousResponse) {
+          return res.status(400).send({
+            success: false,
+            message: "Admin response cannot be edited after it is sent",
+            data: null,
+          });
+        }
+
+        feedback.response = nextResponse;
+        if (feedback.response) {
+          feedback.status = "responded";
+          feedback.respondedAt = new Date();
+          history.push({ action: "response", from: "", to: "Đã lưu phản hồi" });
+        }
+      }
+
+      if (typeof isSpam === "boolean") {
+        feedback.isSpam = isSpam;
+        if (isSpam) {
+          feedback.status = "closed";
+          history.push({ action: "spam", from: "", to: "Đánh dấu spam" });
+        }
+      }
+
+      const trimmedNote = String(adminNote || "").trim();
+      if (trimmedNote) {
+        feedback.adminNotes.push({
+          note: trimmedNote,
+          adminId: req.authUser?._id || null,
+          adminName,
+        });
+        history.push({ action: "note", from: "", to: "Thêm admin note" });
+      }
+
+      history.forEach((item) => {
+        feedback.history.push({
+          ...item,
+          adminId: req.authUser?._id || null,
+          adminName,
+        });
+      });
+
+      await feedback.save();
+      if (typeof response === "string" && feedback.response && feedback.response !== previousResponse) {
+        await notifyFeedbackResponse(feedback);
+      }
+      createAdminActivity(req, {
+        action: "FEEDBACK",
+        name: feedback.headline || feedback.fullName,
+        value: `${feedbackStatusLabels[feedback.status] || feedback.status} - ${feedback.email}`,
+        entityType: "feedback",
+        entityId: feedback._id,
+      });
+
+      return res.status(200).send({
+        success: true,
+        message: "Update feedback successfully",
+        data: serializeFeedback(feedback),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  deleteFeedbackEntry: async (req, res) => {
+    return res.status(403).send({
+      success: false,
+      message: "Feedback deletion is disabled",
+      data: null,
+    });
+  },
+
+  lookupTicket: async (req, res) => {
+    try {
+      const ticketCode = String(req.query?.ticketCode || "").trim().toUpperCase();
+
+      if (!ticketCode) {
+        return res.status(400).send({
+          success: false,
+          message: "ticketCode is required",
+          data: null,
+        });
+      }
+
+      const booking = await findBookingByTicketLookup(ticketCode);
+
+      if (!booking) {
+        return res.status(404).send({
+          success: false,
+          message: "Ticket not found",
+          data: null,
+        });
+      }
+
+      const [movie, showtime] = await Promise.all([
+        MovieModel.findOne({ legacyId: booking.movieLegacyId }),
+        ShowtimeModel.findById(booking.showtimeId),
+      ]);
+
+      return res.status(200).send({
+        success: true,
+        message: "Lookup ticket successfully",
+        data: serializeBooking(booking, movie, showtime),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  checkInTicket: async (req, res) => {
+    try {
+      const ticketCode = String(req.params?.ticketCode || "").trim().toUpperCase();
+
+      if (!ticketCode) {
+        return res.status(400).send({
+          success: false,
+          message: "ticketCode is required",
+          data: null,
+        });
+      }
+
+      const booking = await findBookingByTicketLookup(ticketCode);
+
+      if (!booking) {
+        return res.status(404).send({
+          success: false,
+          message: "Ticket not found",
+          data: null,
+        });
+      }
+
+      const [movie, showtime] = await Promise.all([
+        MovieModel.findOne({ legacyId: booking.movieLegacyId }),
+        ShowtimeModel.findById(booking.showtimeId),
+      ]);
+
+      if (booking.status === "cancelled") {
+        return res.status(409).send({
+          success: false,
+          message: "Cancelled tickets cannot be checked in",
+          data: serializeBooking(booking, movie, showtime),
+        });
+      }
+
+      if (booking.status === "used") {
+        return res.status(200).send({
+          success: true,
+          message: "Ticket was already checked in",
+          data: serializeBooking(booking, movie, showtime),
+        });
+      }
+
+      booking.status = "used";
+      booking.checkedInAt = new Date();
+      await booking.save();
+      createAdminActivity(req, {
+        action: "CHECK_IN",
+        name: booking.ticketCode,
+        value: `${movie?.title || "Ticket"} - ${booking.seatNumbers.join(", ")}`,
+        entityType: "booking",
+        entityId: booking._id,
+      });
+
+      return res.status(200).send({
+        success: true,
+        message: "Check-in ticket successfully",
+        data: serializeBooking(booking, movie, showtime),
       });
     } catch (error) {
       return res.status(500).send({

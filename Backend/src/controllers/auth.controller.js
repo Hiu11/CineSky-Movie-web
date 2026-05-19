@@ -114,6 +114,11 @@ const serializeUser = (user) => ({
   birthday: user.birthday || "",
   role: user.role,
   avatar: user.avatar || "",
+  membership: {
+    tier: user.membership?.tier || "Member",
+    points: Number(user.membership?.points || 0),
+    totalTickets: Number(user.membership?.totalTickets || 0),
+  },
 });
 
 const createAccessToken = (user) =>

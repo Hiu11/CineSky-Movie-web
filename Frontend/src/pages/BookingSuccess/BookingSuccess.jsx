@@ -41,16 +41,25 @@ export default function BookingSuccess() {
       <div className="booking-success__glow booking-success__glow--1"></div>
       <div className="booking-success__glow booking-success__glow--2"></div>
 
-      <section className="booking-success-ticket">
+      <section className="booking-success-layout">
         <div className="booking-success-ticket__header">
           <span className="booking-success-kicker">Thành công</span>
           <h1>Vé của bạn đã sẵn sàng!</h1>
           <p>
-            Cảm ơn bạn đã lựa chọn CineSky. Dưới đây là thông tin vé điện tử của bạn. 
+            Cảm ơn bạn đã lựa chọn CineSky. Vé điện tử của bạn nằm bên phải. 
             Vui lòng xuất trình mã vạch này tại quầy để nhận vé cứng.
           </p>
+          <div className="booking-success-actions">
+            <Link to="/history" className="booking-success-secondary">
+              Xem lịch sử vé
+            </Link>
+            <Link to="/?tab=now" className="booking-success-primary">
+              Tiếp tục khám phá phim
+            </Link>
+          </div>
         </div>
 
+        <section className="booking-success-ticket">
         <div className="booking-success-ticket__body">
           <div className="booking-success-ticket__cutout booking-success-ticket__cutout--left"></div>
           <div className="booking-success-ticket__cutout booking-success-ticket__cutout--right"></div>
@@ -98,14 +107,7 @@ export default function BookingSuccess() {
           </div>
         </div>
 
-        <div className="booking-success-actions">
-          <Link to="/history" className="booking-success-secondary">
-            Xem lịch sử vé
-          </Link>
-          <Link to="/?tab=now" className="booking-success-primary">
-            Tiếp tục khám phá phim
-          </Link>
-        </div>
+        </section>
       </section>
     </main>
   );

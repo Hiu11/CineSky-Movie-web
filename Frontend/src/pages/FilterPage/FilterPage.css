@@ -188,15 +188,15 @@
 }
 
 .filter-dropdowns-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(2, 260px);
   gap: 16px;
-  width: 100%;
+  width: fit-content;
+  max-width: 100%;
 }
 
 .filter-dropdown-container {
-  flex: 0 0 auto;
-  width: clamp(200px, 30%, 280px);
+  width: 260px;
   display: grid;
   gap: 8px;
 }
@@ -703,6 +703,15 @@
 
   .filter-control {
     border-radius: 20px;
+  }
+
+  .filter-dropdowns-grid {
+    width: 100%;
+    grid-template-columns: 1fr;
+  }
+
+  .filter-dropdown-container {
+    width: 100%;
   }
 
   .custom-select {
