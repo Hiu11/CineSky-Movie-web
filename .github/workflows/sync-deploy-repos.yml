@@ -1,0 +1,54 @@
+name: Sync deploy repositories
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "Frontend/**"
+      - "Backend/**"
+      - ".github/workflows/sync-deploy-repos.yml"
+  workflow_dispatch:
+
+jobs:
+  sync-frontend:
+    name: Sync Frontend to CineSky-FE
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main repository
+        uses: actions/checkout@v4
+
+      - name: Push Frontend folder
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.SYNC_TOKEN }}
+        with:
+          source-directory: Frontend
+          destination-github-username: Hiu11
+          destination-repository-name: CineSky-FE
+          user-email: github-actions[bot]@users.noreply.github.com
+          user-name: github-actions[bot]
+          target-branch: main
+          commit-message: Sync Frontend from CineSky-Movie-web
+
+  sync-backend:
+    name: Sync Backend to CineSky-BE
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout main repository
+        uses: actions/checkout@v4
+
+      - name: Push Backend folder
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          API_TOKEN_GITHUB: ${{ secrets.SYNC_TOKEN }}
+        with:
+          source-directory: Backend
+          destination-github-username: Hiu11
+          destination-repository-name: CineSky-BE
+          user-email: github-actions[bot]@users.noreply.github.com
+          user-name: github-actions[bot]
+          target-branch: main
+          commit-message: Sync Backend from CineSky-Movie-web

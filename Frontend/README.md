@@ -1,49 +1,44 @@
 # CineSky Frontend
 
-Frontend của CineSky Movie Web, xây bằng React 19, React Router 6 và React Scripts. Phần này phụ trách giao diện xem phim, tìm kiếm/lọc phim, chi tiết phim, đăng nhập/đăng ký, profile, đặt vé, lịch sử booking, feedback và Admin Dashboard.
+Frontend cua CineSky Movie Web, xay bang React 19, React Router 6 va Vite.
 
-## Cài đặt
+## Cai dat
 
 ```bash
 npm install
 copy .env.example .env
 ```
 
-Nếu dùng macOS/Linux:
+Neu dung macOS/Linux:
 
 ```bash
 cp .env.example .env
 ```
 
-`Frontend/.env` cần trỏ tới backend:
+`Frontend/.env` can tro toi backend:
 
 ```env
-REACT_APP_API_BASE_URL=http://localhost:5000
+VITE_API_BASE_URL=http://localhost:5000
 ```
 
-## Chạy local
-
-```bash
-npm start
-```
-
-Hoặc:
+## Chay local
 
 ```bash
 npm run dev
 ```
 
-Ứng dụng chạy tại `http://localhost:3000`.
+Ung dung chay tai `http://localhost:3000`.
 
-## Script chính
+## Script chinh
 
-- `npm start`: chạy frontend ở chế độ development.
-- `npm run dev`: alias của `npm start`.
-- `npm run build`: build production vào thư mục `build`.
-- `npm test`: chạy test theo cấu hình React Scripts.
+- `npm start`: chay frontend o che do development.
+- `npm run dev`: chay frontend o che do development.
+- `npm run build`: build production vao thu muc `dist`.
+- `npm run preview`: xem thu ban production build.
 
-## Ghi chú
+## Ghi chu
 
-- Backend cần chạy trước ở `http://localhost:5000` nếu dùng cấu hình mặc định.
-- Sau khi đổi `REACT_APP_API_BASE_URL`, cần tắt và chạy lại frontend.
-- OAuth, JWT, database và seed data được cấu hình ở thư mục `Backend`.
+- Can dung Node `^20.19.0` hoac `>=22.12.0` de chay Vite 7.
+- Backend can chay truoc o `http://localhost:5000` neu dung cau hinh mac dinh.
+- Sau khi doi `VITE_API_BASE_URL`, can tat va chay lai frontend.
+- OAuth, JWT, database va seed data duoc cau hinh o thu muc `Backend`.
