@@ -118,3 +118,65 @@
     flex-direction: column;
   }
 }
+
+body:has(.notifications-page) {
+  background: #fffaf0;
+}
+
+body:has(.notifications-page) .main-header::before {
+  background: rgba(9, 10, 24, 0.86);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  backdrop-filter: blur(12px) saturate(120%);
+}
+
+body:has(.notifications-page) .movie-tabs-navigation {
+  background: transparent;
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  backdrop-filter: blur(16px) saturate(120%);
+}
+
+body:has(.notifications-page) .tab-btn {
+  background: rgba(255, 251, 242, 0.9);
+  border-color: rgba(214, 199, 170, 0.78);
+  color: #2b2e3a;
+  box-shadow: 0 12px 28px rgba(49, 38, 21, 0.1);
+}
+
+body:has(.notifications-page) .tab-btn.active,
+body:has(.notifications-page) .nav-dropdown.active .nav-dropdown__trigger,
+body:has(.notifications-page) .nav-direct.active {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(20, 22, 32, 0.48);
+  color: #171923;
+}
+
+.notifications-page {
+  background: #fffaf0;
+  color: #181b25;
+}
+
+.notifications-head h1,
+.notification-card strong {
+  color: #181b25;
+}
+
+.notifications-status,
+.notifications-empty,
+.notification-card p {
+  color: rgba(35, 38, 50, 0.68);
+}
+
+.notification-card {
+  border-color: rgba(225, 211, 184, 0.82);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: 0 14px 30px rgba(54, 41, 23, 0.08);
+}
+
+.notification-card.is-unread {
+  border-color: rgba(201, 169, 107, 0.52);
+  background: rgba(255, 255, 255, 0.94);
+}
+
+.notification-card time {
+  color: rgba(55, 58, 70, 0.58);
+}

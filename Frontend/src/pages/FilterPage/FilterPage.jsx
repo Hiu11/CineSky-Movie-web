@@ -185,14 +185,6 @@ const FilterPage = ({ searchQuery = "" }) => {
 
       <section className="filter-options-panel">
         <div className="filter-toolbar">
-          <div className="filter-toolbar__intro">
-            <span className="filter-toolbar__eyebrow">Lọc thông minh</span>
-            <h1>Chọn đúng phim bạn muốn xem</h1>
-            <p>
-              Lọc nhanh theo thể loại, quốc gia và độ tuổi để rút gọn danh sách phim theo đúng nhu
-              cầu hiện tại.
-            </p>
-          </div>
 
           <div className="filter-tags-section">
             <span className="filter-section-title">Thể loại</span>
@@ -345,3 +337,4 @@ const FilterPage = ({ searchQuery = "" }) => {
 };
 
 export default FilterPage;
+

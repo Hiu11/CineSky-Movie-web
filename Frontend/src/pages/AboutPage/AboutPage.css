@@ -925,9 +925,7 @@
 
 .about-creator-card {
   padding: 28px;
-  background:
-    radial-gradient(circle at top right, rgba(247, 180, 0, 0.1), transparent 24%),
-    linear-gradient(160deg, rgba(16, 20, 36, 0.95), rgba(8, 10, 20, 0.95));
+  background: rgba(13, 16, 28, 0.95);
 }
 
 .about-creator-list {
@@ -982,10 +980,7 @@
 .about-pros-cons-card {
   padding: 24px;
   border-color: rgba(255, 255, 255, 0.16);
-  background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.2), transparent 26%),
-    radial-gradient(circle at top right, var(--about-card-glow, rgba(255, 255, 255, 0.14)), transparent 34%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.055));
+  background: rgba(255, 255, 255, 0.08);
   -webkit-backdrop-filter: blur(24px) saturate(150%);
   backdrop-filter: blur(24px) saturate(150%);
   box-shadow:
@@ -1102,10 +1097,7 @@
 .about-journey-card {
   padding: 22px 24px;
   border-color: rgba(255, 255, 255, 0.16);
-  background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.2), transparent 26%),
-    radial-gradient(circle at top right, var(--about-card-glow, rgba(255, 255, 255, 0.14)), transparent 34%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.055));
+  background: rgba(255, 255, 255, 0.08);
   -webkit-backdrop-filter: blur(24px) saturate(150%);
   backdrop-filter: blur(24px) saturate(150%);
   box-shadow:
@@ -1159,10 +1151,7 @@
   padding: 18px 22px;
   border-radius: 22px;
   border: 1px solid rgba(255, 255, 255, 0.16);
-  background:
-    radial-gradient(circle at top left, rgba(255, 255, 255, 0.2), transparent 26%),
-    radial-gradient(circle at top right, var(--about-card-glow, rgba(255, 255, 255, 0.14)), transparent 34%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.055));
+  background: rgba(255, 255, 255, 0.08);
   -webkit-backdrop-filter: blur(24px) saturate(150%);
   backdrop-filter: blur(24px) saturate(150%);
   box-shadow:

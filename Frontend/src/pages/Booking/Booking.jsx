@@ -182,6 +182,20 @@ const formatCountdown = (totalSeconds = 0) => {
   return `${String(minutes).padStart(2, "0")} : ${String(seconds).padStart(2, "0")}`;
 };
 
+const buildScreeningDateTime = (dateIso = "", timeLabel = "") => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateIso)) || !/^\d{2}:\d{2}$/.test(String(timeLabel))) {
+    return null;
+  }
+
+  const date = new Date(`${dateIso}T${timeLabel}:00+07:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const isShowtimeInPast = (dateIso = "", timeLabel = "", now = new Date()) => {
+  const screeningDateTime = buildScreeningDateTime(dateIso, timeLabel);
+  return screeningDateTime ? screeningDateTime.getTime() <= now.getTime() : false;
+};
+
 const buildRollingDateOptions = (days = DATE_OPTIONS_DAYS) => {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -289,6 +303,7 @@ export default function Booking({ showToast }) {
   const [isSummaryCollapsed, setIsSummaryCollapsed] = useState(false);
   const [paymentSecondsLeft, setPaymentSecondsLeft] = useState(PAYMENT_WINDOW_SECONDS);
   const [seatScale, setSeatScale] = useState(1);
+  const [currentTime, setCurrentTime] = useState(() => new Date());
 
   useEffect(() => {
     setSelectedSeats([]);
@@ -312,6 +327,16 @@ export default function Booking({ showToast }) {
 
     return () => {
       window.removeEventListener("resize", handleResize);
+    };
+  }, []);
+
+  useEffect(() => {
+    const clockTimer = window.setInterval(() => {
+      setCurrentTime(new Date());
+    }, 30000);
+
+    return () => {
+      window.clearInterval(clockTimer);
     };
   }, []);
 
@@ -414,8 +439,13 @@ export default function Booking({ showToast }) {
   }, [showtimes]);
 
   const filteredShowtimes = useMemo(
-    () => showtimes.filter((showtime) => showtime.cinemaName === selectedCinemaName),
-    [showtimes, selectedCinemaName]
+    () =>
+      showtimes.filter(
+        (showtime) =>
+          showtime.cinemaName === selectedCinemaName &&
+          !isShowtimeInPast(selectedScreeningDate, showtime.displayTime, currentTime)
+      ),
+    [currentTime, selectedCinemaName, selectedScreeningDate, showtimes]
   );
   const selectedScreeningDateOption = useMemo(
     () =>
@@ -434,6 +464,19 @@ export default function Booking({ showToast }) {
       null,
     [showtimes, selectedShowtimeId]
   );
+
+  useEffect(() => {
+    if (!selectedShowtime || !isShowtimeInPast(selectedScreeningDate, selectedShowtime.displayTime, currentTime)) {
+      return;
+    }
+
+    setSelectedShowtimeId("");
+    setSelectedSeats([]);
+    setSubmitMessage({
+      type: "error",
+      message: "Suất chiếu này đã qua giờ. Vui lòng chọn suất chiếu khác.",
+    });
+  }, [currentTime, selectedScreeningDate, selectedShowtime]);
 
   useEffect(() => {
     setPaymentSecondsLeft(PAYMENT_WINDOW_SECONDS);
@@ -601,6 +644,18 @@ export default function Booking({ showToast }) {
   };
 
   const handleShowtimeChange = (showtimeId) => {
+    const nextShowtime = showtimes.find((showtime) => String(showtime.id) === String(showtimeId));
+
+    if (nextShowtime && isShowtimeInPast(selectedScreeningDate, nextShowtime.displayTime, currentTime)) {
+      setSelectedShowtimeId("");
+      setSelectedSeats([]);
+      setSubmitMessage({
+        type: "error",
+        message: "Suất chiếu này đã qua giờ. Vui lòng chọn suất chiếu khác.",
+      });
+      return;
+    }
+
     setSelectedShowtimeId(String(showtimeId));
     setSelectedSeats([]);
     setSubmitMessage({ type: "", message: "" });
@@ -654,6 +709,16 @@ export default function Booking({ showToast }) {
       setSubmitMessage({
         type: "error",
         message: "Hết thời gian giữ chỗ. Vui lòng chọn lại suất chiếu để tiếp tục thanh toán.",
+      });
+      return;
+    }
+
+    if (isShowtimeInPast(selectedScreeningDate, selectedShowtime.displayTime, currentTime)) {
+      setSelectedShowtimeId("");
+      setSelectedSeats([]);
+      setSubmitMessage({
+        type: "error",
+        message: "Suất chiếu này đã qua giờ. Vui lòng chọn suất chiếu khác.",
       });
       return;
     }
@@ -1302,15 +1367,25 @@ export default function Booking({ showToast }) {
                             "booking-page__history-status " +
                             (booking.status === "cancelled"
                               ? "booking-page__history-status--cancelled"
+                              : booking.status === "expired"
+                              ? "booking-page__history-status--expired"
+                              : booking.status === "used"
+                              ? "booking-page__history-status--used"
                               : "booking-page__history-status--booked")
                           }
                         >
-                          {booking.status === "cancelled" ? "Đã hủy" : "Đã thanh toán"}
+                          {booking.status === "cancelled"
+                            ? "Đã hủy"
+                            : booking.status === "expired"
+                            ? "Quá hạn"
+                            : booking.status === "used"
+                            ? "Đã sử dụng"
+                            : "Chưa sử dụng"}
                         </span>
                       </div>
 
                       <div className="booking-page__history-meta">
-                        <span>{booking.cinemaName || "CineSky"}</span>
+                        <span>{booking.cinemaName || "CineSky Nguyen Hue"}</span>
                         <span>{booking.roomName || "Chưa rõ phòng"}</span>
                         <span>{(booking.seatNumbers || []).join(", ") || "Chưa có ghế"}</span>
                         <span>{formatCurrency(booking.totalPrice)} VND</span>

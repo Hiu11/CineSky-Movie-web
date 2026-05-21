@@ -48,9 +48,16 @@ const getMembershipTheme = (tier = "Member") =>
     Diamond: "diamond",
   }[tier] || "member");
 
-const TicketBarcode = ({ value }) => {
+const TicketBarcode = ({ value, label }) => {
   const svgRef = useRef(null);
-  const safeValue = String(value || "CSKTICKET").toUpperCase();
+  const rawValue = String(value || label || "CSKTICKET").toUpperCase();
+  const safeValue =
+    rawValue
+      .replace(/[^\x20-\x7E]/g, "-")
+      .replace(/[^A-Z0-9._:$/+%-]/g, "-")
+      .replace(/-+/g, "-")
+      .slice(0, 48) || "CSKTICKET";
+  const displayValue = String(label || safeValue).toUpperCase();
 
   useEffect(() => {
     if (!svgRef.current) {
@@ -61,11 +68,11 @@ const TicketBarcode = ({ value }) => {
       JsBarcode(svgRef.current, safeValue, {
         format: "CODE128",
         displayValue: false,
-        width: 1.45,
-        height: 52,
+        width: 1.35,
+        height: 44,
         margin: 0,
         background: "transparent",
-        lineColor: "#f8fafc",
+        lineColor: "#111827",
       });
     } catch {
       svgRef.current.innerHTML = "";
@@ -73,9 +80,9 @@ const TicketBarcode = ({ value }) => {
   }, [safeValue]);
 
   return (
-    <div className="history-ticket__barcode" aria-label={`Mã vạch vé ${safeValue}`}>
+    <div className="history-ticket__barcode" aria-label={`Mã vạch vé ${displayValue}`}>
       <svg ref={svgRef} role="img" focusable="false"></svg>
-      <span>{safeValue}</span>
+      <span>{displayValue}</span>
     </div>
   );
 };
@@ -160,20 +167,17 @@ export default function BookingHistory() {
   }, [loadHistory]);
 
   const totalSpent = useMemo(
-    () =>
-      bookings.reduce(
-        (sum, booking) => (booking.status === "cancelled" ? sum : sum + Number(booking.totalPrice || 0)),
-        0
-      ),
+    () => bookings.reduce((sum, booking) => sum + Number(booking.totalPrice || 0), 0),
     [bookings]
   );
   const currentMembership =
     membership || { tier: "Member", points: 0, totalTickets: 0, nextTierPoints: 500, pointsToNextTier: 500 };
   const progressMax = Math.max(Number(currentMembership.nextTierPoints || 500), 1);
   const progressValue = Math.min(Math.round((Number(currentMembership.points || 0) / progressMax) * 100), 100);
+  const memberName = user?.fullName || user?.name || user?.email || "CineSky Member";
 
   const handleCancelBooking = async (booking) => {
-    if (!booking?.id || booking.status === "cancelled" || booking.status === "used") {
+    if (!booking?.id || booking.status === "cancelled" || booking.status === "used" || booking.status === "expired") {
       return;
     }
 
@@ -202,7 +206,7 @@ export default function BookingHistory() {
         setMembership(cancelledBooking.membership);
         updateStoredUser({ ...user, membership: cancelledBooking.membership });
       }
-      setHistoryMessage("Đã hủy vé và mở lại ghế đã đặt.");
+      setHistoryMessage("Đã hủy vé và mở lại ghế đã đặt. Vé đã thanh toán trước nên không hoàn tiền.");
     } catch (error) {
       setHistoryMessage(error.message || "Không thể hủy vé lúc này.");
     } finally {
@@ -242,6 +246,7 @@ export default function BookingHistory() {
               <span>CineSky</span>
               <small>{currentMembership.tier || "Member"}</small>
             </div>
+            <span className="history-membership__name">{memberName}</span>
             <div className="history-membership__chip" aria-hidden="true"></div>
             <strong>{Number(currentMembership.points || 0).toLocaleString("vi-VN")} pts</strong>
             <small>{Number(currentMembership.totalTickets || 0)} vé đã tích lũy</small>
@@ -283,9 +288,18 @@ export default function BookingHistory() {
           {bookings.map((booking) => {
             const bookedAt = formatBookedAt(booking.createdAt);
             const ticketCode = booking.ticketCode || String(booking.id || "").toUpperCase();
+            const barcodeValue = ticketCode;
+            const ticketStateClass =
+              booking.status === "cancelled"
+                ? "history-ticket--cancelled"
+                : booking.status === "used"
+                ? "history-ticket--used"
+                : booking.status === "expired"
+                ? "history-ticket--expired"
+                : "history-ticket--active";
 
             return (
-              <article key={booking.id} className="history-card history-ticket">
+              <article key={booking.id} className={`history-card history-ticket ${ticketStateClass}`}>
                 <div className="history-ticket__cutout history-ticket__cutout--top"></div>
                 <div className="history-ticket__cutout history-ticket__cutout--bottom"></div>
                 
@@ -312,7 +326,7 @@ export default function BookingHistory() {
                   <div className="history-ticket__meta">
                     <div className="history-ticket__meta-item">
                       <small>Rạp chiếu</small>
-                      <span>{booking.cinemaName || "CineSky"}</span>
+                      <span>{booking.cinemaName || "CineSky Nguyen Hue"}</span>
                     </div>
                     <div className="history-ticket__meta-item">
                       <small>Phòng</small>
@@ -333,8 +347,9 @@ export default function BookingHistory() {
 
                 <div className="history-ticket__stub">
                   <span className="history-ticket__stub-label">E-Ticket</span>
+                  <span className="history-ticket__stub-punch" aria-hidden="true"></span>
                   <TicketQrCode value={ticketCode} />
-                  <TicketBarcode value={ticketCode} />
+                  <TicketBarcode value={barcodeValue} label={ticketCode} />
                   
                   <span
                     className={
@@ -343,13 +358,21 @@ export default function BookingHistory() {
                         ? "history-ticket__status--cancelled"
                         : booking.status === "used"
                         ? "history-ticket__status--used"
+                        : booking.status === "expired"
+                        ? "history-ticket__status--expired"
                         : "history-ticket__status--active")
                     }
                   >
-                    {booking.status === "cancelled" ? "Đã hủy" : booking.status === "used" ? "Đã sử dụng" : "Đã thanh toán"}
+                    {booking.status === "cancelled"
+                      ? "Đã hủy"
+                      : booking.status === "used"
+                      ? "Đã sử dụng"
+                      : booking.status === "expired"
+                      ? "Quá hạn"
+                      : "Chưa sử dụng"}
                   </span>
 
-                  {booking.status === "cancelled" || booking.status === "used" ? null : (
+                  {booking.status === "cancelled" || booking.status === "used" || booking.status === "expired" ? null : (
                     <div className="history-ticket__actions">
                       <button
                         type="button"
@@ -371,7 +394,7 @@ export default function BookingHistory() {
         <div className="history-confirm-backdrop" role="presentation" onClick={() => setPendingCancelBooking(null)}>
           <section className="history-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="history-confirm-title" onClick={(event) => event.stopPropagation()}>
             <h2 id="history-confirm-title">Hủy vé</h2>
-            <p>Bạn chắc chắn muốn hủy vé này? Ghế đã đặt sẽ được mở lại.</p>
+            <p>Bạn chắc chắn muốn hủy vé này? Ghế đã đặt sẽ được mở lại, nhưng vé đã thanh toán trước nên không hoàn tiền.</p>
             <div className="history-confirm-actions">
               <button type="button" onClick={() => setPendingCancelBooking(null)}>Giữ vé</button>
               <button type="button" onClick={confirmCancelBooking}>Hủy vé</button>

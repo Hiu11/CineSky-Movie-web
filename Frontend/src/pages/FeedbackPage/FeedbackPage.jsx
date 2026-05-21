@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { normalizeAuthUser } from "../../services/authService";
 import {
   createFeedbackEntry,
@@ -55,7 +56,12 @@ const formatCreatedAt = (value) => {
 };
 
 const FeedbackPage = ({ showToast }) => {
+  const location = useLocation();
   const sessionUser = useMemo(() => getSessionUser(), []);
+  const feedbackSource = useMemo(
+    () => new URLSearchParams(location.search).get("source") || "feedback-page",
+    [location.search]
+  );
   const [form, setForm] = useState(() => buildInitialFormState(sessionUser));
   const [selectedRating, setSelectedRating] = useState(0);
   const [hoveredRating, setHoveredRating] = useState(0);
@@ -175,6 +181,7 @@ const FeedbackPage = ({ showToast }) => {
         email: form.email,
         rating: selectedRating,
         message: form.message,
+        source: feedbackSource,
       });
 
       setFeedbackEntries((currentEntries) =>

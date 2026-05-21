@@ -187,6 +187,8 @@ const requestAdmin = async (path, params = {}) => {
 
 export const getAdminOverview = async () => requestAdmin("overview");
 
+export const getAdminAnalytics = async (params = {}) => requestAdmin("analytics", params);
+
 export const getAdminActivity = async (params = {}) => requestAdmin("activity", params);
 
 export const getAdminUsers = async (params = {}) => requestAdmin("users", params);

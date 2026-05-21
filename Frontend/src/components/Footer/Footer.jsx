@@ -71,14 +71,9 @@ const Footer = ({ flushTop = false }) => {
           <h4>HỆ THỐNG RẠP</h4>
           <ul>
             <li>Tất cả hệ thống rạp</li>
-            <li>Quốc Thanh (TP.HCM)</li>
-            <li>Hai Bà Trưng (TP.HCM)</li>
-            <li>Sinh Viên (TP.HCM)</li>
-            <li>Huế (TP. Huế)</li>
-            <li>Đà Lạt (Lâm Đồng)</li>
-            <li>Lâm Đồng (Đức Trọng)</li>
-            <li>Mỹ Tho (Tiền Giang)</li>
-            <li>Kiên Giang (An Giang)</li>
+            <li>CineSky Nguyen Hue (TP.HCM)</li>
+            <li>CineSky Hai Ba Trung (TP.HCM)</li>
+            <li>CineSky Dien Bien Phu (TP.HCM)</li>
           </ul>
         </div>
 

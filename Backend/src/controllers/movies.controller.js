@@ -264,7 +264,7 @@ const moviesController = {
     try {
       const filter = buildMovieFilter(req.query);
       const page = Math.max(Number(req.query.page) || 1, 1);
-      const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 100);
+      const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 500);
       const skip = (page - 1) * limit;
       const sort = buildMovieSort(req.query);
       const [movies, totalItems] = await Promise.all([

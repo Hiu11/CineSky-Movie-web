@@ -27,6 +27,7 @@ const serializeFeedback = (feedback) => ({
   rating: Math.max(1, Math.min(5, Number(feedback.rating) || 1)),
   headline: buildHeadline(feedback.headline, feedback.message),
   message: feedback.message,
+  source: feedback.source || "feedback-page",
   response: feedback.response || "",
   respondedAt: feedback.respondedAt || null,
   createdAt: feedback.createdAt,
@@ -62,6 +63,7 @@ const feedbackController = {
         rating = 0,
         headline = "",
         message = "",
+        source = "feedback-page",
       } = req.body || {};
 
       const trimmedFullName = String(fullName).trim();
@@ -100,6 +102,7 @@ const feedbackController = {
         rating: safeRating,
         headline: buildHeadline(headline, trimmedMessage),
         message: trimmedMessage,
+        source: String(source || "feedback-page").trim() || "feedback-page",
       });
 
       return res.status(201).send({

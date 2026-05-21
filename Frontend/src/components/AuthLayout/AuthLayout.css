@@ -90,7 +90,7 @@
   grid-template-columns: minmax(320px, 1.2fr) minmax(380px, 520px);
   align-items: center;
   gap: clamp(28px, 4vw, 72px);
-  padding: clamp(32px, 5vw, 56px);
+  padding: clamp(32px, 5vw, 56px) clamp(48px, 7vw, 96px);
 }
 
 .auth-page__hero {

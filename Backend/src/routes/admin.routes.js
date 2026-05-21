@@ -7,6 +7,7 @@ const adminRouter = Router();
 adminRouter.use(requireAuth, requireRole("admin"));
 
 adminRouter.get("/overview", adminController.getDashboardOverview);
+adminRouter.get("/analytics", adminController.getDashboardAnalytics);
 adminRouter.get("/activity", adminController.getActivity);
 adminRouter.get("/users", adminController.getUsers);
 adminRouter.get("/bookings", adminController.getBookings);

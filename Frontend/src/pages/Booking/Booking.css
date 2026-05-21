@@ -1318,6 +1318,18 @@
   color: #fecaca;
 }
 
+.booking-page__history-status--used {
+  background: rgba(96, 165, 250, 0.16);
+  border: 1px solid rgba(147, 197, 253, 0.24);
+  color: #dbeafe;
+}
+
+.booking-page__history-status--expired {
+  background: rgba(251, 146, 60, 0.16);
+  border: 1px solid rgba(253, 186, 116, 0.24);
+  color: #fed7aa;
+}
+
 @media (max-width: 1240px) {
   .booking-page {
     --booking-summary-top: 32px;

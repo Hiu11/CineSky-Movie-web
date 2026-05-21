@@ -693,6 +693,805 @@
   }
 }
 
+/* Final ticket pastel palette */
+.history-list {
+  background: #fffaf0 !important;
+}
+
+.history-ticket.history-ticket--active,
+.history-ticket--active {
+  background-color: #dff4e7 !important;
+  background-image:
+    radial-gradient(circle at 16px 16px, rgba(23, 50, 38, 0.06) 0 1px, transparent 1.5px),
+    repeating-linear-gradient(120deg, rgba(23, 50, 38, 0.055) 0 1px, transparent 1px 10px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px 34px) !important;
+  background-size: 22px 22px, auto, auto !important;
+  border-color: #9ed5b2 !important;
+  color: #173226 !important;
+}
+
+.history-ticket.history-ticket--used,
+.history-ticket--used,
+.history-ticket:has(.history-ticket__status--used) {
+  background-color: #e4efff !important;
+  background-image:
+    radial-gradient(circle at 16px 16px, rgba(23, 43, 70, 0.06) 0 1px, transparent 1.5px),
+    repeating-linear-gradient(120deg, rgba(23, 43, 70, 0.055) 0 1px, transparent 1px 10px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px 34px) !important;
+  background-size: 22px 22px, auto, auto !important;
+  border-color: #a9c8ee !important;
+  color: #172b46 !important;
+}
+
+.history-ticket.history-ticket--cancelled,
+.history-ticket--cancelled {
+  background-color: #ffe4dc !important;
+  background-image:
+    radial-gradient(circle at 16px 16px, rgba(74, 32, 24, 0.055) 0 1px, transparent 1.5px),
+    repeating-linear-gradient(120deg, rgba(74, 32, 24, 0.05) 0 1px, transparent 1px 10px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.14) 0 1px, transparent 1px 34px) !important;
+  background-size: 22px 22px, auto, auto !important;
+  border-color: #e7aa98 !important;
+  color: #4a2018 !important;
+}
+
+.history-ticket.history-ticket--expired,
+.history-ticket--expired {
+  background-color: #eee7ff !important;
+  background-image:
+    radial-gradient(circle at 16px 16px, rgba(44, 34, 72, 0.06) 0 1px, transparent 1.5px),
+    repeating-linear-gradient(120deg, rgba(44, 34, 72, 0.055) 0 1px, transparent 1px 10px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px 34px) !important;
+  background-size: 22px 22px, auto, auto !important;
+  border-color: #c5b5ee !important;
+  color: #2c2248 !important;
+}
+
+.history-ticket::before {
+  opacity: 1 !important;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.24), transparent) !important;
+}
+
+.history-ticket__stub::before {
+  opacity: 0.28 !important;
+  background: rgba(21, 24, 35, 0.18) !important;
+}
+
+.history-ticket__main,
+.history-ticket__stub {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+.history-ticket__stub {
+  border-left-color: rgba(31, 34, 45, 0.22) !important;
+}
+
+.history-ticket__meta-item,
+.history-ticket__qr,
+.history-ticket__barcode {
+  background-color: rgba(255, 255, 255, 0.36) !important;
+  background-image: none !important;
+  border-color: rgba(31, 34, 45, 0.14) !important;
+}
+
+.history-ticket__divider {
+  background-color: transparent !important;
+  border-color: rgba(21, 24, 35, 0.2) !important;
+  opacity: 1 !important;
+}
+
+.history-ticket__header strong,
+.history-ticket__meta-item span,
+.history-ticket__price,
+.history-ticket__stub-label {
+  color: currentColor !important;
+  opacity: 1 !important;
+}
+
+.history-ticket__header span,
+.history-ticket__header small,
+.history-ticket__meta-item small,
+.history-ticket__pass-head small,
+.history-ticket__route span,
+.history-ticket__barcode span {
+  color: rgba(21, 24, 35, 0.82) !important;
+  opacity: 1 !important;
+}
+
+.history-ticket__pass-head span,
+.history-ticket__route i {
+  background-color: rgba(255, 255, 255, 0.52) !important;
+  background-image: none !important;
+  color: currentColor !important;
+  border-color: rgba(31, 34, 45, 0.18) !important;
+}
+
+.history-ticket__status {
+  background-color: rgba(255, 255, 255, 0.58) !important;
+  background-image: none !important;
+  color: currentColor !important;
+  border-color: rgba(31, 34, 45, 0.2) !important;
+  box-shadow: none !important;
+}
+
+.history-ticket__status--cancelled,
+.history-cancel-button {
+  background-color: rgba(255, 255, 255, 0.58) !important;
+  color: #8f3d2a !important;
+  border-color: rgba(143, 61, 42, 0.22) !important;
+}
+
+.history-ticket__cutout,
+.history-ticket__cutout--top,
+.history-ticket__cutout--bottom {
+  background: #fffaf0 !important;
+  border-color: rgba(213, 194, 158, 0.9) !important;
+  box-shadow: none !important;
+}
+
+.history-ticket__barcode {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border-color: rgba(21, 24, 35, 0.18) !important;
+}
+
+.history-ticket__barcode svg,
+.history-ticket__barcode svg * {
+  stroke: initial;
+}
+
+.history-ticket__barcode svg rect {
+  fill: transparent;
+}
+
+.history-ticket__barcode svg g rect,
+.history-ticket__barcode svg path,
+.history-ticket__barcode svg line {
+  fill: #111827 !important;
+  stroke: #111827 !important;
+}
+
+.history-ticket__barcode span {
+  color: rgba(17, 24, 39, 0.72) !important;
+}
+
+.history-ticket__qr {
+  background: #ffffff !important;
+  box-shadow: 0 8px 18px rgba(21, 24, 35, 0.1) !important;
+}
+
+.history-ticket__pass-head,
+.history-ticket__route {
+  color: rgba(21, 24, 35, 0.78) !important;
+  opacity: 1 !important;
+}
+
+.history-ticket__pass-head span,
+.history-ticket__pass-head small,
+.history-ticket__route i {
+  opacity: 1 !important;
+  font-weight: 900 !important;
+}
+
+.history-ticket__pass-head span {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  color: #22613d !important;
+  border-color: rgba(21, 24, 35, 0.16) !important;
+}
+
+.history-ticket__header span {
+  color: currentColor !important;
+  font-weight: 900 !important;
+  text-shadow: none !important;
+}
+
+.history-ticket--active .history-ticket__pass-head span,
+.history-ticket--active .history-ticket__header span {
+  color: #173226 !important;
+}
+
+.history-ticket--used .history-ticket__pass-head span,
+.history-ticket--used .history-ticket__header span {
+  color: #172b46 !important;
+}
+
+.history-ticket--cancelled .history-ticket__pass-head span,
+.history-ticket--cancelled .history-ticket__header span {
+  color: #4a2018 !important;
+}
+
+.history-ticket--expired .history-ticket__pass-head span,
+.history-ticket--expired .history-ticket__header span {
+  color: #2c2248 !important;
+}
+
+.history-ticket__route::before,
+.history-ticket__route::after {
+  background: rgba(21, 24, 35, 0.2) !important;
+  opacity: 1 !important;
+}
+
+.history-ticket__meta-item small {
+  font-weight: 800 !important;
+  letter-spacing: 0.08em !important;
+}
+
+/* Ticket light color final override */
+.history-list {
+  background: #fffaf0 !important;
+}
+
+.history-ticket.history-ticket--active,
+.history-ticket--active {
+  background: #eaf8ee !important;
+  color: #151823 !important;
+  border-color: rgba(151, 200, 163, 0.62) !important;
+}
+
+.history-ticket.history-ticket--used,
+.history-ticket--used,
+.history-ticket:has(.history-ticket__status--used) {
+  background: #edf4ff !important;
+  color: #151823 !important;
+  border-color: rgba(145, 174, 215, 0.62) !important;
+}
+
+.history-ticket.history-ticket--cancelled,
+.history-ticket--cancelled {
+  background: #fff0ec !important;
+  color: #151823 !important;
+  border-color: rgba(220, 159, 139, 0.58) !important;
+}
+
+.history-ticket.history-ticket--expired,
+.history-ticket--expired {
+  background: #f4f0ff !important;
+  color: #151823 !important;
+  border-color: rgba(174, 156, 215, 0.58) !important;
+}
+
+.history-ticket::before {
+  opacity: 0 !important;
+}
+
+.history-ticket__main,
+.history-ticket__stub {
+  background: transparent !important;
+}
+
+.history-ticket__stub {
+  border-left-color: rgba(31, 34, 45, 0.22) !important;
+}
+
+.history-ticket__cutout,
+.history-ticket__cutout--top,
+.history-ticket__cutout--bottom {
+  background: #fffaf0 !important;
+  border-color: rgba(213, 194, 158, 0.9) !important;
+  box-shadow: none !important;
+}
+
+.history-ticket__header strong,
+.history-ticket__meta-item span,
+.history-ticket__price,
+.history-ticket__stub-label {
+  color: #151823 !important;
+  opacity: 1 !important;
+}
+
+.history-ticket__header span,
+.history-ticket__header small,
+.history-ticket__meta-item small,
+.history-ticket__pass-head small,
+.history-ticket__route span,
+.history-ticket__barcode span {
+  color: rgba(21, 24, 35, 0.72) !important;
+  opacity: 1 !important;
+}
+
+body:has(.history-page) {
+  background: #fffaf0;
+}
+
+body:has(.history-page) .main-header::before {
+  background: rgba(9, 10, 24, 0.86);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  backdrop-filter: blur(12px) saturate(120%);
+}
+
+body:has(.history-page) .movie-tabs-navigation {
+  background: transparent;
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  backdrop-filter: blur(16px) saturate(120%);
+}
+
+body:has(.history-page) .tab-btn {
+  background: rgba(255, 251, 242, 0.9);
+  border-color: rgba(214, 199, 170, 0.78);
+  color: #2b2e3a;
+  box-shadow: 0 12px 28px rgba(49, 38, 21, 0.1);
+}
+
+body:has(.history-page) .tab-btn.active,
+body:has(.history-page) .nav-dropdown.active .nav-dropdown__trigger,
+body:has(.history-page) .nav-direct.active {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(20, 22, 32, 0.48);
+  color: #171923;
+}
+
+.history-page {
+  background: #fffaf0;
+  color: #181b25;
+}
+
+.history-hero,
+.history-empty-card {
+  background: rgba(255, 251, 242, 0.96) !important;
+  border-color: rgba(229, 216, 190, 0.9) !important;
+  box-shadow: 0 24px 54px rgba(49, 38, 21, 0.14) !important;
+}
+
+.history-hero h1,
+.history-empty-card h1,
+.history-empty-card h2,
+.history-stats strong {
+  color: #171923 !important;
+}
+
+.history-hero p,
+.history-empty-card p,
+.history-loading,
+.history-inline-message {
+  color: rgba(35, 38, 50, 0.68) !important;
+}
+
+.history-stats > div:not(.history-membership),
+.history-ticket {
+  background: rgba(255, 255, 255, 0.78) !important;
+  border-color: rgba(225, 211, 184, 0.82) !important;
+  box-shadow: 0 14px 30px rgba(54, 41, 23, 0.08) !important;
+}
+
+.history-ticket__main,
+.history-ticket__stub {
+  background: transparent !important;
+}
+
+.history-ticket__header strong,
+.history-ticket__meta-item span,
+.history-ticket__price,
+.history-ticket__stub-label {
+  color: #181b25 !important;
+}
+
+.history-ticket__header small,
+.history-ticket__meta-item small,
+.history-ticket__pass-head small,
+.history-ticket__barcode span,
+.history-ticket__route span {
+  color: rgba(55, 58, 70, 0.58) !important;
+}
+
+.history-ticket__cutout {
+  background: #fffaf0 !important;
+}
+
+.history-ticket__divider {
+  border-color: rgba(198, 182, 151, 0.72) !important;
+}
+
+.history-primary {
+  background: #f7c53d !important;
+}
+
+.history-membership,
+.history-membership--silver,
+.history-membership--gold,
+.history-membership--diamond {
+  background: rgba(255, 255, 255, 0.78) !important;
+  border-color: rgba(225, 211, 184, 0.82) !important;
+  color: #181b25 !important;
+  box-shadow: 0 14px 30px rgba(54, 41, 23, 0.08) !important;
+}
+
+.history-membership::before {
+  opacity: 0 !important;
+}
+
+.history-membership__top,
+.history-membership__top span,
+.history-membership__top small,
+.history-membership strong,
+.history-membership small,
+.history-membership i,
+.history-membership b {
+  color: #181b25 !important;
+}
+
+.history-membership__chip {
+  background: rgba(247, 197, 61, 0.24) !important;
+  border-color: rgba(180, 124, 14, 0.24) !important;
+}
+
+.history-ticket.history-ticket--active,
+.history-ticket.history-ticket--used,
+.history-ticket.history-ticket--cancelled,
+.history-ticket.history-ticket--expired,
+.history-ticket--active,
+.history-ticket--used,
+.history-ticket--cancelled,
+.history-ticket--expired,
+.history-ticket:has(.history-ticket__status--used) {
+  background: rgba(255, 255, 255, 0.82) !important;
+  border-color: rgba(225, 211, 184, 0.82) !important;
+  color: #181b25 !important;
+  box-shadow: 0 16px 34px rgba(54, 41, 23, 0.09) !important;
+}
+
+.history-ticket.history-ticket--cancelled,
+.history-ticket--cancelled {
+  background: rgba(255, 246, 242, 0.86) !important;
+  border-color: rgba(222, 184, 164, 0.7) !important;
+}
+
+.history-ticket__stub,
+.history-ticket--active .history-ticket__stub,
+.history-ticket--used .history-ticket__stub,
+.history-ticket--cancelled .history-ticket__stub,
+.history-ticket--expired .history-ticket__stub {
+  background: rgba(255, 251, 242, 0.54) !important;
+  border-color: rgba(225, 211, 184, 0.82) !important;
+}
+
+.history-ticket__pass-head span,
+.history-ticket__route i,
+.history-ticket--active .history-ticket__pass-head span,
+.history-ticket--used .history-ticket__pass-head span,
+.history-ticket--cancelled .history-ticket__pass-head span,
+.history-ticket--expired .history-ticket__pass-head span,
+.history-ticket--active .history-ticket__route i,
+.history-ticket--used .history-ticket__route i,
+.history-ticket--cancelled .history-ticket__route i {
+  background: rgba(247, 197, 61, 0.18) !important;
+  color: #8a5b00 !important;
+  border-color: rgba(180, 124, 14, 0.22) !important;
+}
+
+.history-ticket__status,
+.history-ticket__status--active,
+.history-ticket__status--used,
+.history-ticket__status--expired {
+  background: rgba(247, 197, 61, 0.18) !important;
+  color: #6f4a00 !important;
+  border-color: rgba(180, 124, 14, 0.22) !important;
+  box-shadow: none !important;
+}
+
+.history-ticket__status--cancelled {
+  background: rgba(224, 109, 77, 0.12) !important;
+  color: #8f3d2a !important;
+  border-color: rgba(180, 91, 65, 0.24) !important;
+}
+
+.history-cancel-button {
+  background: rgba(224, 109, 77, 0.12) !important;
+  border-color: rgba(180, 91, 65, 0.24) !important;
+  color: #8f3d2a !important;
+}
+
+.history-list {
+  background: #fffaf0 !important;
+}
+
+.history-ticket.history-ticket--active,
+.history-ticket.history-ticket--used,
+.history-ticket.history-ticket--cancelled,
+.history-ticket.history-ticket--expired,
+.history-ticket--active,
+.history-ticket--used,
+.history-ticket--cancelled,
+.history-ticket--expired {
+  background: #eaf8ee !important;
+  border-color: rgba(213, 194, 158, 0.9) !important;
+}
+
+.history-ticket.history-ticket--used,
+.history-ticket--used,
+.history-ticket:has(.history-ticket__status--used) {
+  background: #edf4ff !important;
+}
+
+.history-ticket.history-ticket--cancelled,
+.history-ticket--cancelled {
+  background: #fff0ec !important;
+}
+
+.history-ticket.history-ticket--expired,
+.history-ticket--expired {
+  background: #f4f0ff !important;
+}
+
+.history-ticket::before {
+  opacity: 0 !important;
+}
+
+.history-ticket__main,
+.history-ticket__stub,
+.history-ticket--active .history-ticket__stub,
+.history-ticket--used .history-ticket__stub,
+.history-ticket--cancelled .history-ticket__stub,
+.history-ticket--expired .history-ticket__stub {
+  background: transparent !important;
+}
+
+.history-ticket__stub {
+  border-left: 1px dashed rgba(198, 182, 151, 0.78) !important;
+  background: rgba(255, 255, 255, 0.28) !important;
+}
+
+.history-ticket__header strong,
+.history-ticket__meta-item span,
+.history-ticket__price,
+.history-ticket__stub-label,
+.history-ticket__pass-head small,
+.history-ticket__barcode span,
+.history-ticket__route span {
+  color: #151823 !important;
+  opacity: 1 !important;
+}
+
+.history-ticket__header span,
+.history-ticket--active .history-ticket__header span,
+.history-ticket--used .history-ticket__header span,
+.history-ticket--cancelled .history-ticket__header span,
+.history-ticket--expired .history-ticket__header span,
+.history-ticket__meta-item small {
+  color: rgba(31, 34, 45, 0.66) !important;
+  opacity: 1 !important;
+}
+
+.history-ticket__cutout,
+.history-ticket__cutout--top,
+.history-ticket__cutout--bottom {
+  background: #fffaf0 !important;
+  border-color: rgba(213, 194, 158, 0.9) !important;
+  box-shadow: none !important;
+}
+
+.history-ticket__qr,
+.history-ticket__barcode {
+  background: rgba(255, 255, 255, 0.86) !important;
+  border-color: rgba(213, 194, 158, 0.72) !important;
+}
+
+/* Final ticket status colors */
+.history-ticket.history-ticket--active {
+  border-color: rgba(34, 197, 94, 0.42) !important;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(34, 197, 94, 0.16), transparent 34%),
+    radial-gradient(circle at 90% 10%, rgba(20, 184, 166, 0.14), transparent 32%),
+    linear-gradient(135deg, rgba(13, 35, 31, 0.98), rgba(7, 14, 24, 0.99)) !important;
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(34, 197, 94, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+.history-ticket.history-ticket--used {
+  border-color: rgba(96, 165, 250, 0.5) !important;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(96, 165, 250, 0.18), transparent 34%),
+    radial-gradient(circle at 90% 10%, rgba(99, 102, 241, 0.18), transparent 32%),
+    linear-gradient(135deg, rgba(13, 27, 50, 0.98), rgba(8, 11, 28, 0.99)) !important;
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(96, 165, 250, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+.history-ticket.history-ticket--cancelled {
+  border-color: rgba(248, 113, 113, 0.52) !important;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(248, 113, 113, 0.18), transparent 34%),
+    radial-gradient(circle at 90% 10%, rgba(244, 114, 182, 0.16), transparent 32%),
+    linear-gradient(135deg, rgba(45, 20, 28, 0.98), rgba(18, 10, 22, 0.99)) !important;
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(248, 113, 113, 0.13),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+.history-ticket--active .history-ticket__pass-head span,
+.history-ticket--active .history-ticket__route i {
+  border-color: rgba(34, 197, 94, 0.3);
+  background-color: rgba(34, 197, 94, 0.14);
+  color: #86efac;
+}
+
+.history-ticket--used .history-ticket__pass-head span,
+.history-ticket--used .history-ticket__route i {
+  border-color: rgba(96, 165, 250, 0.32);
+  background-color: rgba(59, 130, 246, 0.16);
+  color: #bfdbfe;
+}
+
+.history-ticket--cancelled .history-ticket__pass-head span,
+.history-ticket--cancelled .history-ticket__route i {
+  border-color: rgba(248, 113, 113, 0.32);
+  background-color: rgba(248, 113, 113, 0.14);
+  color: #fecaca;
+}
+
+.history-ticket--active .history-ticket__header span {
+  color: #86efac !important;
+}
+
+.history-ticket--used .history-ticket__header span {
+  color: #bfdbfe !important;
+}
+
+.history-ticket--cancelled .history-ticket__header span {
+  color: #fecaca !important;
+}
+
+.history-ticket--active .history-ticket__divider {
+  background-image: linear-gradient(to bottom, rgba(34, 197, 94, 0.5) 50%, transparent 50%) !important;
+}
+
+.history-ticket--used .history-ticket__divider {
+  background-image: linear-gradient(to bottom, rgba(96, 165, 250, 0.5) 50%, transparent 50%) !important;
+}
+
+.history-ticket--cancelled .history-ticket__divider {
+  background-image: linear-gradient(to bottom, rgba(248, 113, 113, 0.52) 50%, transparent 50%) !important;
+}
+
+.history-ticket--active .history-ticket__stub {
+  border-left-color: rgba(34, 197, 94, 0.42) !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(34, 197, 94, 0.13), transparent 35%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.035)) !important;
+}
+
+.history-ticket--used .history-ticket__stub {
+  border-left-color: rgba(96, 165, 250, 0.46) !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(59, 130, 246, 0.15), transparent 35%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.035)) !important;
+}
+
+.history-ticket--cancelled .history-ticket__stub {
+  border-left-color: rgba(248, 113, 113, 0.46) !important;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(248, 113, 113, 0.15), transparent 35%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.09), rgba(255, 255, 255, 0.035)) !important;
+}
+
+.history-ticket__status--active {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.28), rgba(20, 184, 166, 0.14)) !important;
+  color: #bbf7d0 !important;
+  border-color: rgba(74, 222, 128, 0.42) !important;
+}
+
+.history-ticket__status--cancelled {
+  background: linear-gradient(135deg, rgba(248, 113, 113, 0.24), rgba(244, 114, 182, 0.14)) !important;
+  color: #fecaca !important;
+  border-color: rgba(248, 113, 113, 0.42) !important;
+}
+
+.history-ticket.history-ticket--active,
+.history-ticket.history-ticket--used,
+.history-ticket.history-ticket--cancelled,
+.history-ticket.history-ticket--expired {
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 8px),
+    repeating-linear-gradient(115deg, transparent 0 16px, rgba(255, 255, 255, 0.035) 16px 17px),
+    var(--ticket-bg) !important;
+  border-color: rgba(var(--ticket-accent), 0.5) !important;
+  box-shadow:
+    0 28px 70px rgba(0, 0, 0, 0.42),
+    0 0 0 1px rgba(var(--ticket-accent), 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+.history-ticket--active {
+  --ticket-bg: #0d251f;
+  --ticket-accent: 74, 222, 128;
+  --ticket-text: #bbf7d0;
+}
+
+.history-ticket--used {
+  --ticket-bg: #10213d;
+  --ticket-accent: 147, 197, 253;
+  --ticket-text: #dbeafe;
+}
+
+.history-ticket--cancelled {
+  --ticket-bg: #321722;
+  --ticket-accent: 248, 113, 113;
+  --ticket-text: #fecaca;
+}
+
+.history-ticket--expired {
+  --ticket-bg: #31251a;
+  --ticket-accent: 251, 146, 60;
+  --ticket-text: #fed7aa;
+}
+
+.history-ticket--active .history-ticket__pass-head span,
+.history-ticket--used .history-ticket__pass-head span,
+.history-ticket--cancelled .history-ticket__pass-head span,
+.history-ticket--expired .history-ticket__pass-head span {
+  border-color: rgba(var(--ticket-accent), 0.34) !important;
+  background: rgba(var(--ticket-accent), 0.13) !important;
+  color: var(--ticket-text) !important;
+}
+
+.history-ticket--active .history-ticket__header span,
+.history-ticket--used .history-ticket__header span,
+.history-ticket--cancelled .history-ticket__header span,
+.history-ticket--expired .history-ticket__header span {
+  color: var(--ticket-text) !important;
+}
+
+.history-ticket--active .history-ticket__divider,
+.history-ticket--used .history-ticket__divider,
+.history-ticket--cancelled .history-ticket__divider,
+.history-ticket--expired .history-ticket__divider {
+  background-image: linear-gradient(to bottom, rgba(var(--ticket-accent), 0.52) 50%, transparent 50%) !important;
+}
+
+.history-ticket--active .history-ticket__stub,
+.history-ticket--used .history-ticket__stub,
+.history-ticket--cancelled .history-ticket__stub,
+.history-ticket--expired .history-ticket__stub {
+  border-left-color: rgba(var(--ticket-accent), 0.46) !important;
+  background:
+    repeating-linear-gradient(135deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 10px),
+    rgba(var(--ticket-accent), 0.08) !important;
+}
+
+.history-ticket__status--expired {
+  background: rgba(251, 146, 60, 0.16) !important;
+  color: #fed7aa !important;
+  border: 1px solid rgba(251, 146, 60, 0.42) !important;
+  box-shadow: 0 0 18px rgba(251, 146, 60, 0.12);
+}
+
+.history-ticket__status--active,
+.history-ticket__status--used,
+.history-ticket__status--cancelled,
+.history-ticket__status--expired {
+  background: rgba(var(--ticket-accent), 0.16) !important;
+  color: var(--ticket-text) !important;
+  border-color: rgba(var(--ticket-accent), 0.42) !important;
+}
+
+/* Remove the outer hero card, keep only the content */
+.history-hero {
+  padding: 22px clamp(4px, 1vw, 12px) 8px !important;
+  min-height: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.history-hero::after {
+  display: none !important;
+}
+
+.history-page .history-hero {
+  background: none !important;
+  border: none !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
 /* Checked-in ticket state */
 .history-ticket:has(.history-ticket__status--used) {
   border-color: rgba(96, 165, 250, 0.34) !important;
@@ -1745,4 +2544,961 @@
   .history-hero h1 {
     font-size: clamp(34px, 8vw, 52px) !important;
   }
+}
+
+/* Final ticket pastel palette */
+.history-list {
+  background: #fffaf0 !important;
+}
+
+.history-ticket.history-ticket--active,
+.history-ticket--active {
+  background-color: #dff4e7 !important;
+  background-image:
+    radial-gradient(circle at 16px 16px, rgba(23, 50, 38, 0.06) 0 1px, transparent 1.5px),
+    repeating-linear-gradient(120deg, rgba(23, 50, 38, 0.055) 0 1px, transparent 1px 10px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px 34px) !important;
+  background-size: 22px 22px, auto, auto !important;
+  border-color: #9ed5b2 !important;
+  color: #173226 !important;
+}
+
+.history-ticket.history-ticket--used,
+.history-ticket--used,
+.history-ticket:has(.history-ticket__status--used) {
+  background-color: #e4efff !important;
+  background-image:
+    radial-gradient(circle at 16px 16px, rgba(23, 43, 70, 0.06) 0 1px, transparent 1.5px),
+    repeating-linear-gradient(120deg, rgba(23, 43, 70, 0.055) 0 1px, transparent 1px 10px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px 34px) !important;
+  background-size: 22px 22px, auto, auto !important;
+  border-color: #a9c8ee !important;
+  color: #172b46 !important;
+}
+
+.history-ticket.history-ticket--cancelled,
+.history-ticket--cancelled {
+  background-color: #ffe4dc !important;
+  background-image:
+    radial-gradient(circle at 16px 16px, rgba(74, 32, 24, 0.055) 0 1px, transparent 1.5px),
+    repeating-linear-gradient(120deg, rgba(74, 32, 24, 0.05) 0 1px, transparent 1px 10px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.14) 0 1px, transparent 1px 34px) !important;
+  background-size: 22px 22px, auto, auto !important;
+  border-color: #e7aa98 !important;
+  color: #4a2018 !important;
+}
+
+.history-ticket.history-ticket--expired,
+.history-ticket--expired {
+  background-color: #eee7ff !important;
+  background-image:
+    radial-gradient(circle at 16px 16px, rgba(44, 34, 72, 0.06) 0 1px, transparent 1.5px),
+    repeating-linear-gradient(120deg, rgba(44, 34, 72, 0.055) 0 1px, transparent 1px 10px),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px 34px) !important;
+  background-size: 22px 22px, auto, auto !important;
+  border-color: #c5b5ee !important;
+  color: #2c2248 !important;
+}
+
+.history-ticket::before {
+  opacity: 1 !important;
+  background:
+    linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent) !important;
+}
+
+.history-ticket__stub::before {
+  opacity: 0.24 !important;
+  background: rgba(21, 24, 35, 0.18) !important;
+}
+
+.history-ticket__main,
+.history-ticket__stub {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+.history-ticket__stub {
+  border-left-color: rgba(31, 34, 45, 0.22) !important;
+}
+
+.history-ticket__meta-item,
+.history-ticket__qr,
+.history-ticket__barcode {
+  background-color: rgba(255, 255, 255, 0.36) !important;
+  background-image: none !important;
+  border-color: rgba(31, 34, 45, 0.14) !important;
+}
+
+.history-ticket__header strong,
+.history-ticket__meta-item span,
+.history-ticket__price,
+.history-ticket__stub-label {
+  color: currentColor !important;
+  opacity: 1 !important;
+}
+
+.history-ticket__header span,
+.history-ticket__header small,
+.history-ticket__meta-item small,
+.history-ticket__pass-head small,
+.history-ticket__route span,
+.history-ticket__barcode span {
+  color: rgba(21, 24, 35, 0.78) !important;
+  opacity: 1 !important;
+}
+
+.history-ticket__pass-head span,
+.history-ticket__route i {
+  background-color: rgba(255, 255, 255, 0.7) !important;
+  background-image: none !important;
+  color: currentColor !important;
+  border-color: rgba(31, 34, 45, 0.18) !important;
+}
+
+.history-ticket__status {
+  background-color: rgba(255, 255, 255, 0.46) !important;
+  background-image: none !important;
+  color: currentColor !important;
+  border-color: rgba(31, 34, 45, 0.14) !important;
+  box-shadow: none !important;
+}
+
+.history-ticket__status--cancelled,
+.history-cancel-button {
+  background-color: rgba(255, 255, 255, 0.38) !important;
+  color: #8f3d2a !important;
+  border-color: rgba(143, 61, 42, 0.22) !important;
+}
+
+.history-ticket__cutout,
+.history-ticket__cutout--top,
+.history-ticket__cutout--bottom {
+  background: #fffaf0 !important;
+  border-color: rgba(213, 194, 158, 0.9) !important;
+  box-shadow: none !important;
+}
+
+.history-ticket--active .history-ticket__pass-head span,
+.history-ticket--active .history-ticket__header span,
+.history-ticket--used .history-ticket__pass-head span,
+.history-ticket--used .history-ticket__header span,
+.history-ticket--cancelled .history-ticket__pass-head span,
+.history-ticket--cancelled .history-ticket__header span,
+.history-ticket--expired .history-ticket__pass-head span,
+.history-ticket--expired .history-ticket__header span {
+  color: currentColor !important;
+  font-weight: 900 !important;
+}
+
+.history-ticket__barcode {
+  background-color: rgba(255, 255, 255, 0.72) !important;
+}
+
+.history-ticket__barcode svg {
+  background: transparent !important;
+}
+
+.history-ticket__barcode svg rect,
+.history-ticket__barcode svg path,
+.history-ticket__barcode svg line {
+  fill: #111827 !important;
+  stroke: #111827 !important;
+}
+
+.history-ticket__barcode svg rect[width="100%"],
+.history-ticket__barcode svg rect[height="100%"] {
+  fill: transparent !important;
+  stroke: none !important;
+}
+
+.history-ticket__cutout,
+.history-ticket__cutout--top,
+.history-ticket__cutout--bottom {
+  background: #fffaf0 !important;
+  border: 1px solid rgba(213, 194, 158, 0.8) !important;
+  box-shadow: none !important;
+}
+
+.history-ticket__divider {
+  background: #fffaf0 !important;
+  box-shadow: none !important;
+}
+
+.history-ticket__barcode svg > rect:first-child {
+  fill: transparent !important;
+  stroke: none !important;
+}
+
+.history-ticket__barcode svg > g rect,
+.history-ticket__barcode svg > g path,
+.history-ticket__barcode svg > path,
+.history-ticket__barcode svg > line {
+  fill: #111827 !important;
+  stroke: #111827 !important;
+}
+
+.history-ticket__barcode svg text {
+  display: none !important;
+}
+
+.history-ticket__cutout {
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 50% !important;
+  z-index: 3 !important;
+}
+
+/* Final barcode and perforation cleanup */
+.history-ticket__barcode {
+  width: 100% !important;
+  min-height: 76px !important;
+  height: auto !important;
+  display: grid !important;
+  place-items: center !important;
+  gap: 7px !important;
+  padding: 12px 10px 10px !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  border: 1px solid rgba(31, 34, 45, 0.14) !important;
+  opacity: 1 !important;
+}
+
+.history-ticket__barcode canvas {
+  width: min(150px, 100%) !important;
+  height: 42px !important;
+  display: block !important;
+}
+
+.history-ticket__barcode span {
+  color: rgba(21, 24, 35, 0.82) !important;
+  font-size: 11px !important;
+  font-weight: 800 !important;
+  letter-spacing: 0.12em !important;
+}
+
+.history-ticket__divider {
+  width: 2px !important;
+  min-width: 2px !important;
+  background-color: transparent !important;
+  background-image: repeating-linear-gradient(
+    to bottom,
+    rgba(21, 24, 35, 0.26) 0 8px,
+    transparent 8px 15px
+  ) !important;
+  background-size: 2px 15px !important;
+  background-repeat: repeat-y !important;
+  border: none !important;
+  box-shadow: none !important;
+}
+
+.history-ticket__cutout,
+.history-ticket__cutout--top,
+.history-ticket__cutout--bottom {
+  width: 22px !important;
+  height: 22px !important;
+  background: #fffaf0 !important;
+  border: 1px solid rgba(213, 194, 158, 0.86) !important;
+  box-shadow: none !important;
+}
+
+/* Final ticket layout compact pass */
+.history-ticket {
+  min-height: 252px !important;
+  align-items: stretch !important;
+}
+
+.history-ticket__main {
+  display: grid !important;
+  grid-template-columns: minmax(260px, 0.58fr) minmax(420px, 1fr) !important;
+  grid-template-rows: auto 1fr !important;
+  gap: 16px 22px !important;
+  padding: 26px 28px !important;
+}
+
+.history-ticket__pass-head {
+  grid-column: 1 / -1 !important;
+  margin: 0 !important;
+}
+
+.history-ticket__header {
+  align-self: start !important;
+  gap: 8px !important;
+}
+
+.history-ticket__header strong {
+  font-size: clamp(24px, 2.1vw, 36px) !important;
+  line-height: 1.06 !important;
+}
+
+.history-ticket__route {
+  grid-column: 1 / -1 !important;
+  margin: 0 !important;
+}
+
+.history-ticket__meta {
+  align-self: stretch !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+}
+
+.history-ticket__meta-item {
+  min-height: 72px !important;
+  padding: 14px 16px !important;
+  align-content: center !important;
+}
+
+.history-ticket__stub {
+  width: 230px !important;
+  gap: 12px !important;
+  padding: 20px 18px !important;
+}
+
+.history-ticket__qr {
+  width: 78px !important;
+  height: 78px !important;
+}
+
+.history-ticket__qr canvas {
+  width: 78px !important;
+  height: 78px !important;
+}
+
+.history-ticket__barcode {
+  min-height: 68px !important;
+  padding: 10px 10px 8px !important;
+}
+
+.history-ticket__barcode svg {
+  height: 38px !important;
+}
+
+.history-ticket__status,
+.history-cancel-button {
+  min-height: 38px !important;
+}
+
+@media (max-width: 980px) {
+  .history-ticket__main {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.history-ticket__barcode svg {
+  width: min(150px, 100%) !important;
+  height: 44px !important;
+  display: block !important;
+  overflow: visible !important;
+  background: transparent !important;
+}
+
+.history-ticket__barcode svg > rect:first-child {
+  fill: transparent !important;
+  stroke: none !important;
+}
+
+.history-ticket__barcode svg rect:not(:first-child),
+.history-ticket__barcode svg g rect,
+.history-ticket__barcode svg path,
+.history-ticket__barcode svg line {
+  fill: #111827 !important;
+  stroke: #111827 !important;
+  opacity: 1 !important;
+}
+
+/* Compact ticket width cleanup */
+.history-list {
+  width: min(1280px, 100%) !important;
+  margin-inline: auto !important;
+}
+
+.history-ticket {
+  width: 100% !important;
+  min-height: 236px !important;
+}
+
+.history-ticket__main {
+  grid-template-columns: minmax(280px, 360px) minmax(320px, 1fr) !important;
+  gap: 14px 18px !important;
+  padding: 24px 26px !important;
+}
+
+.history-ticket__header strong {
+  font-size: clamp(24px, 1.8vw, 32px) !important;
+}
+
+.history-ticket__route {
+  max-width: 100% !important;
+}
+
+.history-ticket__route i {
+  min-width: 120px !important;
+}
+
+.history-ticket__stub {
+  width: 220px !important;
+  padding: 18px 16px !important;
+}
+
+.history-ticket__barcode svg {
+  width: min(138px, 100%) !important;
+}
+
+@media (min-width: 1400px) {
+  .history-page {
+    padding-inline: max(5%, calc((100vw - 1280px) / 2)) !important;
+  }
+}
+
+@media (max-width: 980px) {
+  .history-list {
+    width: 100% !important;
+  }
+}
+
+/* Ticket body re-balance */
+.history-ticket__main {
+  grid-template-columns: minmax(300px, 0.72fr) minmax(360px, 1fr) !important;
+  grid-template-rows: auto auto 1fr !important;
+  align-items: start !important;
+  column-gap: 28px !important;
+}
+
+.history-ticket__pass-head {
+  grid-column: 1 / -1 !important;
+}
+
+.history-ticket__header {
+  grid-column: 1 !important;
+  grid-row: 2 !important;
+}
+
+.history-ticket__route {
+  grid-column: 1 !important;
+  grid-row: 3 !important;
+  align-self: end !important;
+  display: grid !important;
+  grid-template-columns: auto minmax(72px, 1fr) auto !important;
+  gap: 12px !important;
+}
+
+.history-ticket__route i {
+  min-width: 0 !important;
+}
+
+.history-ticket__meta {
+  grid-column: 2 !important;
+  grid-row: 2 / span 2 !important;
+  width: 100% !important;
+  align-self: stretch !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  align-content: start !important;
+}
+
+.history-ticket__meta-item {
+  min-height: 82px !important;
+}
+
+.history-ticket__stub {
+  width: 218px !important;
+}
+
+@media (max-width: 1100px) {
+  .history-ticket__main {
+    grid-template-columns: 1fr !important;
+  }
+
+  .history-ticket__header,
+  .history-ticket__route,
+  .history-ticket__meta {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+  }
+}
+
+/* Membership card material finish */
+.history-membership {
+  isolation: isolate !important;
+  overflow: hidden !important;
+  min-height: 260px !important;
+  padding: 28px 32px !important;
+  border-radius: 28px !important;
+  border: 1px solid rgba(255, 255, 255, 0.42) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    inset 0 -42px 80px rgba(0, 0, 0, 0.08),
+    0 28px 70px rgba(29, 24, 12, 0.16) !important;
+}
+
+.history-membership::before {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  z-index: 0 !important;
+  opacity: 0.95 !important;
+  pointer-events: none !important;
+  background:
+    linear-gradient(115deg, transparent 0 18%, rgba(255, 255, 255, 0.74) 28%, transparent 39%),
+    linear-gradient(295deg, transparent 0 52%, rgba(255, 255, 255, 0.28) 62%, transparent 73%),
+    repeating-linear-gradient(112deg, rgba(255, 255, 255, 0.16) 0 1px, transparent 1px 9px) !important;
+  mix-blend-mode: screen !important;
+}
+
+.history-membership::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 1px !important;
+  z-index: 0 !important;
+  border-radius: inherit !important;
+  pointer-events: none !important;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.72), transparent 22%),
+    radial-gradient(circle at 88% 12%, rgba(255, 255, 255, 0.34), transparent 20%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.22), transparent 42%) !important;
+  opacity: 0.78 !important;
+}
+
+.history-membership > * {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+.history-membership__top span,
+.history-membership__top small,
+.history-membership strong,
+.history-membership small {
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.34) !important;
+}
+
+.history-membership__top span,
+.history-membership__top small {
+  letter-spacing: 0.18em !important;
+}
+
+.history-membership strong {
+  margin-top: 18px !important;
+  font-size: clamp(48px, 6vw, 76px) !important;
+  letter-spacing: -0.04em !important;
+}
+
+.history-membership__chip {
+  width: 58px !important;
+  height: 40px !important;
+  border-radius: 18px !important;
+  border: 1px solid rgba(70, 54, 22, 0.2) !important;
+  background:
+    linear-gradient(90deg, transparent 34%, rgba(255, 255, 255, 0.36) 34% 38%, transparent 38% 62%, rgba(255, 255, 255, 0.26) 62% 66%, transparent 66%),
+    linear-gradient(135deg, rgba(255, 249, 214, 0.95), rgba(196, 164, 92, 0.62)) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    inset 0 -8px 16px rgba(124, 93, 28, 0.12),
+    0 10px 24px rgba(46, 35, 12, 0.18) !important;
+}
+
+.history-membership i {
+  height: 12px !important;
+  background: rgba(255, 255, 255, 0.44) !important;
+  box-shadow: inset 0 1px 5px rgba(20, 24, 35, 0.12) !important;
+}
+
+.history-membership--member {
+  background:
+    linear-gradient(125deg, #fff7dd 0%, #e9d49b 28%, #fff4c8 47%, #b98637 72%, #f9e4a8 100%) !important;
+  color: #3d2b0c !important;
+}
+
+.history-membership--member b {
+  background: linear-gradient(90deg, #9a6a1d, #f4c14b, #fff2a5) !important;
+}
+
+.history-membership--silver {
+  background:
+    linear-gradient(122deg, #f8fafc 0%, #aeb8c6 20%, #ffffff 38%, #7d8998 55%, #e9eef5 74%, #b7c0cc 100%),
+    repeating-linear-gradient(100deg, rgba(255, 255, 255, 0.28) 0 2px, transparent 2px 13px) !important;
+  color: #161b25 !important;
+  border-color: rgba(167, 181, 197, 0.72) !important;
+}
+
+.history-membership--silver b {
+  background: linear-gradient(90deg, #94a3b8, #f8fafc, #64748b) !important;
+}
+
+.history-membership--gold {
+  background:
+    linear-gradient(125deg, #5a3508 0%, #d69721 22%, #fff0a8 40%, #b97311 58%, #facc15 78%, #7a4b0f 100%),
+    repeating-linear-gradient(100deg, rgba(255, 255, 255, 0.22) 0 1px, transparent 1px 11px) !important;
+  color: #241406 !important;
+  border-color: rgba(245, 197, 77, 0.76) !important;
+}
+
+.history-membership--gold b {
+  background: linear-gradient(90deg, #7a4b0f, #facc15, #fff4b0) !important;
+}
+
+.history-membership--diamond {
+  background:
+    linear-gradient(128deg, #082f49 0%, #22d3ee 18%, #f8fdff 36%, #8b5cf6 56%, #0f172a 78%, #67e8f9 100%),
+    repeating-linear-gradient(108deg, rgba(255, 255, 255, 0.24) 0 1px, transparent 1px 10px) !important;
+  color: #07111f !important;
+  border-color: rgba(125, 211, 252, 0.82) !important;
+}
+
+.history-membership--diamond b {
+  background: linear-gradient(90deg, #0e7490, #67e8f9, #c4b5fd) !important;
+}
+
+.history-membership--gold .history-membership__top span,
+.history-membership--gold .history-membership__top small,
+.history-membership--gold strong,
+.history-membership--gold small {
+  color: #241406 !important;
+}
+
+.history-membership--diamond .history-membership__top span,
+.history-membership--diamond .history-membership__top small,
+.history-membership--diamond strong,
+.history-membership--diamond small {
+  color: #06121f !important;
+}
+
+/* Membership stats simplified */
+.history-membership {
+  aspect-ratio: 1.72 / 1 !important;
+  min-height: 0 !important;
+  border-radius: 18px !important;
+}
+
+.history-stats > div:not(.history-membership) {
+  min-height: auto !important;
+  padding: 4px 2px !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.history-stats > div:not(.history-membership) strong {
+  font-size: clamp(34px, 4vw, 50px) !important;
+  line-height: 0.95 !important;
+}
+
+.history-stats > div:not(.history-membership) span {
+  margin-top: 10px !important;
+  color: rgba(24, 28, 39, 0.68) !important;
+  font-weight: 800 !important;
+}
+
+.history-stats {
+  align-content: start !important;
+}
+
+/* Membership card content polish */
+.history-membership {
+  display: grid !important;
+  grid-template-rows: auto auto 1fr auto auto !important;
+  align-content: stretch !important;
+  gap: 8px !important;
+  padding: 26px 30px 24px !important;
+}
+
+.history-membership__top {
+  align-items: center !important;
+}
+
+.history-membership__top span,
+.history-membership__top small {
+  font-size: 13px !important;
+  line-height: 1 !important;
+  letter-spacing: 0.2em !important;
+}
+
+.history-membership__chip {
+  margin-top: 24px !important;
+  margin-bottom: 8px !important;
+}
+
+.history-membership strong {
+  align-self: end !important;
+  margin: 0 !important;
+  font-size: clamp(46px, 5.2vw, 68px) !important;
+  line-height: 0.9 !important;
+  letter-spacing: -0.045em !important;
+  max-width: 100% !important;
+  white-space: nowrap !important;
+}
+
+.history-membership small {
+  margin: 0 !important;
+  font-size: 14px !important;
+  line-height: 1.35 !important;
+}
+
+.history-membership i {
+  margin-top: 8px !important;
+}
+
+.history-membership i + small {
+  font-size: 13px !important;
+  opacity: 0.82 !important;
+}
+
+/* Membership card balance pass */
+.history-membership {
+  grid-template-columns: 92px minmax(0, 1fr) !important;
+  grid-template-rows: auto minmax(108px, 1fr) auto auto auto !important;
+  align-items: center !important;
+  gap: 10px 18px !important;
+  padding: 26px 32px 24px !important;
+}
+
+.history-membership__top {
+  grid-column: 1 / -1 !important;
+  grid-row: 1 !important;
+}
+
+.history-membership__chip {
+  grid-column: 1 !important;
+  grid-row: 2 !important;
+  align-self: center !important;
+  justify-self: start !important;
+  margin: 0 !important;
+}
+
+.history-membership strong {
+  grid-column: 2 !important;
+  grid-row: 2 !important;
+  align-self: center !important;
+  justify-self: start !important;
+  font-size: clamp(42px, 4.8vw, 58px) !important;
+  line-height: 1 !important;
+  letter-spacing: -0.035em !important;
+}
+
+.history-membership > small:nth-of-type(1) {
+  grid-column: 1 / -1 !important;
+  grid-row: 3 !important;
+}
+
+.history-membership i {
+  grid-column: 1 / -1 !important;
+  grid-row: 4 !important;
+  margin-top: 2px !important;
+}
+
+.history-membership > small:nth-of-type(2) {
+  grid-column: 1 / -1 !important;
+  grid-row: 5 !important;
+}
+
+/* Final hero and member name balance */
+.history-hero h1 {
+  max-width: 900px !important;
+  font-size: clamp(46px, 5.2vw, 68px) !important;
+  line-height: 1.08 !important;
+  letter-spacing: -0.028em !important;
+}
+
+.history-hero p {
+  max-width: 720px !important;
+  font-size: clamp(17px, 1.35vw, 22px) !important;
+  line-height: 1.55 !important;
+}
+
+.history-kicker {
+  font-size: 14px !important;
+  letter-spacing: 0.18em !important;
+}
+
+.history-membership {
+  grid-template-rows: auto auto minmax(92px, 1fr) auto auto auto !important;
+}
+
+.history-membership__name {
+  grid-column: 1 / -1 !important;
+  grid-row: 2 !important;
+  display: block !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  color: currentColor !important;
+  font-size: 12px !important;
+  font-weight: 900 !important;
+  letter-spacing: 0.16em !important;
+  line-height: 1.2 !important;
+  opacity: 0.78 !important;
+  text-transform: uppercase !important;
+  text-overflow: ellipsis !important;
+  white-space: nowrap !important;
+}
+
+.history-membership__chip,
+.history-membership strong {
+  grid-row: 3 !important;
+}
+
+.history-membership > small:nth-of-type(1) {
+  grid-row: 4 !important;
+}
+
+.history-membership i {
+  grid-row: 5 !important;
+}
+
+.history-membership > small:nth-of-type(2) {
+  grid-row: 6 !important;
+}
+
+/* Decorative dashed ticket border */
+.history-ticket {
+  border-style: dashed !important;
+  border-width: 1.5px !important;
+}
+
+.history-ticket::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 10px !important;
+  z-index: 1 !important;
+  border: 1px dashed rgba(31, 34, 45, 0.2) !important;
+  border-radius: 18px !important;
+  pointer-events: none !important;
+}
+
+.history-ticket > * {
+  position: relative !important;
+  z-index: 2 !important;
+}
+
+.history-ticket--active {
+  border-color: rgba(96, 165, 125, 0.72) !important;
+}
+
+.history-ticket--active::after {
+  border-color: rgba(66, 127, 91, 0.24) !important;
+}
+
+.history-ticket--used {
+  border-color: rgba(108, 148, 196, 0.72) !important;
+}
+
+.history-ticket--used::after {
+  border-color: rgba(63, 100, 148, 0.24) !important;
+}
+
+.history-ticket--cancelled {
+  border-color: rgba(204, 119, 96, 0.72) !important;
+}
+
+.history-ticket--cancelled::after {
+  border-color: rgba(143, 61, 42, 0.24) !important;
+}
+
+.history-ticket--expired {
+  border-color: rgba(142, 122, 190, 0.72) !important;
+}
+
+.history-ticket--expired::after {
+  border-color: rgba(85, 70, 130, 0.24) !important;
+}
+
+/* Replace the noisy dashed ticket border with a cleaner inset stroke */
+.history-ticket {
+  border-style: solid !important;
+  border-width: 1px !important;
+}
+
+.history-ticket::after {
+  display: none !important;
+}
+
+.history-ticket__main,
+.history-ticket__stub {
+  box-shadow: inset 0 0 0 1px rgba(31, 34, 45, 0.08) !important;
+}
+
+.history-ticket__main::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 14px 12px 14px 14px !important;
+  z-index: 0 !important;
+  border: 1px dashed rgba(31, 34, 45, 0.12) !important;
+  border-right: 0 !important;
+  border-radius: 16px 0 0 16px !important;
+  pointer-events: none !important;
+}
+
+.history-ticket__stub::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 14px 14px 14px 12px !important;
+  z-index: 0 !important;
+  border: 1px dashed rgba(31, 34, 45, 0.12) !important;
+  border-left: 0 !important;
+  border-radius: 0 16px 16px 0 !important;
+  pointer-events: none !important;
+}
+
+.history-ticket__main > *,
+.history-ticket__stub > * {
+  position: relative !important;
+  z-index: 1 !important;
+}
+
+/* Move ticket cutout holes toward the E-Ticket side */
+.history-ticket__cutout {
+  left: auto !important;
+  right: 58px !important;
+}
+
+.history-ticket__cutout--top {
+  top: -11px !important;
+}
+
+.history-ticket__cutout--bottom {
+  bottom: -11px !important;
+}
+
+/* Keep the relocated cutout visibly clipped on the stub edge */
+.history-ticket__cutout {
+  display: block !important;
+  right: 30px !important;
+  width: 22px !important;
+  height: 22px !important;
+  z-index: 5 !important;
+}
+
+.history-ticket__cutout--top {
+  top: -11px !important;
+}
+
+.history-ticket__cutout--bottom {
+  bottom: -11px !important;
+}
+
+.history-ticket__stub {
+  overflow: visible !important;
+}
+
+/* Stub punch hole placed inside the E-Ticket area */
+.history-ticket__cutout {
+  display: none !important;
+}
+
+.history-ticket__stub {
+  position: relative !important;
+}
+
+.history-ticket__stub-punch {
+  position: absolute !important;
+  top: 22px !important;
+  right: 28px !important;
+  z-index: 3 !important;
+  width: 24px !important;
+  height: 24px !important;
+  border-radius: 50% !important;
+  background:
+    radial-gradient(circle at 48% 56%, rgba(244, 239, 224, 0.9) 0 36%, rgba(214, 199, 164, 0.72) 37% 58%, rgba(126, 110, 74, 0.4) 59% 100%) !important;
+  border: 1px solid rgba(137, 119, 76, 0.42) !important;
+  box-shadow:
+    inset 2px 2px 4px rgba(84, 72, 44, 0.18),
+    inset -2px -2px 4px rgba(255, 255, 255, 0.82),
+    0 1px 0 rgba(255, 255, 255, 0.42) !important;
 }

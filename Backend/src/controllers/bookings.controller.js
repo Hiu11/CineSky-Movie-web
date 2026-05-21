@@ -1,10 +1,12 @@
 import mongoose from "mongoose";
+import crypto from "crypto";
 import BookingModel from "../models/booking.model.js";
 import MovieModel from "../models/movie.model.js";
 import ShowtimeModel from "../models/showtime.model.js";
 
 const formatMovieId = (legacyId) => String(legacyId).padStart(3, "0");
 const POINTS_PER_TICKET = 100;
+const TICKET_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 
 const buildTicketCode = (bookingId) =>
   `CSK${String(bookingId || "")
@@ -12,6 +14,70 @@ const buildTicketCode = (bookingId) =>
     .slice(-10)
     .toUpperCase()
     .padStart(10, "0")}`;
+
+const buildRandomTicketCode = () =>
+  `CSK${Array.from({ length: 10 }, () => TICKET_ALPHABET[crypto.randomInt(TICKET_ALPHABET.length)]).join("")}`;
+
+const createUniqueTicketCode = async () => {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const ticketCode = buildRandomTicketCode();
+    const existingBooking = await BookingModel.exists({ ticketCode });
+
+    if (!existingBooking) {
+      return ticketCode;
+    }
+  }
+
+  return buildTicketCode(new mongoose.Types.ObjectId());
+};
+
+const buildScreeningDateTime = (screeningDate = "", displayTime = "") => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(screeningDate)) || !/^\d{2}:\d{2}$/.test(String(displayTime))) {
+    return null;
+  }
+
+  const date = new Date(`${screeningDate}T${displayTime}:00+07:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const getBookingEffectiveStatus = (booking, showtime, movie) => {
+  if (booking.status !== "booked") {
+    return booking.status;
+  }
+
+  const screeningEndFromShowtime = showtime?.endTime ? new Date(showtime.endTime) : null;
+
+  if (screeningEndFromShowtime && !Number.isNaN(screeningEndFromShowtime.getTime())) {
+    return screeningEndFromShowtime.getTime() < Date.now() ? "expired" : booking.status;
+  }
+
+  const screeningStart =
+    buildScreeningDateTime(booking.screeningDate || showtime?.displayDate, showtime?.displayTime) ||
+    (showtime?.startTime ? new Date(showtime.startTime) : null);
+
+  if (!screeningStart || Number.isNaN(screeningStart.getTime())) {
+    return booking.status;
+  }
+
+  const durationMinutes = Number(movie?.duration || 0) || 120;
+  const screeningEnd = new Date(screeningStart.getTime() + durationMinutes * 60000);
+
+  return screeningEnd.getTime() < Date.now() ? "expired" : booking.status;
+};
+
+const expireBookingIfNeeded = async (booking, showtime, movie) => {
+  if (!booking || booking.status !== "booked") {
+    return booking;
+  }
+
+  if (getBookingEffectiveStatus(booking, showtime, movie) !== "expired") {
+    return booking;
+  }
+
+  booking.status = "expired";
+  await booking.save();
+  return booking;
+};
 
 const getMembershipTier = (points = 0) => {
   if (points >= 3000) return "Diamond";
@@ -61,7 +127,7 @@ const serializeBooking = (booking, showtime, movie) => ({
   movieId: formatMovieId(booking.movieLegacyId),
   movieTitle: movie?.title || "",
   showtimeId: booking.showtimeId,
-  cinemaName: showtime?.cinemaName || "",
+  cinemaName: showtime?.cinemaName || "CineSky Nguyen Hue",
   roomName: showtime?.roomName || "",
   screeningDate: booking.screeningDate || "",
   screeningDateLabel: booking.screeningDateLabel || "",
@@ -73,7 +139,8 @@ const serializeBooking = (booking, showtime, movie) => ({
   paymentProvider: booking.paymentProvider || "",
   paymentStatus: booking.paymentStatus || "mock_paid",
   paymentReference: booking.paymentReference || "",
-  status: booking.status,
+  status: getBookingEffectiveStatus(booking, showtime, movie),
+  rawStatus: booking.status,
   checkedInAt: booking.checkedInAt,
   cancelledAt: booking.cancelledAt,
   cancelReason: booking.cancelReason || "",
@@ -129,11 +196,20 @@ const bookingsController = {
         showtimes.map((showtime) => [String(showtime._id), showtime])
       );
 
+      const normalizedBookings = await Promise.all(
+        bookings.map(async (booking) => {
+          const showtime = showtimeMap.get(String(booking.showtimeId));
+          const movie = movieMap.get(Number(booking.movieLegacyId));
+
+          return expireBookingIfNeeded(booking, showtime, movie);
+        })
+      );
+
       return res.status(200).send({
         success: true,
         message: "Get booking history successfully",
         data: {
-          bookings: bookings.map((booking) =>
+          bookings: normalizedBookings.map((booking) =>
             serializeBooking(
               booking,
               showtimeMap.get(String(booking.showtimeId)),
@@ -220,6 +296,19 @@ const bookingsController = {
         });
       }
 
+      const requestedScreeningStart = buildScreeningDateTime(
+        String(screeningDate).trim() || showtime.displayDate,
+        showtime.displayTime
+      );
+
+      if (requestedScreeningStart && requestedScreeningStart.getTime() <= Date.now()) {
+        return res.status(409).send({
+          success: false,
+          message: "This showtime has already started. Please choose another showtime.",
+          data: null,
+        });
+      }
+
       const invalidSeat = seatNumbers.find(
         (seat) => !showtime.seats.includes(seat)
       );
@@ -254,12 +343,13 @@ const bookingsController = {
 
       let booking;
       const bookingId = new mongoose.Types.ObjectId();
+      const ticketCode = await createUniqueTicketCode();
 
       try {
         booking = await BookingModel.create({
           _id: bookingId,
           userId: authUser._id,
-          ticketCode: buildTicketCode(bookingId),
+          ticketCode,
           customerName,
           customerEmail,
           movieLegacyId: legacyId,
@@ -350,10 +440,20 @@ const bookingsController = {
         });
       }
 
+      await expireBookingIfNeeded(booking, showtime, movie);
+
       if (booking.status === "used") {
         return res.status(409).send({
           success: false,
           message: "Checked-in tickets cannot be cancelled",
+          data: serializeBooking(booking, showtime, movie),
+        });
+      }
+
+      if (getBookingEffectiveStatus(booking, showtime, movie) === "expired") {
+        return res.status(409).send({
+          success: false,
+          message: "Expired tickets cannot be cancelled",
           data: serializeBooking(booking, showtime, movie),
         });
       }
@@ -364,20 +464,19 @@ const bookingsController = {
       );
 
       booking.status = "cancelled";
-      booking.paymentStatus = "refunded";
+      booking.paymentStatus = booking.paymentStatus || "mock_paid";
       booking.cancelledAt = new Date();
       booking.cancelReason = String(reason).trim();
       await booking.save();
-      const membership = await updateUserMembership(req.authUser, -booking.seatNumbers.length);
 
       const updatedShowtime = await ShowtimeModel.findById(booking.showtimeId);
 
       return res.status(200).send({
         success: true,
-        message: "Cancel booking successfully",
+        message: "Cancel booking successfully. Paid amount is not refunded.",
         data: {
           ...serializeBooking(booking, updatedShowtime, movie),
-          membership,
+          membership: serializeMembership(req.authUser?.membership),
         },
       });
     } catch (error) {

@@ -73,7 +73,7 @@ export default function BookingSuccess() {
             <div className="booking-success-ticket__grid">
               <div className="booking-success-ticket__item">
                 <small>Rạp chiếu</small>
-                <strong>{receipt.cinemaName || "CineSky"}</strong>
+                <strong>{receipt.cinemaName || "CineSky Nguyen Hue"}</strong>
               </div>
               <div className="booking-success-ticket__item">
                 <small>Phòng chiếu</small>

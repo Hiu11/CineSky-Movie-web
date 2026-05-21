@@ -23,16 +23,28 @@ const navItems = [
   { to: "/feedback", label: "Góp ý", id: "feedback" },
 ];
 
-const mobileNavIcons = {
-  home: "⌂",
-  now: "▶",
-  soon: "⏱",
-  filter: "⌕",
-  promotions: "%",
-  news: "N",
-  about: "i",
-  feedback: "✎",
+const navIconPaths = {
+  home: "M3.5 10.5 12 3l8.5 7.5v8.5a1.5 1.5 0 0 1-1.5 1.5h-4.2v-6h-5.6v6H5a1.5 1.5 0 0 1-1.5-1.5z",
+  now: "M8 5.5v13l11-6.5z",
+  soon: "M12 4.5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15zm0 3v5l3.3 2",
+  filter: "M4 7h10M18 7h2M4 12h2M10 12h10M4 17h8M16 17h4M14 5v4M8 10v4M14 15v4",
+  promotions: "M5 6.5V12l7 7 6.5-6.5-7-7H5zm4 2.5h.01",
+  news: "M5 5.5h12a2 2 0 0 1 2 2v11H7a2 2 0 0 1-2-2zm3 4h8M8 13h8M8 16h5",
+  about: "M12 10.5v6M12 7.5h.01M12 4.5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15z",
+  feedback: "M5.5 6.5h13v9h-8l-5 4v-13zM8.5 10h7M8.5 13h4",
+  admin: "M12 4.5 18.5 7v5.2c0 4-2.6 6.6-6.5 8.3-3.9-1.7-6.5-4.3-6.5-8.3V7z",
+  profile: "M12 12.5a4 4 0 1 0 0-8 4 4 0 0 0 0 8zm-7 7c1.5-3 4-4.5 7-4.5s5.5 1.5 7 4.5",
+  history: "M5 12a7 7 0 1 0 2-4.9M5 5.5V10h4.5M12 8v4.5l3 1.8",
+  favorite: "M12 4.8l2.1 4.3 4.7.7-3.4 3.3.8 4.7-4.2-2.2-4.2 2.2.8-4.7-3.4-3.3 4.7-.7z",
+  notification: "M7 17h10l-1.2-1.8V11a3.8 3.8 0 0 0-7.6 0v4.2zM10 19h4",
+  logout: "M10 6H6.5A1.5 1.5 0 0 0 5 7.5v9A1.5 1.5 0 0 0 6.5 18H10M14 8l4 4-4 4M18 12H9",
 };
+
+const NavIcon = ({ id }) => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d={navIconPaths[id] || navIconPaths.home} />
+  </svg>
+);
 
 const navGroups = [
   {
@@ -45,7 +57,7 @@ const navGroups = [
   },
   {
     id: "search",
-    label: "Tìm phim",
+    label: "Lọc phim",
     title: "Bộ lọc thông minh",
     description: "Thu hẹp danh sách phim theo thể loại, quốc gia và thời lượng.",
     spotlight: "Tìm đúng phim trước khi đặt vé",
@@ -76,18 +88,6 @@ const navGroups = [
     items: navItems.filter((item) => ["feedback"].includes(item.id)),
   },
 ];
-
-const navItemDescriptions = {
-  home: "Tổng quan phim và suất chiếu nổi bật",
-  now: "Danh sách phim có thể đặt vé ngay",
-  soon: "Các tựa phim chuẩn bị ra rạp",
-  filter: "Tìm phim theo thể loại, quốc gia, thời lượng",
-  promotions: "Voucher, combo và quyền lợi hội viên",
-  news: "Review nhanh, hậu trường và lịch chiếu hot",
-  about: "Thông tin dự án và hệ thống rạp",
-  feedback: "Gửi góp ý hoặc báo vấn đề trải nghiệm",
-  admin: "Quản lý dữ liệu hệ thống",
-};
 
 const readRecentSearches = () => {
   if (typeof window === "undefined") {
@@ -596,32 +596,31 @@ export default function Header({
 
             <div className="user-menu__section">
               <Link to="/profile" className="user-menu__item">
-                <span className="user-menu__icon">U</span>
+                <span className="user-menu__icon"><NavIcon id="profile" /></span>
                 Hồ sơ cá nhân
               </Link>
               <Link to="/history" className="user-menu__item">
-                <span className="user-menu__icon">T</span>
+                <span className="user-menu__icon"><NavIcon id="history" /></span>
                 Lịch sử đặt vé
               </Link>
               <Link to="/profile#favorites" className="user-menu__item">
-                <span className="user-menu__icon">★</span>
+                <span className="user-menu__icon"><NavIcon id="favorite" /></span>
                 Phim yêu thích
               </Link>
             </div>
 
             <div className="user-menu__section">
               <Link to="/feedback" className="user-menu__item">
-                <span className="user-menu__icon">?</span>
+                <span className="user-menu__icon"><NavIcon id="feedback" /></span>
                 Gửi góp ý
               </Link>
               <Link to="/notifications" className="user-menu__item user-menu__item--notify">
-                <span><span className="user-menu__icon">!</span>Thông báo</span>
+                <span><span className="user-menu__icon"><NavIcon id="notification" /></span>Thông báo</span>
                 {notificationCount > 0 ? <strong>{notificationCount > 99 ? "99+" : notificationCount}</strong> : null}
               </Link>
             </div>
-            {isAdminUser ? <Link to="/admin" className="user-menu__item">Quản trị</Link> : null}
             <button type="button" className="user-menu__item user-menu__item--danger" onClick={handleLogoutClick}>
-              <span className="user-menu__icon">X</span>
+              <span className="user-menu__icon"><NavIcon id="logout" /></span>
               Đăng xuất
             </button>
           </div>
@@ -714,21 +713,17 @@ export default function Header({
                 <span className="nav-dropdown__chevron" aria-hidden="true"></span>
               </button>
               <div className="nav-dropdown__panel">
-                <div className="nav-dropdown__intro">
-                  <strong>{group.title}</strong>
-                  <p>{group.description}</p>
-                </div>
-
                 <div className="nav-dropdown__content">
                   <div className="nav-dropdown__items">
                     {group.items.map((item) => {
                       const isActive = getNavItemActive(item);
                       const itemContent = (
                         <>
-                          <span>{mobileNavIcons[item.id] || "•"}</span>
+                          <span className="nav-dropdown__icon">
+                            <NavIcon id={item.id} />
+                          </span>
                           <span>
                             <strong>{item.label}</strong>
-                            <small>{navItemDescriptions[item.id]}</small>
                           </span>
                         </>
                       );
@@ -758,10 +753,6 @@ export default function Header({
                     })}
                   </div>
 
-                  <div className="nav-dropdown__spotlight">
-                    <span>{group.label}</span>
-                    <strong>{group.spotlight}</strong>
-                  </div>
                 </div>
               </div>
             </div>
@@ -798,7 +789,9 @@ export default function Header({
                   className={"mobile-nav__link" + (item.id === "admin" ? " mobile-nav__link--admin" : "")}
                   onClick={(event) => handleNavTransition(event, item.to)}
                 >
-                  <span className="mobile-link-icon" aria-hidden="true">{mobileNavIcons[item.id] || "★"}</span>
+                  <span className="mobile-link-icon" aria-hidden="true">
+                    <NavIcon id={item.id} />
+                  </span>
                   <span>{item.label}</span>
                 </Link>
               ))}

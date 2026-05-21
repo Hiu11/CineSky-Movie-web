@@ -435,6 +435,11 @@ export const ensureMovieSeedData = async () => {
     seedKey: { $exists: true, $nin: showtimeSeedKeys },
   });
 
+  const validShowtimeIds = await ShowtimeModel.distinct("_id");
+  await BookingModel.deleteMany({
+    showtimeId: { $nin: validShowtimeIds },
+  });
+
   if (seedFeedbackEntries.length > 0) {
     await FeedbackModel.bulkWrite(
       seedFeedbackEntries.map((entry) => ({

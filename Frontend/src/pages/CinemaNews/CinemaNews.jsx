@@ -28,6 +28,25 @@ const quickReads = [
   "Review nhanh nên đọc trước khi đặt vé: thể loại, nhịp phim, độ tuổi và thời lượng.",
 ];
 
+const editorPicks = [
+  {
+    title: "Phim hành động hợp đi nhóm",
+    text: "Ưu tiên các suất sau 19:00, âm lượng mạnh và phòng chiếu lớn để giữ nhịp trải nghiệm từ đầu đến cuối.",
+  },
+  {
+    title: "Phim gia đình cuối tuần",
+    text: "Các tựa phim hài, hoạt hình và phiêu lưu nhẹ phù hợp lịch chiều, dễ đặt combo bắp nước cho cả nhà.",
+  },
+  {
+    title: "Phim Việt đáng chú ý",
+    text: "Theo dõi review sớm, phản hồi khán giả và lịch giao lưu để chọn suất chiếu có không khí rạp tốt hơn.",
+  },
+  {
+    title: "Trailer mới trong tuần",
+    text: "CineSky cập nhật trailer, poster và thông tin mở bán để người xem lưu lịch trước khi phim ra mắt.",
+  },
+];
+
 export default function CinemaNews() {
   return (
     <main className="cinema-news-page">
@@ -61,6 +80,21 @@ export default function CinemaNews() {
         <div className="cinema-news-brief__list">
           {quickReads.map((item) => (
             <p key={item}>{item}</p>
+          ))}
+        </div>
+      </section>
+
+      <section className="cinema-news-expanded">
+        <div className="cinema-news-expanded__header">
+          <span>Chuyên mục</span>
+          <h2>Nhiều nội dung hơn cho người thích theo dõi phim trước khi đặt vé.</h2>
+        </div>
+        <div className="cinema-news-expanded__grid">
+          {editorPicks.map((item) => (
+            <article key={item.title}>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+            </article>
           ))}
         </div>
       </section>

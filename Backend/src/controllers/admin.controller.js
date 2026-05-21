@@ -66,7 +66,7 @@ const serializeBooking = (booking, movie, showtime) => ({
   screeningDateLabel: booking.screeningDateLabel || "",
   displayDate: booking.screeningDateLabel || showtime?.displayDate || "",
   displayTime: showtime?.displayTime || "",
-  cinemaName: showtime?.cinemaName || "",
+  cinemaName: showtime?.cinemaName || "CineSky Nguyen Hue",
   roomName: showtime?.roomName || "",
   seatNumbers: booking.seatNumbers || [],
   totalPrice: booking.totalPrice || 0,
@@ -74,7 +74,7 @@ const serializeBooking = (booking, movie, showtime) => ({
   paymentProvider: booking.paymentProvider || "",
   paymentStatus: booking.paymentStatus || "mock_paid",
   paymentReference: booking.paymentReference || "",
-  status: booking.status,
+  status: getBookingEffectiveStatus(booking, movie, showtime),
   checkedInAt: booking.checkedInAt,
   cancelledAt: booking.cancelledAt,
   cancelReason: booking.cancelReason || "",
@@ -265,6 +265,274 @@ const buildTicketCode = (bookingId) =>
     .slice(-10)
     .toUpperCase()
     .padStart(10, "0")}`;
+
+const getBookingEffectiveStatus = (booking, movie, showtime) => {
+  if (booking.status !== "booked") {
+    return booking.status;
+  }
+
+  const screeningEndFromShowtime = showtime?.endTime ? new Date(showtime.endTime) : null;
+
+  if (screeningEndFromShowtime && !Number.isNaN(screeningEndFromShowtime.getTime())) {
+    return screeningEndFromShowtime.getTime() < Date.now() ? "expired" : booking.status;
+  }
+
+  const screeningStart = showtime?.startTime ? new Date(showtime.startTime) : null;
+
+  if (!screeningStart || Number.isNaN(screeningStart.getTime())) {
+    return booking.status;
+  }
+
+  const durationMinutes = Number(movie?.duration || 0) || 120;
+  const screeningEnd = new Date(screeningStart.getTime() + durationMinutes * 60000);
+
+  return screeningEnd.getTime() < Date.now() ? "expired" : booking.status;
+};
+
+const expireBookingIfNeeded = async (booking, movie, showtime) => {
+  if (!booking || booking.status !== "booked") {
+    return booking;
+  }
+
+  if (getBookingEffectiveStatus(booking, movie, showtime) !== "expired") {
+    return booking;
+  }
+
+  booking.status = "expired";
+  await booking.save();
+  return booking;
+};
+
+const analyticsCinemaCatalog = [
+  { name: "CineSky Nguyen Hue", rooms: ["Sky Hall 1", "Sky Hall 2"] },
+  { name: "CineSky Hai Ba Trung", rooms: ["Moon Hall", "Galaxy Hall"] },
+  { name: "CineSky Dien Bien Phu", rooms: ["Nova Hall", "Aurora Hall"] },
+];
+
+const analyticsRoomToCinemaName = analyticsCinemaCatalog.reduce((map, cinema) => {
+  cinema.rooms.forEach((room) => map.set(room.toLowerCase(), cinema.name));
+  return map;
+}, new Map());
+
+const analyticsRangeTitles = {
+  day: "Hôm nay",
+  week: "Tuần này",
+  month: "Tháng này",
+  year: "Năm nay",
+};
+
+const analyticsColors = ["#f7b400", "#38bdf8", "#22c55e", "#f97316", "#a78bfa", "#ef4444"];
+
+const normalizeAnalyticsComparable = (value = "") => String(value).trim().toLowerCase();
+
+const normalizeAnalyticsCinemaName = (cinemaName = "", roomName = "") => {
+  const normalizedName = String(cinemaName || "").trim();
+  const matchedCinema = analyticsCinemaCatalog.find(
+    (cinema) => cinema.name.toLowerCase() === normalizedName.toLowerCase()
+  );
+
+  if (matchedCinema) {
+    return matchedCinema.name;
+  }
+
+  return analyticsRoomToCinemaName.get(String(roomName || "").trim().toLowerCase()) || analyticsCinemaCatalog[0].name;
+};
+
+const getAnalyticsBookingDate = (booking) => {
+  const date = new Date(booking?.createdAt);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const isAnalyticsBookingInRange = (booking, range) => {
+  const date = getAnalyticsBookingDate(booking);
+
+  if (!date) {
+    return false;
+  }
+
+  const now = new Date();
+  const start = new Date(now);
+
+  if (range === "day") {
+    start.setHours(0, 0, 0, 0);
+  } else if (range === "week") {
+    start.setDate(now.getDate() - 6);
+    start.setHours(0, 0, 0, 0);
+  } else if (range === "month") {
+    start.setMonth(now.getMonth() - 1);
+    start.setHours(0, 0, 0, 0);
+  } else if (range === "year") {
+    start.setFullYear(now.getFullYear(), 0, 1);
+    start.setHours(0, 0, 0, 0);
+  }
+
+  return date >= start && date <= now;
+};
+
+const addAnalyticsMapValue = (map, key, amount) => {
+  const label = key || "Chưa cập nhật";
+  map.set(label, (map.get(label) || 0) + Number(amount || 0));
+};
+
+const normalizeAnalyticsRows = (items, limit = 6) => {
+  const topItems = [...items]
+    .sort((first, second) => Number(second.value || 0) - Number(first.value || 0))
+    .slice(0, limit);
+  const maxValue = Math.max(...topItems.map((item) => Number(item.value || 0)), 1);
+
+  return topItems.map((item, index) => ({
+    ...item,
+    percent: Math.max(item.value > 0 ? 5 : 0, Math.round((Number(item.value || 0) / maxValue) * 100)),
+    color: item.color || analyticsColors[index % analyticsColors.length],
+  }));
+};
+
+const normalizeAnalyticsFeedbackRating = (rating) => Math.max(1, Math.min(5, Number(rating) || 1));
+
+const buildAdminAnalyticsPayload = ({ bookings = [], movies = [], users = [], feedback = [], range = "month" }) => {
+  const scopedBookings = bookings.filter((booking) => isAnalyticsBookingInRange(booking, range));
+  const paidBookings = scopedBookings.filter((booking) => booking.status !== "cancelled");
+  const totalRevenue = paidBookings.reduce((sum, booking) => sum + Number(booking.totalPrice || 0), 0);
+  const totalSeats = paidBookings.reduce((sum, booking) => sum + (booking.seatNumbers || []).length, 0);
+  const checkedIn = scopedBookings.filter((booking) => booking.status === "used").length;
+  const cancelled = scopedBookings.filter((booking) => booking.status === "cancelled").length;
+
+  const byMovie = new Map();
+  const byGenre = new Map();
+  const byDay = new Map();
+  const byMonth = new Map();
+  const byStatus = new Map();
+  const byPayment = new Map();
+  const byCinema = new Map(analyticsCinemaCatalog.map((cinema) => [cinema.name, 0]));
+  const byRoom = new Map();
+  const bySeatVolume = new Map();
+  const byHour = new Map();
+  const byWeekday = new Map();
+  const byTicketSize = new Map();
+  const byPaymentCount = new Map();
+  const movieByTitle = new Map(
+    movies.map((movie) => [normalizeAnalyticsComparable(movie.title || movie.name), movie])
+  );
+
+  scopedBookings.forEach((booking) => {
+    const revenue = booking.status === "cancelled" ? 0 : Number(booking.totalPrice || 0);
+    const date = getAnalyticsBookingDate(booking);
+    const movieTitle = booking.movieTitle || "Phim chưa cập nhật";
+    const movie = movieByTitle.get(normalizeAnalyticsComparable(movieTitle));
+    const genres = movie?.genres?.length ? movie.genres : ["Chưa phân loại"];
+
+    addAnalyticsMapValue(byMovie, movieTitle, revenue);
+    genres.forEach((genre) => addAnalyticsMapValue(byGenre, genre, revenue));
+    addAnalyticsMapValue(
+      byStatus,
+      booking.status === "cancelled" ? "Đã hủy" : booking.status === "used" ? "Đã check-in" : "Đã thanh toán",
+      1
+    );
+    addAnalyticsMapValue(byPayment, booking.paymentProvider || booking.paymentMethod || "Mock", revenue);
+    addAnalyticsMapValue(byCinema, normalizeAnalyticsCinemaName(booking.cinemaName, booking.roomName), revenue);
+    addAnalyticsMapValue(byRoom, booking.roomName || "Chưa rõ phòng", revenue);
+    addAnalyticsMapValue(
+      bySeatVolume,
+      normalizeAnalyticsCinemaName(booking.cinemaName, booking.roomName),
+      (booking.seatNumbers || []).length
+    );
+    addAnalyticsMapValue(byPaymentCount, booking.paymentProvider || booking.paymentMethod || "Mock", 1);
+
+    if (date) {
+      addAnalyticsMapValue(byDay, new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit" }).format(date), revenue);
+      addAnalyticsMapValue(byMonth, new Intl.DateTimeFormat("vi-VN", { month: "2-digit", year: "numeric" }).format(date), revenue);
+      addAnalyticsMapValue(byWeekday, new Intl.DateTimeFormat("vi-VN", { weekday: "short" }).format(date), revenue);
+    }
+
+    const hour = Number(String(booking.displayTime || "").split(":")[0]);
+    const slot = Number.isFinite(hour) ? (hour < 12 ? "Sáng" : hour < 18 ? "Chiều" : "Tối") : "Chưa rõ";
+    addAnalyticsMapValue(byHour, slot, revenue);
+
+    const seatCount = (booking.seatNumbers || []).length;
+    const ticketSize = seatCount <= 1 ? "1 vé" : seatCount === 2 ? "2 vé" : seatCount <= 4 ? "3-4 vé" : "5+ vé";
+    addAnalyticsMapValue(byTicketSize, ticketSize, 1);
+  });
+
+  const movieRows = normalizeAnalyticsRows([...byMovie.entries()].map(([label, value]) => ({ label, value })), 8);
+  const allMovieRows = movies
+    .map((movie) => {
+      const title = movie.title || movie.name || "Phim chưa cập nhật";
+      return {
+        id: formatMovieId(movie.legacyId || movie.id),
+        label: title,
+        value: byMovie.get(title) || 0,
+        status: movie.status === "coming-soon" ? "Sắp chiếu" : "Đang chiếu",
+        genres: Array.isArray(movie.genres) ? movie.genres.join(", ") : "Chưa cập nhật",
+        releaseDate: movie.releaseDate || "Chưa cập nhật",
+      };
+    })
+    .sort((first, second) => Number(second.value || 0) - Number(first.value || 0) || first.label.localeCompare(second.label, "vi"));
+
+  const feedbackRows = normalizeAnalyticsRows(
+    [...feedback.reduce((map, item) => {
+      addAnalyticsMapValue(map, item.priorityLabel || item.priority || "Trung bình", 1);
+      return map;
+    }, new Map()).entries()].map(([label, value]) => ({ label, value })),
+    5
+  );
+
+  return {
+    source: "be-db",
+    scopeLabel: analyticsRangeTitles[range] || "Tháng này",
+    totalRevenue,
+    totalSeats,
+    totalBookings: scopedBookings.length,
+    paidBookings: paidBookings.length,
+    checkedIn,
+    cancelled,
+    averageOrder: paidBookings.length ? Math.round(totalRevenue / paidBookings.length) : 0,
+    movieRows,
+    allMovieRows,
+    genreRows: normalizeAnalyticsRows([...byGenre.entries()].map(([label, value]) => ({ label, value })), 8),
+    dailyRows: normalizeAnalyticsRows([...byDay.entries()].map(([label, value]) => ({ label, value })), 10),
+    monthlyRows: normalizeAnalyticsRows([...byMonth.entries()].map(([label, value]) => ({ label, value })), 12),
+    statusRows: normalizeAnalyticsRows([...byStatus.entries()].map(([label, value]) => ({ label, value })), 4),
+    paymentRows: normalizeAnalyticsRows([...byPayment.entries()].map(([label, value]) => ({ label, value })), 5),
+    cinemaRows: normalizeAnalyticsRows([...byCinema.entries()].map(([label, value]) => ({ label, value })), 5),
+    roomRows: normalizeAnalyticsRows([...byRoom.entries()].map(([label, value]) => ({ label, value })), 8),
+    seatVolumeRows: normalizeAnalyticsRows([...bySeatVolume.entries()].map(([label, value]) => ({ label, value })), 5),
+    hourRows: normalizeAnalyticsRows([...byHour.entries()].map(([label, value]) => ({ label, value })), 4),
+    weekdayRows: normalizeAnalyticsRows([...byWeekday.entries()].map(([label, value]) => ({ label, value })), 7),
+    ticketSizeRows: normalizeAnalyticsRows([...byTicketSize.entries()].map(([label, value]) => ({ label, value })), 4),
+    paymentCountRows: normalizeAnalyticsRows([...byPaymentCount.entries()].map(([label, value]) => ({ label, value })), 5),
+    tierRows: normalizeAnalyticsRows(
+      [...users.reduce((map, user) => {
+        addAnalyticsMapValue(map, user.membership?.tier || user.status || "Member", 1);
+        return map;
+      }, new Map()).entries()].map(([label, value]) => ({ label, value })),
+      5
+    ),
+    feedbackRows,
+    feedbackStatusRows: normalizeAnalyticsRows(
+      [...feedback.reduce((map, item) => {
+        addAnalyticsMapValue(map, item.status || "new", 1);
+        return map;
+      }, new Map()).entries()].map(([label, value]) => ({ label, value })),
+      5
+    ),
+    feedbackCategoryRows: normalizeAnalyticsRows(
+      [...feedback.reduce((map, item) => {
+        addAnalyticsMapValue(map, item.category || "Khác", 1);
+        return map;
+      }, new Map()).entries()].map(([label, value]) => ({ label, value })),
+      6
+    ),
+    feedbackRatingRows: normalizeAnalyticsRows(
+      [...feedback.reduce((map, item) => {
+        addAnalyticsMapValue(map, `${normalizeAnalyticsFeedbackRating(item.rating)} sao`, 1);
+        return map;
+      }, new Map()).entries()].map(([label, value]) => ({ label, value })),
+      5
+    ),
+    topMovie: movieRows[0],
+    topGenre: normalizeAnalyticsRows([...byGenre.entries()].map(([label, value]) => ({ label, value })), 8)[0],
+  };
+};
 
 const findBookingByTicketLookup = (lookupValue) => {
   const ticketCode = String(lookupValue || "").trim().toUpperCase();
@@ -641,10 +909,52 @@ const adminController = {
     }
   },
 
+  getDashboardAnalytics: async (req, res) => {
+    try {
+      const range = ["day", "week", "month", "year"].includes(req.query.range) ? req.query.range : "month";
+      const [bookings, movies, users, feedbackEntries] = await Promise.all([
+        BookingModel.find({}).sort({ createdAt: -1 }).limit(5000),
+        MovieModel.find({ deletedAt: null }).sort({ catalogOrder: 1, legacyId: 1 }).limit(500),
+        UserModel.find({}).limit(1000),
+        FeedbackModel.find({ isHidden: { $ne: true } }).sort({ createdAt: -1 }).limit(1000),
+      ]);
+
+      const movieLegacyIds = [...new Set(bookings.map((booking) => booking.movieLegacyId))];
+      const showtimeIds = [...new Set(bookings.map((booking) => String(booking.showtimeId)).filter(Boolean))];
+      const [bookingMovies, showtimes] = await Promise.all([
+        MovieModel.find({ legacyId: { $in: movieLegacyIds } }),
+        ShowtimeModel.find({ _id: { $in: showtimeIds } }),
+      ]);
+      const movieMap = new Map(bookingMovies.map((movie) => [movie.legacyId, movie]));
+      const showtimeMap = new Map(showtimes.map((showtime) => [String(showtime._id), showtime]));
+      const serializedBookings = bookings.map((booking) =>
+        serializeBooking(booking, movieMap.get(booking.movieLegacyId), showtimeMap.get(String(booking.showtimeId)))
+      );
+
+      return res.status(200).send({
+        success: true,
+        message: "Get admin analytics successfully",
+        data: buildAdminAnalyticsPayload({
+          bookings: serializedBookings,
+          movies,
+          users,
+          feedback: feedbackEntries,
+          range,
+        }),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
   getUsers: async (req, res) => {
     try {
       const page = Math.max(Number(req.query.page) || 1, 1);
-      const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 50);
+      const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 500);
       const skip = (page - 1) * limit;
       const filter = buildSearchFilter(req.query.search);
 
@@ -1318,6 +1628,8 @@ const adminController = {
         ShowtimeModel.findById(booking.showtimeId),
       ]);
 
+      await expireBookingIfNeeded(booking, movie, showtime);
+
       return res.status(200).send({
         success: true,
         message: "Lookup ticket successfully",
@@ -1359,6 +1671,8 @@ const adminController = {
         ShowtimeModel.findById(booking.showtimeId),
       ]);
 
+      await expireBookingIfNeeded(booking, movie, showtime);
+
       if (booking.status === "cancelled") {
         return res.status(409).send({
           success: false,
@@ -1371,6 +1685,14 @@ const adminController = {
         return res.status(200).send({
           success: true,
           message: "Ticket was already checked in",
+          data: serializeBooking(booking, movie, showtime),
+        });
+      }
+
+      if (booking.status === "expired") {
+        return res.status(409).send({
+          success: false,
+          message: "Expired tickets cannot be checked in",
           data: serializeBooking(booking, movie, showtime),
         });
       }

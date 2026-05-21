@@ -46,6 +46,11 @@ const DetailSkeleton = () => (
   </main>
 );
 
+const getReviewRatingTone = (rating) => {
+  const normalizedRating = Math.min(10, Math.max(1, Number(rating) || 1));
+  return `md-score-tone md-score-tone--${normalizedRating}`;
+};
+
 export default function MovieDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -641,7 +646,9 @@ export default function MovieDetail() {
               <div className={`filter-control filter-dropdown md-rating-dropdown ${isReviewRatingOpen ? "is-open" : ""}`}>
                 <button
                   type="button"
-                  className="filter-dropdown__trigger"
+                  className={`filter-dropdown__trigger md-rating-dropdown__trigger ${getReviewRatingTone(
+                    reviewForm.rating
+                  )}`}
                   onPointerDown={(event) => {
                     event.preventDefault();
                     setIsReviewRatingOpen((current) => !current);
@@ -664,7 +671,9 @@ export default function MovieDetail() {
                     <button
                       key={rating}
                       type="button"
-                      className={`filter-dropdown__option ${reviewForm.rating === rating ? "is-selected" : ""}`}
+                      className={`filter-dropdown__option md-rating-dropdown__option ${getReviewRatingTone(
+                        rating
+                      )} ${reviewForm.rating === rating ? "is-selected" : ""}`}
                       role="option"
                       aria-selected={reviewForm.rating === rating}
                       onClick={() => {
@@ -718,7 +727,7 @@ export default function MovieDetail() {
                 <article key={review.id} className="md-review-card">
                   <div>
                     <strong>{review.user?.fullName || "Người dùng CineSky"}</strong>
-                    <span>{review.rating}/10</span>
+                    <span className={getReviewRatingTone(review.rating)}>{review.rating}/10</span>
                   </div>
                   <p>{review.content}</p>
                 </article>

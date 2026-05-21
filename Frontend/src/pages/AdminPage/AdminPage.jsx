@@ -1,10 +1,10 @@
 ﻿import { useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "react-router-dom";
 import {
   createAdminMovie,
   checkInAdminTicket,
   deleteAdminMovie,
   getAdminActivity,
+  getAdminAnalytics,
   getAdminBookings,
   getAdminDeletedMovies,
   getAdminFeedback,
@@ -23,6 +23,15 @@ import {
 import "./AdminPage.css";
 
 const moduleConfig = [
+  { key: "dashboard", label: "Tổng quan", statusLabel: "Trạng thái" },
+  { key: "revenueAnalytics", label: "Thống kê doanh thu", statusLabel: "Giá trị" },
+  { key: "movieAnalytics", label: "Thống kê phim", statusLabel: "Giá trị" },
+  { key: "genreAnalytics", label: "Thống kê thể loại", statusLabel: "Giá trị" },
+  { key: "cinemaAnalytics", label: "Thống kê rạp", statusLabel: "Giá trị" },
+  { key: "timeAnalytics", label: "Thống kê khung giờ", statusLabel: "Giá trị" },
+  { key: "paymentAnalytics", label: "Thống kê thanh toán", statusLabel: "Giá trị" },
+  { key: "customerAnalytics", label: "Thống kê khách hàng", statusLabel: "Giá trị" },
+  { key: "feedbackAnalytics", label: "Thống kê góp ý", statusLabel: "Giá trị" },
   { key: "movies", label: "Phim", statusLabel: "Trạng thái" },
   { key: "promotions", label: "Ưu đãi", statusLabel: "Hạng / loại" },
   { key: "showtimes", label: "Suất chiếu", statusLabel: "Giờ chiếu" },
@@ -38,7 +47,21 @@ const moduleConfig = [
 
 
 const adminNavGroups = [
-  { key: "overview", label: "Tổng quan", items: [{ key: "dashboard", label: "Dashboard" }] },
+  { key: "overview", label: "Tổng quan", items: [{ key: "dashboard", label: "Tổng quan" }] },
+  {
+    key: "analytics",
+    label: "Thống kê",
+    items: [
+      { key: "revenueAnalytics", label: "Doanh thu" },
+      { key: "movieAnalytics", label: "Theo phim" },
+      { key: "genreAnalytics", label: "Theo thể loại" },
+      { key: "cinemaAnalytics", label: "Theo rạp" },
+      { key: "timeAnalytics", label: "Khung giờ" },
+      { key: "paymentAnalytics", label: "Thanh toán" },
+      { key: "customerAnalytics", label: "Khách hàng" },
+      { key: "feedbackAnalytics", label: "Góp ý" },
+    ],
+  },
   {
     key: "content",
     label: "Nội dung",
@@ -82,7 +105,17 @@ const adminNavGroups = [
   },
 ];
 const ADMIN_MODULE_STORAGE_KEY = "cinesky-admin-active-module";
-const adminModuleKeys = new Set(["dashboard", ...moduleConfig.map((module) => module.key)]);
+const analyticsModuleKeys = new Set([
+  "revenueAnalytics",
+  "movieAnalytics",
+  "genreAnalytics",
+  "cinemaAnalytics",
+  "timeAnalytics",
+  "paymentAnalytics",
+  "customerAnalytics",
+  "feedbackAnalytics",
+]);
+const adminModuleKeys = new Set(moduleConfig.map((module) => module.key));
 
 const getInitialAdminModule = () => {
   if (typeof window === "undefined") {
@@ -115,9 +148,9 @@ const initialData = {
     { id: "ST003", name: "Cải Mả - Phòng 03", status: "21:30", time: "05/05/2026", value: "77% ghế" },
   ],
   cinemas: [
-    { id: "RM001", name: "CineSky Quốc Thanh - P01", status: "Hoạt động", time: "120 ghế", value: "4K Laser" },
-    { id: "RM002", name: "CineSky Hai Bà Trưng - P02", status: "Bảo trì", time: "96 ghế", value: "Dolby Atmos" },
-    { id: "RM003", name: "CineSky Sinh Viên - P03", status: "Hoạt động", time: "108 ghế", value: "Standard" },
+    { id: "RM001", name: "CineSky Nguyen Hue - Sky Hall 1", status: "Hoạt động", time: "196 ghế", value: "4K Laser" },
+    { id: "RM002", name: "CineSky Hai Ba Trung - Moon Hall", status: "Hoạt động", time: "216 ghế", value: "Dolby Atmos" },
+    { id: "RM003", name: "CineSky Dien Bien Phu - Nova Hall", status: "Hoạt động", time: "304 ghế", value: "Standard" },
   ],
   users: [
     { id: "US001", name: "Nguyễn Minh Anh", status: "Member", time: "05/05/2026", value: "3 đơn" },
@@ -196,11 +229,78 @@ const feedbackDateFilters = {
 const getOptionLabel = (options, value) => options.find((item) => item.value === value)?.label || value || "";
 const normalizeFeedbackRating = (rating) => Math.max(1, Math.min(5, Number(rating) || 1));
 
+const getAdminStatusTone = (status = "") => {
+  const value = String(status || "").trim().toLowerCase();
+
+  if (!value) {
+    return "neutral";
+  }
+
+  if (value.includes("hủy") || value.includes("cancel") || value.includes("deleted") || value.includes("xóa") || value.includes("spam") || value.includes("lỗi")) {
+    return "danger";
+  }
+
+  if (value.includes("chờ") || value.includes("pending") || value.includes("đang") || value.includes("in_progress") || value.includes("processing") || value.includes("upcoming") || value.includes("sắp")) {
+    return "warning";
+  }
+
+  if (value.includes("paid") || value.includes("thanh toán") || value.includes("thành công") || value.includes("check-in") || value.includes("used") || value.includes("hoạt động") || value.includes("responded") || value.includes("đã phản hồi")) {
+    return "success";
+  }
+
+  if (value.includes("admin") || value.includes("quản trị") || value.includes("role") || value.includes("create") || value.includes("update")) {
+    return "info";
+  }
+
+  if (value.includes("member") || value.includes("user") || value.includes("mock")) {
+    return "purple";
+  }
+
+  if (value.includes("closed") || value.includes("đã đóng") || value.includes("not updated")) {
+    return "neutral";
+  }
+
+  return "default";
+};
+
 const dateRangeLabels = {
   day: "hôm nay",
   week: "tuần này",
   month: "tháng này",
   year: "năm nay",
+};
+
+const dateRangeTitles = {
+  day: "Hôm nay",
+  week: "Tuần này",
+  month: "Tháng này",
+  year: "Năm nay",
+};
+
+const chartColors = ["#f7b400", "#38bdf8", "#22c55e", "#f97316", "#a78bfa", "#ef4444"];
+
+const cinemaCatalog = [
+  { name: "CineSky Nguyen Hue", rooms: ["Sky Hall 1", "Sky Hall 2"] },
+  { name: "CineSky Hai Ba Trung", rooms: ["Moon Hall", "Galaxy Hall"] },
+  { name: "CineSky Dien Bien Phu", rooms: ["Nova Hall", "Aurora Hall"] },
+];
+
+const defaultCinemaName = cinemaCatalog[0].name;
+const roomToCinemaName = cinemaCatalog.reduce((map, cinema) => {
+  cinema.rooms.forEach((room) => map.set(room.toLowerCase(), cinema.name));
+  return map;
+}, new Map());
+
+const normalizeCinemaName = (cinemaName = "", roomName = "") => {
+  const normalizedName = String(cinemaName || "").trim();
+  const matchedCinema = cinemaCatalog.find((cinema) => cinema.name.toLowerCase() === normalizedName.toLowerCase());
+
+  if (matchedCinema) {
+    return matchedCinema.name;
+  }
+
+  const matchedByRoom = roomToCinemaName.get(String(roomName || "").trim().toLowerCase());
+  return matchedByRoom || defaultCinemaName;
 };
 
 const polarToCartesian = (center, radius, angle) => {
@@ -331,6 +431,226 @@ const buildDashboardCharts = (bookings = []) => {
         color: "#ef4444",
       },
     ],
+  };
+};
+
+const formatCurrency = (value) => `${Number(value || 0).toLocaleString("vi-VN")}đ`;
+
+const getBookingDate = (booking) => {
+  const date = new Date(booking?.createdAt);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const isBookingInRange = (booking, range) => {
+  const date = getBookingDate(booking);
+
+  if (!date) {
+    return false;
+  }
+
+  const now = new Date();
+  const start = new Date(now);
+
+  if (range === "day") {
+    start.setHours(0, 0, 0, 0);
+  } else if (range === "week") {
+    start.setDate(now.getDate() - 6);
+    start.setHours(0, 0, 0, 0);
+  } else if (range === "month") {
+    start.setMonth(now.getMonth() - 1);
+    start.setHours(0, 0, 0, 0);
+  } else if (range === "year") {
+    start.setFullYear(now.getFullYear(), 0, 1);
+    start.setHours(0, 0, 0, 0);
+  }
+
+  return date >= start && date <= now;
+};
+
+const normalizeChartRows = (items, limit = 6) => {
+  const topItems = [...items]
+    .sort((first, second) => Number(second.value || 0) - Number(first.value || 0))
+    .slice(0, limit);
+  const maxValue = Math.max(...topItems.map((item) => Number(item.value || 0)), 1);
+
+  return topItems.map((item, index) => ({
+    ...item,
+    percent: Math.max(item.value > 0 ? 5 : 0, Math.round((Number(item.value || 0) / maxValue) * 100)),
+    color: item.color || chartColors[index % chartColors.length],
+  }));
+};
+
+const addMapValue = (map, key, amount) => {
+  const label = key || "Chưa cập nhật";
+  map.set(label, (map.get(label) || 0) + Number(amount || 0));
+};
+
+const findMovieByTitle = (movies, title) =>
+  movies.find((movie) => normalizeComparable(movie.title || movie.name) === normalizeComparable(title));
+
+const buildAnalyticsData = ({ bookings = [], movies = [], users = [], feedback = [], range = "month" }) => {
+  const scopedBookings = bookings.filter((booking) => isBookingInRange(booking, range));
+  const paidBookings = scopedBookings.filter((booking) => booking.status !== "cancelled");
+  const totalRevenue = paidBookings.reduce((sum, booking) => sum + Number(booking.totalPrice || 0), 0);
+  const totalSeats = paidBookings.reduce((sum, booking) => sum + (booking.seatNumbers || []).length, 0);
+  const checkedIn = scopedBookings.filter((booking) => booking.status === "used").length;
+  const cancelled = scopedBookings.filter((booking) => booking.status === "cancelled").length;
+
+  const byMovie = new Map();
+  const byGenre = new Map();
+  const byDay = new Map();
+  const byMonth = new Map();
+  const byStatus = new Map();
+  const byPayment = new Map();
+  const byCinema = new Map(cinemaCatalog.map((cinema) => [cinema.name, 0]));
+  const byRoom = new Map();
+  const bySeatVolume = new Map();
+  const byHour = new Map();
+  const byWeekday = new Map();
+  const byTicketSize = new Map();
+  const byPaymentCount = new Map();
+
+  scopedBookings.forEach((booking) => {
+    const revenue = booking.status === "cancelled" ? 0 : Number(booking.totalPrice || 0);
+    const date = getBookingDate(booking);
+    const movieTitle = booking.movieTitle || "Phim chưa cập nhật";
+    const movie = findMovieByTitle(movies, movieTitle);
+    const genres = movie?.genres?.length ? movie.genres : ["Chưa phân loại"];
+
+    addMapValue(byMovie, movieTitle, revenue);
+    genres.forEach((genre) => addMapValue(byGenre, genre, revenue));
+    addMapValue(byStatus, booking.status === "cancelled" ? "Đã hủy" : booking.status === "used" ? "Đã check-in" : "Đã thanh toán", 1);
+    addMapValue(byPayment, booking.paymentProvider || booking.paymentMethod || "Mock", revenue);
+    addMapValue(byCinema, normalizeCinemaName(booking.cinemaName, booking.roomName), revenue);
+    addMapValue(byRoom, booking.roomName || "Chưa rõ phòng", revenue);
+    addMapValue(bySeatVolume, normalizeCinemaName(booking.cinemaName, booking.roomName), (booking.seatNumbers || []).length);
+    addMapValue(byPaymentCount, booking.paymentProvider || booking.paymentMethod || "Mock", 1);
+
+    if (date) {
+      addMapValue(
+        byDay,
+        new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit" }).format(date),
+        revenue
+      );
+      addMapValue(
+        byMonth,
+        new Intl.DateTimeFormat("vi-VN", { month: "2-digit", year: "numeric" }).format(date),
+        revenue
+      );
+      addMapValue(
+        byWeekday,
+        new Intl.DateTimeFormat("vi-VN", { weekday: "short" }).format(date),
+        revenue
+      );
+    }
+
+    const hour = Number(String(booking.displayTime || "").split(":")[0]);
+    const slot = Number.isFinite(hour)
+      ? hour < 12
+        ? "Sáng"
+        : hour < 18
+          ? "Chiều"
+          : "Tối"
+      : "Chưa rõ";
+    addMapValue(byHour, slot, revenue);
+
+    const seatCount = (booking.seatNumbers || []).length;
+    const ticketSize = seatCount <= 1 ? "1 vé" : seatCount === 2 ? "2 vé" : seatCount <= 4 ? "3-4 vé" : "5+ vé";
+    addMapValue(byTicketSize, ticketSize, 1);
+  });
+
+  const genreRows = normalizeChartRows([...byGenre.entries()].map(([label, value]) => ({ label, value })), 8);
+  const movieRows = normalizeChartRows([...byMovie.entries()].map(([label, value]) => ({ label, value })), 8);
+  const dailyRows = normalizeChartRows([...byDay.entries()].map(([label, value]) => ({ label, value })), 10);
+  const monthlyRows = normalizeChartRows([...byMonth.entries()].map(([label, value]) => ({ label, value })), 12);
+  const statusRows = normalizeChartRows([...byStatus.entries()].map(([label, value]) => ({ label, value })), 4);
+  const paymentRows = normalizeChartRows([...byPayment.entries()].map(([label, value]) => ({ label, value })), 5);
+  const cinemaRows = normalizeChartRows([...byCinema.entries()].map(([label, value]) => ({ label, value })), 5);
+  const roomRows = normalizeChartRows([...byRoom.entries()].map(([label, value]) => ({ label, value })), 8);
+  const seatVolumeRows = normalizeChartRows([...bySeatVolume.entries()].map(([label, value]) => ({ label, value })), 5);
+  const hourRows = normalizeChartRows([...byHour.entries()].map(([label, value]) => ({ label, value })), 4);
+  const weekdayRows = normalizeChartRows([...byWeekday.entries()].map(([label, value]) => ({ label, value })), 7);
+  const ticketSizeRows = normalizeChartRows([...byTicketSize.entries()].map(([label, value]) => ({ label, value })), 4);
+  const paymentCountRows = normalizeChartRows([...byPaymentCount.entries()].map(([label, value]) => ({ label, value })), 5);
+  const tierRows = normalizeChartRows(
+    [...users.reduce((map, user) => {
+      addMapValue(map, user.membership?.tier || user.status || "Member", 1);
+      return map;
+    }, new Map()).entries()].map(([label, value]) => ({ label, value })),
+    5
+  );
+  const feedbackRows = normalizeChartRows(
+    [...feedback.reduce((map, item) => {
+      addMapValue(map, item.priorityLabel || item.priority || "Trung bình", 1);
+      return map;
+    }, new Map()).entries()].map(([label, value]) => ({ label, value })),
+    5
+  );
+  const feedbackStatusRows = normalizeChartRows(
+    [...feedback.reduce((map, item) => {
+      addMapValue(map, item.status || item.statusKey || "new", 1);
+      return map;
+    }, new Map()).entries()].map(([label, value]) => ({ label, value })),
+    5
+  );
+  const feedbackCategoryRows = normalizeChartRows(
+    [...feedback.reduce((map, item) => {
+      addMapValue(map, item.categoryLabel || item.category || "Khác", 1);
+      return map;
+    }, new Map()).entries()].map(([label, value]) => ({ label, value })),
+    6
+  );
+  const feedbackRatingRows = normalizeChartRows(
+    [...feedback.reduce((map, item) => {
+      addMapValue(map, `${normalizeFeedbackRating(item.rating)} sao`, 1);
+      return map;
+    }, new Map()).entries()].map(([label, value]) => ({ label, value })),
+    5
+  );
+  const allMovieRows = movies
+    .map((movie) => {
+      const title = movie.title || movie.name || "Phim chưa cập nhật";
+      return {
+        id: movie.id,
+        label: title,
+        value: byMovie.get(title) || 0,
+        status: movie.status === "Coming soon" || movie.status === "coming-soon" ? "Sắp chiếu" : "Đang chiếu",
+        genres: Array.isArray(movie.genres) ? movie.genres.join(", ") : movie.value || "Chưa cập nhật",
+        releaseDate: movie.releaseDate || movie.time || "Chưa cập nhật",
+      };
+    })
+    .sort((first, second) => Number(second.value || 0) - Number(first.value || 0) || first.label.localeCompare(second.label, "vi"));
+
+  return {
+    scopeLabel: dateRangeTitles[range] || "Tháng này",
+    totalRevenue,
+    totalSeats,
+    totalBookings: scopedBookings.length,
+    paidBookings: paidBookings.length,
+    checkedIn,
+    cancelled,
+    averageOrder: paidBookings.length ? Math.round(totalRevenue / paidBookings.length) : 0,
+    movieRows,
+    allMovieRows,
+    genreRows,
+    dailyRows,
+    monthlyRows,
+    statusRows,
+    paymentRows,
+    cinemaRows,
+    roomRows,
+    seatVolumeRows,
+    hourRows,
+    weekdayRows,
+    ticketSizeRows,
+    paymentCountRows,
+    tierRows,
+    feedbackRows,
+    feedbackStatusRows,
+    feedbackCategoryRows,
+    feedbackRatingRows,
+    topMovie: movieRows[0],
+    topGenre: genreRows[0],
   };
 };
 
@@ -515,6 +835,10 @@ export default function AdminPage() {
   const [revenueTrend, setRevenueTrend] = useState(initialRevenueTrend);
   const [movieRevenue, setMovieRevenue] = useState(initialMovieRevenue);
   const [paymentState, setPaymentState] = useState(initialPaymentState);
+  const [adminBookings, setAdminBookings] = useState([]);
+  const [adminAnalytics, setAdminAnalytics] = useState(null);
+  const [showAllMovieAnalytics, setShowAllMovieAnalytics] = useState(false);
+  const [adminFeedbackAlerts, setAdminFeedbackAlerts] = useState([]);
   const [dashboardStats, setDashboardStats] = useState([
     { label: "Người dùng", value: "0", helper: "Đồng bộ từ database" },
     { label: "Vé đã đặt", value: "0", helper: "Đơn vé đã lưu" },
@@ -586,9 +910,33 @@ export default function AdminPage() {
   useEffect(() => {
     let isMounted = true;
 
+    const loadAnalytics = async () => {
+      try {
+        const analytics = await getAdminAnalytics({ range: dateRange });
+
+        if (isMounted) {
+          setAdminAnalytics(analytics);
+        }
+      } catch {
+        if (isMounted) {
+          setAdminAnalytics(null);
+        }
+      }
+    };
+
+    loadAnalytics();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [dateRange]);
+
+  useEffect(() => {
+    let isMounted = true;
+
     const loadMovies = async () => {
       try {
-        const movies = await getMovies({ limit: 100 }).catch(() => []);
+        const movies = await getMovies({ limit: 500 }).catch(() => []);
         const deletedMovies = await getAdminDeletedMovies().catch(() => []);
 
         if (!isMounted) {
@@ -624,7 +972,7 @@ export default function AdminPage() {
       try {
         const [users, bookings, activity, feedbackEntries] = await Promise.all([
           getAdminUsers({ limit: 20 }),
-          getAdminBookings({ limit: 50 }),
+          getAdminBookings({ limit: 500 }),
           getAdminActivity({ limit: 50 }).catch(() => []),
           getAdminFeedback({ limit: 100 }).catch(() => []),
         ]);
@@ -634,10 +982,13 @@ export default function AdminPage() {
         }
 
         const safeBookings = Array.isArray(bookings) ? bookings : [];
+        const feedbackRecords = Array.isArray(feedbackEntries) ? feedbackEntries.map(mapFeedbackToRecord) : [];
         const nextCharts = buildDashboardCharts(safeBookings);
 
+        setAdminBookings(safeBookings);
         setRevenueTrend(nextCharts.revenueTrend);
         setMovieRevenue(nextCharts.movieRevenue);
+        setAdminFeedbackAlerts(feedbackRecords.filter((item) => item.statusKey === "new").slice(0, 3));
         if (
           (!Array.isArray(users) || users.length === 0) &&
           safeBookings.length === 0 &&
@@ -669,10 +1020,10 @@ export default function AdminPage() {
           cinemas: safeBookings.length > 0 ? Array.from(
             new Map(
               safeBookings.map((booking) => [
-                `${booking.cinemaName || "CineSky"}-${booking.roomName || "Phòng chiếu"}`,
+                `${normalizeCinemaName(booking.cinemaName, booking.roomName)}-${booking.roomName || "Phòng chiếu"}`,
                 {
                   id: `RM${String((booking.roomName || "01").replace(/\D/g, "") || "01").padStart(3, "0")}`,
-                  name: `${booking.cinemaName || "CineSky"} - ${booking.roomName || "Phòng chiếu"}`,
+                  name: `${normalizeCinemaName(booking.cinemaName, booking.roomName)} - ${booking.roomName || "Phòng chiếu"}`,
                   status: "Hoạt động",
                   time: booking.displayDate || "Theo lịch chiếu",
                   value: `${(booking.seatNumbers || []).length} ghế đã phát sinh vé`,
@@ -694,8 +1045,8 @@ export default function AdminPage() {
             time: formatAdminDateTime(booking.createdAt),
             value: `${Number(booking.totalPrice || 0).toLocaleString("vi-VN")} VND • ${booking.paymentProvider || booking.paymentMethod || "Mock"}`,
           })) : current.payments,
-          feedback: Array.isArray(feedbackEntries) && feedbackEntries.length > 0
-            ? feedbackEntries.map(mapFeedbackToRecord)
+          feedback: feedbackRecords.length > 0
+            ? feedbackRecords
             : current.feedback,
           activity: Array.isArray(activity) && activity.length > 0
             ? activity.map((item) => ({
@@ -736,6 +1087,32 @@ export default function AdminPage() {
   const activeConfig = moduleConfig.find((item) => item.key === activeModule) || moduleConfig[0];
   const activeRecords = useMemo(() => records[activeModule] || [], [activeModule, records]);
   const statuses = Array.from(new Set(activeRecords.map((item) => item.status)));
+  const analyticsData = useMemo(
+    () => {
+      if (adminAnalytics) {
+        return adminAnalytics;
+      }
+
+      return buildAnalyticsData({
+        bookings: adminBookings,
+        movies: records.movies,
+        users: records.users,
+        feedback: records.feedback,
+        range: dateRange,
+      });
+    },
+    [adminAnalytics, adminBookings, dateRange, records.feedback, records.movies, records.users]
+  );
+  const compactDashboardStats = useMemo(() => dashboardStats.slice(0, 4), [dashboardStats]);
+  const supportDashboardStats = useMemo(() => dashboardStats.slice(4), [dashboardStats]);
+  const visibleMovieAnalyticsRows = showAllMovieAnalytics
+    ? analyticsData.allMovieRows
+    : analyticsData.allMovieRows.slice(0, 8);
+  const activeTitle = analyticsModuleKeys.has(activeModule)
+    ? activeConfig.label
+    : activeModule === "dashboard"
+      ? "Tổng quan vận hành"
+      : `Quản lý ${activeConfig.label.toLowerCase()}`;
 
   const filteredRecords = useMemo(() => {
     const normalizedSearch = search.trim().toLowerCase();
@@ -933,6 +1310,12 @@ export default function AdminPage() {
     setSelectedDetail(null);
     setFeedbackDraft({ status: "new", category: "other", priority: "medium", adminNote: "", response: "" });
     setFormError("");
+  };
+
+  const openFeedbackAlerts = () => {
+    switchModule("feedback");
+    setStatusFilter("Mới");
+    setSelectedDetail(adminFeedbackAlerts[0] || null);
   };
 
   const openCreateForm = () => {
@@ -1424,12 +1807,91 @@ export default function AdminPage() {
     }
   };
 
+  const renderHorizontalBars = (rows, formatter = formatCurrency, unitLabel = "Đơn vị: VND") => (
+    <div className="admin-analytics-bars">
+      <span className="admin-chart-unit">{unitLabel}</span>
+      {rows.length > 0 ? (
+        rows.map((item) => (
+          <div key={item.label} className="admin-analytics-bar">
+            <div>
+              <span>{item.label}</span>
+              <strong>{formatter(item.value)}</strong>
+            </div>
+            <i style={{ width: `${item.percent}%`, "--bar-color": item.color }} />
+          </div>
+        ))
+      ) : (
+        <p className="admin-chart-empty">Chưa có dữ liệu trong khoảng thời gian này.</p>
+      )}
+    </div>
+  );
+
+  const renderColumnChart = (rows, formatter = formatCurrency, unitLabel = "Đơn vị: VND") => (
+    <div className="admin-column-chart-wrap">
+      <div className="admin-chart-unit-row">
+        <span className="admin-chart-unit">{unitLabel}</span>
+        <span className="admin-chart-unit">Trục ngang: thời gian / nhóm</span>
+      </div>
+      <div className="admin-column-chart">
+        {rows.length > 0 ? (
+          rows.map((item) => (
+            <div key={item.label} className="admin-column-chart__item">
+              <strong style={{ height: `${item.percent}%`, "--bar-color": item.color }} title={formatter(item.value)}>
+                <em>{formatter(item.value)}</em>
+              </strong>
+              <span>{item.label}</span>
+            </div>
+          ))
+        ) : (
+          <p className="admin-chart-empty">Chưa có dữ liệu để vẽ biểu đồ.</p>
+        )}
+      </div>
+    </div>
+  );
+
+  const renderDonut = (rows, formatter = formatCurrency, unitLabel = "Đơn vị: VND") => {
+    const total = rows.reduce((sum, item) => sum + Number(item.value || 0), 0);
+    let offset = 25;
+
+    return (
+      <div className="admin-analytics-donut-wrap">
+        <span className="admin-chart-unit admin-chart-unit--donut">{unitLabel}</span>
+        <svg className="admin-analytics-donut" viewBox="0 0 42 42" role="img" aria-label="Biểu đồ tỷ trọng">
+          <circle className="admin-analytics-donut__track" cx="21" cy="21" r="15.915" />
+          {rows.map((item) => {
+            const dash = total ? (Number(item.value || 0) / total) * 100 : 0;
+            const slice = (
+              <circle
+                key={item.label}
+                className="admin-analytics-donut__slice"
+                cx="21"
+                cy="21"
+                r="15.915"
+                stroke={item.color}
+                strokeDasharray={`${dash} ${100 - dash}`}
+                strokeDashoffset={offset}
+              />
+            );
+            offset -= dash;
+            return slice;
+          })}
+          <text x="21" y="20" textAnchor="middle">{total ? "100%" : "0%"}</text>
+          <text x="21" y="25" textAnchor="middle">tỷ trọng</text>
+        </svg>
+        <div className="admin-analytics-legend">
+          {rows.length > 0 ? rows.map((item) => (
+            <span key={item.label} style={{ "--legend-color": item.color }}>
+              {item.label}: {formatter(item.value)}
+            </span>
+          )) : <span>Chưa có dữ liệu</span>}
+        </div>
+      </div>
+    );
+  };
+
   return (
     <main className="admin-page">
       <aside className="admin-sidebar">
-        <Link to="/" className="admin-brand">
-          CineSky
-        </Link>
         <nav className="admin-nav">
           {adminNavGroups.map((group) => {
             const isGroupActive = group.items.some((item) => item.key === activeModule);
@@ -1456,8 +1918,7 @@ export default function AdminPage() {
       <section className="admin-main">
         <header className="admin-header">
           <div>
-            <span>Trang quản trị</span>
-            <h1>{activeModule === "dashboard" ? "Tổng quan vận hành" : `Quản lý ${activeConfig.label.toLowerCase()}`}</h1>
+            <h1>{activeTitle}</h1>
           </div>
           <select value={dateRange} onChange={(event) => setDateRange(event.target.value)}>
             <option value="day">Hôm nay</option>
@@ -1466,6 +1927,18 @@ export default function AdminPage() {
             <option value="year">Năm nay</option>
           </select>
         </header>
+
+        {adminFeedbackAlerts.length > 0 ? (
+          <section className="admin-feedback-alert">
+            <div>
+              <span>{adminFeedbackAlerts.length} góp ý mới</span>
+              <h2>Có phản hồi mới</h2>
+            </div>
+            <button type="button" onClick={openFeedbackAlerts}>
+              Xem góp ý mới
+            </button>
+          </section>
+        ) : null}
 
         {activeModule === "checkin" ? (
           <div className="admin-checkin-grid">
@@ -1532,7 +2005,7 @@ export default function AdminPage() {
         ) : activeModule === "dashboard" ? (
           <div className="admin-dashboard">
             <div className="admin-stat-grid">
-              {dashboardStats.map((item) => (
+              {compactDashboardStats.map((item) => (
                 <article key={item.label} className="admin-stat-card">
                   <span>{item.label}</span>
                   <strong>{item.value}</strong>
@@ -1541,80 +2014,387 @@ export default function AdminPage() {
               ))}
             </div>
 
-            <div className="admin-chart-grid">
-              <article className="admin-panel admin-panel--wide">
-                <h2>Xu hướng doanh thu {dateRangeLabels[dateRange] || ""}</h2>
-                <div className="admin-line-chart">
-                  {revenueTrend.map((value, index) => (
-                    <span key={index} style={{ height: `${value}%` }} />
-                  ))}
-                </div>
+            <div className="admin-overview-grid">
+              <article className="admin-panel admin-overview-card">
+                <span>Doanh thu</span>
+                <h2>{formatCurrency(analyticsData.totalRevenue)}</h2>
+                <p>{analyticsData.scopeLabel}: {analyticsData.paidBookings} đơn hợp lệ, trung bình {formatCurrency(analyticsData.averageOrder)} / đơn.</p>
+                <button type="button" onClick={() => switchModule("revenueAnalytics")}>Xem thống kê doanh thu</button>
               </article>
-
-              <article className="admin-panel">
-                <h2>Doanh thu theo phim</h2>
-                <div className="admin-bar-chart">
-                  {movieRevenue.map((item) => (
-                    <div key={item.label}>
-                      <span>{item.label}</span>
-                      <strong style={{ width: `${item.value}%` }} />
-                    </div>
-                  ))}
-                </div>
+              <article className="admin-panel admin-overview-card">
+                <span>Phim nổi bật</span>
+                <h2>{analyticsData.topMovie?.label || "Chưa có dữ liệu"}</h2>
+                <p>{analyticsData.topMovie ? `${formatCurrency(analyticsData.topMovie.value)} doanh thu trong ${dateRangeLabels[dateRange]}.` : "Dữ liệu sẽ hiện khi có booking."}</p>
+                <button type="button" onClick={() => switchModule("movieAnalytics")}>Xem theo phim</button>
               </article>
-
-              <article className="admin-panel">
-                <h2>Trạng thái thanh toán</h2>
-                <svg className="admin-donut" viewBox="0 0 120 120" aria-label="Payment status">
-                  {paymentChartState.map((item, index) => {
-                    const startAngle = paymentChartState
-                      .slice(0, index)
-                      .reduce((total, state) => total + state.value * 3.6, 0);
-                    const endAngle = startAngle + item.value * 3.6;
-                    const offset = getSliceOffset(startAngle, endAngle);
-
-                    if (item.value >= 100) {
-                      return (
-                        <circle
-                          key={item.label}
-                          className="admin-donut__slice"
-                          cx="60"
-                          cy="60"
-                          r="50"
-                          fill={item.color}
-                          onMouseEnter={() => setActivePaymentLabel(item.label)}
-                          onMouseLeave={() => setActivePaymentLabel("")}
-                        />
-                      );
-                    }
-
-                    return (
-                      <path
-                        key={item.label}
-                        className="admin-donut__slice"
-                        d={createPieSlicePath(startAngle, endAngle)}
-                        fill={item.color}
-                        style={{ "--slice-x": offset.x, "--slice-y": offset.y }}
-                        onMouseEnter={() => setActivePaymentLabel(item.label)}
-                        onMouseLeave={() => setActivePaymentLabel("")}
-                      />
-                    );
-                  })}
-                  <circle cx="60" cy="60" r="20" className="admin-donut__hole" />
-                </svg>
-                <div className="admin-donut-legend">
-                  {paymentChartState.map((item) => (
-                    <span
-                      key={item.label}
-                      className={activePaymentLabel === item.label ? "is-active" : ""}
-                      style={{ "--legend-color": item.color }}
-                    >
-                      {item.label}: {item.value}%
-                    </span>
-                  ))}
-                </div>
+              <article className="admin-panel admin-overview-card">
+                <span>Thể loại mạnh</span>
+                <h2>{analyticsData.topGenre?.label || "Chưa phân loại"}</h2>
+                <p>{analyticsData.topGenre ? `${formatCurrency(analyticsData.topGenre.value)} doanh thu gộp theo thể loại.` : "Cần mapping phim với thể loại để thống kê chính xác hơn."}</p>
+                <button type="button" onClick={() => switchModule("genreAnalytics")}>Xem theo thể loại</button>
               </article>
             </div>
+
+            <section className="admin-panel admin-overview-ops">
+              <div>
+                <span>Chỉ số phụ</span>
+                <h2>Tách khỏi dashboard để màn hình tổng quan gọn hơn</h2>
+              </div>
+              <div className="admin-overview-chip-grid">
+                {supportDashboardStats.map((item) => (
+                  <span key={item.label}>
+                    <strong>{item.value}</strong>
+                    {item.label}
+                  </span>
+                ))}
+              </div>
+            </section>
+          </div>
+        ) : analyticsModuleKeys.has(activeModule) ? (
+          <div className="admin-analytics">
+            <div className="admin-analytics-summary">
+              <article className="admin-stat-card">
+                <span>Phạm vi</span>
+                <strong>{analyticsData.scopeLabel}</strong>
+                <small>Dữ liệu lọc theo ngày tạo booking</small>
+              </article>
+              <article className="admin-stat-card">
+                <span>Doanh thu</span>
+                <strong>{formatCurrency(analyticsData.totalRevenue)}</strong>
+                <small>Không tính vé đã hủy</small>
+              </article>
+              <article className="admin-stat-card">
+                <span>Vé / đơn</span>
+                <strong>{analyticsData.totalSeats}/{analyticsData.totalBookings}</strong>
+                <small>Ghế đã bán / đơn phát sinh</small>
+              </article>
+              <article className="admin-stat-card">
+                <span>Check-in</span>
+                <strong>{analyticsData.checkedIn}</strong>
+                <small>{analyticsData.cancelled} đơn đã hủy</small>
+              </article>
+            </div>
+
+            {activeModule === "revenueAnalytics" ? (
+              <div className="admin-analytics-grid">
+                <article className="admin-panel admin-panel--wide">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ cột</span>
+                      <h2>Doanh thu theo ngày</h2>
+                    </div>
+                    <small>Chú thích: mỗi cột là tổng doanh thu booking hợp lệ theo ngày.</small>
+                  </div>
+                  {renderColumnChart(analyticsData.dailyRows, formatCurrency, "Trục dọc: doanh thu (VND)")}
+                </article>
+                <article className="admin-panel">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ thanh</span>
+                      <h2>Theo phương thức thanh toán</h2>
+                    </div>
+                    <small>Chú thích: so sánh giá trị thanh toán theo provider / method.</small>
+                  </div>
+                  {renderHorizontalBars(analyticsData.paymentRows, formatCurrency, "Đơn vị: doanh thu (VND)")}
+                </article>
+                <article className="admin-panel">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ donut</span>
+                      <h2>Trạng thái đơn</h2>
+                    </div>
+                    <small>Chú thích: tỷ trọng đơn đã thanh toán, check-in và hủy.</small>
+                  </div>
+                  {renderDonut(analyticsData.statusRows, (value) => `${value} đơn`, "Đơn vị: số đơn")}
+                </article>
+                <article className="admin-panel admin-panel--wide">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ cột</span>
+                      <h2>Doanh thu theo tháng</h2>
+                    </div>
+                    <small>Chú thích: hữu ích khi chọn phạm vi năm.</small>
+                  </div>
+                  {renderColumnChart(analyticsData.monthlyRows, formatCurrency, "Trục dọc: doanh thu (VND)")}
+                </article>
+              </div>
+            ) : null}
+
+            {activeModule === "movieAnalytics" ? (
+              <div className="admin-analytics-grid">
+                <article className="admin-panel admin-panel--wide">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ thanh ngang</span>
+                      <h2>Top doanh thu theo phim</h2>
+                    </div>
+                    <small>Chú thích: phim có thanh dài hơn đang đóng góp doanh thu cao hơn.</small>
+                  </div>
+                  {renderHorizontalBars(analyticsData.movieRows, formatCurrency, "Đơn vị: doanh thu (VND)")}
+                </article>
+                <article className="admin-panel">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ cột</span>
+                      <h2>Doanh thu theo suất trong ngày</h2>
+                    </div>
+                    <small>Chú thích: nhóm Sáng / Chiều / Tối theo giờ chiếu.</small>
+                  </div>
+                  {renderColumnChart(analyticsData.hourRows, formatCurrency, "Trục dọc: doanh thu (VND)")}
+                </article>
+                <article className="admin-panel">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ thanh</span>
+                      <h2>Doanh thu theo cụm rạp</h2>
+                    </div>
+                    <small>Chú thích: dùng để xem rạp nào đang bán tốt.</small>
+                  </div>
+                  {renderHorizontalBars(analyticsData.cinemaRows, formatCurrency, "Đơn vị: doanh thu (VND)")}
+                </article>
+                <article className="admin-panel admin-panel--wide admin-movie-analytics-list">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Danh sách DB</span>
+                      <h2>Tất cả phim trong database</h2>
+                    </div>
+                    <small>Chú thích: mặc định hiện 8 phim, bấm Xem thêm để bung đầy đủ.</small>
+                  </div>
+                  <div className="admin-movie-analytics-table">
+                    {visibleMovieAnalyticsRows.map((movie) => (
+                      <div key={movie.id || movie.label} className="admin-movie-analytics-row">
+                        <div>
+                          <strong>{movie.label}</strong>
+                          <span>{movie.genres}</span>
+                        </div>
+                        <span>{movie.status}</span>
+                        <span>{movie.releaseDate}</span>
+                        <strong>{formatCurrency(movie.value)}</strong>
+                      </div>
+                    ))}
+                  </div>
+                  {analyticsData.allMovieRows.length > 8 ? (
+                    <button
+                      type="button"
+                      className="admin-show-more-btn"
+                      onClick={() => setShowAllMovieAnalytics((current) => !current)}
+                    >
+                      {showAllMovieAnalytics ? "Thu gọn" : `Xem thêm ${analyticsData.allMovieRows.length - 8} phim`}
+                    </button>
+                  ) : null}
+                </article>
+              </div>
+            ) : null}
+
+            {activeModule === "genreAnalytics" ? (
+              <div className="admin-analytics-grid">
+                <article className="admin-panel admin-panel--wide">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ thanh ngang</span>
+                      <h2>Doanh thu theo thể loại</h2>
+                    </div>
+                    <small>Chú thích: phim nhiều thể loại sẽ được cộng doanh thu vào từng thể loại.</small>
+                  </div>
+                  {renderHorizontalBars(analyticsData.genreRows, formatCurrency, "Đơn vị: doanh thu (VND)")}
+                </article>
+                <article className="admin-panel">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ donut</span>
+                      <h2>Tỷ trọng thể loại</h2>
+                    </div>
+                    <small>Chú thích: phần màu lớn hơn là nhóm thể loại hút doanh thu hơn.</small>
+                  </div>
+                  {renderDonut(analyticsData.genreRows, formatCurrency, "Đơn vị: doanh thu (VND)")}
+                </article>
+              </div>
+            ) : null}
+
+            {activeModule === "cinemaAnalytics" ? (
+              <div className="admin-analytics-grid">
+                <article className="admin-panel admin-panel--wide">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ thanh</span>
+                      <h2>Doanh thu theo 3 cụm rạp</h2>
+                    </div>
+                    <small>Chú thích: chỉ gom về 3 rạp đang có trong DB seed.</small>
+                  </div>
+                  {renderHorizontalBars(analyticsData.cinemaRows, formatCurrency, "Đơn vị: doanh thu (VND)")}
+                </article>
+                <article className="admin-panel">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ thanh</span>
+                      <h2>Doanh thu theo phòng chiếu</h2>
+                    </div>
+                    <small>Chú thích: giúp biết phòng nào đang tạo doanh thu tốt hơn.</small>
+                  </div>
+                  {renderHorizontalBars(analyticsData.roomRows, formatCurrency, "Đơn vị: doanh thu (VND)")}
+                </article>
+                <article className="admin-panel">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ donut</span>
+                      <h2>Tỷ trọng ghế bán theo rạp</h2>
+                    </div>
+                    <small>Chú thích: tính theo số ghế trong các booking hợp lệ.</small>
+                  </div>
+                  {renderDonut(analyticsData.seatVolumeRows, (value) => `${value} ghế`, "Đơn vị: số ghế")}
+                </article>
+              </div>
+            ) : null}
+
+            {activeModule === "timeAnalytics" ? (
+              <div className="admin-analytics-grid">
+                <article className="admin-panel">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ cột</span>
+                      <h2>Doanh thu theo khung giờ</h2>
+                    </div>
+                    <small>Chú thích: Sáng / Chiều / Tối lấy theo giờ chiếu.</small>
+                  </div>
+                  {renderColumnChart(analyticsData.hourRows, formatCurrency, "Trục dọc: doanh thu (VND)")}
+                </article>
+                <article className="admin-panel admin-panel--wide">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ cột</span>
+                      <h2>Doanh thu theo thứ trong tuần</h2>
+                    </div>
+                    <small>Chú thích: tính theo ngày tạo booking trong phạm vi đang chọn.</small>
+                  </div>
+                  {renderColumnChart(analyticsData.weekdayRows, formatCurrency, "Trục dọc: doanh thu (VND)")}
+                </article>
+                <article className="admin-panel">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ donut</span>
+                      <h2>Quy mô đơn vé</h2>
+                    </div>
+                    <small>Chú thích: mỗi phần là số đơn 1 vé, 2 vé, 3-4 vé hoặc 5+ vé.</small>
+                  </div>
+                  {renderDonut(analyticsData.ticketSizeRows, (value) => `${value} đơn`, "Đơn vị: số đơn")}
+                </article>
+              </div>
+            ) : null}
+
+            {activeModule === "paymentAnalytics" ? (
+              <div className="admin-analytics-grid">
+                <article className="admin-panel admin-panel--wide">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ thanh</span>
+                      <h2>Doanh thu theo kênh thanh toán</h2>
+                    </div>
+                    <small>Chú thích: so sánh tổng tiền theo provider hoặc method.</small>
+                  </div>
+                  {renderHorizontalBars(analyticsData.paymentRows, formatCurrency, "Đơn vị: doanh thu (VND)")}
+                </article>
+                <article className="admin-panel">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ donut</span>
+                      <h2>Số đơn theo kênh thanh toán</h2>
+                    </div>
+                    <small>Chú thích: cùng kênh nhưng đo bằng số lượng đơn.</small>
+                  </div>
+                  {renderDonut(analyticsData.paymentCountRows, (value) => `${value} đơn`, "Đơn vị: số đơn")}
+                </article>
+                <article className="admin-panel">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ thanh</span>
+                      <h2>Trạng thái đơn</h2>
+                    </div>
+                    <small>Chú thích: booked / used / cancelled được đổi nhãn tiếng Việt.</small>
+                  </div>
+                  {renderHorizontalBars(analyticsData.statusRows, (value) => `${value} đơn`, "Đơn vị: số đơn")}
+                </article>
+              </div>
+            ) : null}
+
+            {activeModule === "customerAnalytics" ? (
+              <div className="admin-analytics-grid">
+                <article className="admin-panel">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ donut</span>
+                      <h2>Cơ cấu hạng thành viên</h2>
+                    </div>
+                    <small>Chú thích: mỗi phần là số user theo hạng membership.</small>
+                  </div>
+                  {renderDonut(analyticsData.tierRows, (value) => `${value} user`, "Đơn vị: số user")}
+                </article>
+                <article className="admin-panel">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ thanh</span>
+                      <h2>Mức ưu tiên góp ý</h2>
+                    </div>
+                    <small>Chú thích: giúp admin biết lượng góp ý cần xử lý gấp.</small>
+                  </div>
+                  {renderHorizontalBars(analyticsData.feedbackRows, (value) => `${value} góp ý`, "Đơn vị: số góp ý")}
+                </article>
+                <article className="admin-panel admin-panel--wide">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ thanh</span>
+                      <h2>Doanh thu theo trạng thái đơn</h2>
+                    </div>
+                    <small>Chú thích: đối chiếu vận hành khách hàng với tình trạng vé.</small>
+                  </div>
+                  {renderHorizontalBars(analyticsData.statusRows, (value) => `${value} đơn`, "Đơn vị: số đơn")}
+                </article>
+              </div>
+            ) : null}
+
+            {activeModule === "feedbackAnalytics" ? (
+              <div className="admin-analytics-grid">
+                <article className="admin-panel">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ thanh</span>
+                      <h2>Góp ý theo mức ưu tiên</h2>
+                    </div>
+                    <small>Chú thích: xem khối lượng góp ý cần xử lý nhanh.</small>
+                  </div>
+                  {renderHorizontalBars(analyticsData.feedbackRows, (value) => `${value} góp ý`, "Đơn vị: số góp ý")}
+                </article>
+                <article className="admin-panel">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ donut</span>
+                      <h2>Góp ý theo trạng thái</h2>
+                    </div>
+                    <small>Chú thích: new / in_progress / responded / closed.</small>
+                  </div>
+                  {renderDonut(analyticsData.feedbackStatusRows, (value) => `${value} góp ý`, "Đơn vị: số góp ý")}
+                </article>
+                <article className="admin-panel admin-panel--wide">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ thanh</span>
+                      <h2>Góp ý theo nhóm vấn đề</h2>
+                    </div>
+                    <small>Chú thích: phân loại theo booking, payment, giao diện, phim/suất chiếu...</small>
+                  </div>
+                  {renderHorizontalBars(analyticsData.feedbackCategoryRows, (value) => `${value} góp ý`, "Đơn vị: số góp ý")}
+                </article>
+                <article className="admin-panel">
+                  <div className="admin-chart-head">
+                    <div>
+                      <span>Biểu đồ cột</span>
+                      <h2>Rating góp ý</h2>
+                    </div>
+                    <small>Chú thích: số góp ý theo mức sao.</small>
+                  </div>
+                  {renderColumnChart(analyticsData.feedbackRatingRows, (value) => `${value} góp ý`, "Trục dọc: số góp ý")}
+                </article>
+              </div>
+            ) : null}
           </div>
         ) : (
           <div className={"admin-workspace" + (isCrudMode ? " admin-workspace--editor" : "")}>
@@ -1671,7 +2451,11 @@ export default function AdminPage() {
                       <tr key={record.id}>
                         <td>{record.id}</td>
                         <td>{record.name}</td>
-                        <td><span className={`admin-status ${record.statusTone ? `admin-status--${record.statusTone}` : ""}`}>{record.status}</span></td>
+                        <td>
+                          <span className={`admin-status admin-status--${record.statusTone || getAdminStatusTone(record.status)}`}>
+                            {record.status}
+                          </span>
+                        </td>
                         <td>{record.time}</td>
                         <td>{record.value}</td>
                         <td>
