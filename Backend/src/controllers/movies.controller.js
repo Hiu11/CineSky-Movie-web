@@ -3,6 +3,7 @@ import { createShowtimesFromMovies } from "../data/seedShowtimes.js";
 import MovieModel from "../models/movie.model.js";
 import ReviewModel from "../models/review.model.js";
 import ShowtimeModel from "../models/showtime.model.js";
+import UserModel from "../models/user.model.js";
 
 const ratingClassMap = {
   C18: "t18",
@@ -276,8 +277,15 @@ const moviesController = {
         displayTime: { $regex: /^\d{2}:\d{2}$/ },
       }).sort({ startTime: 1 });
       const timeMap = createTimeMap(showtimes);
+      const adminUsers = await UserModel.find({ role: "admin" }).select("_id");
+      const adminUserIds = adminUsers.map((user) => user._id);
       const reviewStats = await ReviewModel.aggregate([
-        { $match: { movieLegacyId: { $in: movies.map((movie) => movie.legacyId) } } },
+        {
+          $match: {
+            movieLegacyId: { $in: movies.map((movie) => movie.legacyId) },
+            userId: { $nin: adminUserIds },
+          },
+        },
         { $group: { _id: "$movieLegacyId", averageRating: { $avg: "$rating" }, reviewCount: { $sum: 1 } } },
       ]);
       const reviewMap = new Map(

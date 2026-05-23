@@ -1024,15 +1024,14 @@ body.is-page-transitioning .App > :not(.main-header):not(.toast-viewport):not(.f
   width: 7px;
   height: 7px;
   display: inline-block;
-  border-right: 2px solid rgba(247, 180, 0, 0.95);
-  border-bottom: 2px solid rgba(247, 180, 0, 0.95);
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
   transform: translateY(-2px) rotate(45deg);
   transition: transform 0.18s ease, border-color 0.18s ease;
 }
 
 .nav-dropdown:hover .nav-dropdown__chevron,
 .nav-dropdown:focus-within .nav-dropdown__chevron {
-  border-color: #ffe39a;
   transform: translateY(1px) rotate(225deg);
 }
 

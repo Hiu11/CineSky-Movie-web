@@ -50,6 +50,14 @@ const favoritesController = {
 
   addFavorite: async (req, res) => {
     try {
+      if (req.authUser?.role === "admin") {
+        return res.status(403).send({
+          success: false,
+          message: "Admin accounts cannot create public favorites",
+          data: null,
+        });
+      }
+
       const movieLegacyId = Number(req.params.movieId);
 
       if (Number.isNaN(movieLegacyId)) {

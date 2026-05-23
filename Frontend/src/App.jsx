@@ -44,6 +44,7 @@ function AppContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [toasts, setToasts] = useState([]);
   const toastTimeoutsRef = useRef(new Map());
+  const toastKeysRef = useRef(new Set());
   const location = useLocation();
   const isAuthPage =
     location.pathname === "/login" ||
@@ -68,7 +69,15 @@ function AppContent() {
       toastTimeoutsRef.current.delete(toastId);
     }
 
-    setToasts((currentToasts) => currentToasts.filter((toast) => toast.id !== toastId));
+    setToasts((currentToasts) => {
+      const dismissedToast = currentToasts.find((toast) => toast.id === toastId);
+
+      if (dismissedToast?.key) {
+        toastKeysRef.current.delete(dismissedToast.key);
+      }
+
+      return currentToasts.filter((toast) => toast.id !== toastId);
+    });
   }, []);
 
   const showToast = useCallback(
@@ -77,12 +86,21 @@ function AppContent() {
         return;
       }
 
+      const toastKey = `${type}:${title}:${message}`;
+
+      if (toastKeysRef.current.has(toastKey)) {
+        return;
+      }
+
+      toastKeysRef.current.add(toastKey);
+
       const toastId = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
       setToasts((currentToasts) => [
         ...currentToasts,
         {
           id: toastId,
+          key: toastKey,
           type,
           title,
           message,
@@ -135,6 +153,7 @@ function AppContent() {
         window.clearTimeout(timeoutId);
       });
       activeTimeouts.clear();
+      toastKeysRef.current.clear();
     };
   }, []);
 

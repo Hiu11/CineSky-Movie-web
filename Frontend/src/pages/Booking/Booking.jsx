@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import QRCode from "qrcode";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import {
   createBooking,
@@ -22,9 +23,62 @@ const PAYMENT_PROVIDERS = {
     "TPBank",
     "NCB",
     "OCB",
+    "HDBank",
+    "MSB",
+    "SeABank",
+    "SHB",
+    "VIB",
+    "Eximbank",
+    "Nam A Bank",
+    "ABBank",
+    "PVcomBank",
+    "BaoViet Bank",
   ],
   card: ["Visa", "Mastercard", "JCB", "UnionPay", "Amex"],
   wallet: ["VNPay QR", "MoMo", "ZaloPay", "ShopeePay"],
+};
+
+const PAYMENT_PROVIDER_LOGOS = {
+  Vietcombank: { domain: "vietcombank.com.vn", color: "#16a34a" },
+  VietinBank: { domain: "vietinbank.vn", color: "#2563eb" },
+  BIDV: { domain: "bidv.com.vn", color: "#0891b2" },
+  Agribank: { domain: "agribank.com.vn", color: "#b91c1c" },
+  Sacombank: { domain: "sacombank.com.vn", logo: "https://www.sacombank.com.vn/favicon.ico", color: "#d4a019" },
+  Techcombank: { domain: "techcombank.com", color: "#dc2626" },
+  "MB Bank": { domain: "mbbank.com.vn", color: "#1d4ed8" },
+  ACB: { domain: "acb.com.vn", logo: "https://www.acb.com.vn/favicon.ico", color: "#0284c7" },
+  VPBank: { domain: "vpbank.com.vn", color: "#65a30d" },
+  TPBank: { domain: "tpb.vn", color: "#7c3aed" },
+  NCB: { domain: "ncb-bank.vn", color: "#dc2626" },
+  OCB: { domain: "ocb.com.vn", color: "#0ea5e9" },
+  HDBank: { domain: "hdbank.com.vn", color: "#dc2626" },
+  MSB: { domain: "msb.com.vn", color: "#f97316" },
+  SeABank: { domain: "seabank.com.vn", color: "#ef4444" },
+  SHB: { domain: "shb.com.vn", color: "#f97316" },
+  VIB: { domain: "vib.com.vn", color: "#f97316" },
+  Eximbank: { domain: "eximbank.com.vn", color: "#2563eb" },
+  "Nam A Bank": { domain: "namabank.com.vn", color: "#2563eb" },
+  ABBank: { domain: "abbank.vn", color: "#10b981" },
+  PVcomBank: { domain: "pvcombank.com.vn", color: "#059669" },
+  "BaoViet Bank": { domain: "baovietbank.vn", color: "#2563eb" },
+  Visa: { domain: "visa.com", color: "#1d4ed8" },
+  Mastercard: { domain: "mastercard.com", color: "#f97316" },
+  JCB: { domain: "global.jcb", logo: "https://www.global.jcb/en/favicon.ico", color: "#0f766e" },
+  UnionPay: { domain: "unionpayintl.com", color: "#dc2626" },
+  Amex: { domain: "americanexpress.com", color: "#0284c7" },
+  "VNPay QR": { domain: "vnpay.vn", color: "#2563eb" },
+  MoMo: { domain: "momo.vn", color: "#be185d" },
+  ZaloPay: { domain: "zalopay.vn", color: "#2563eb" },
+  ShopeePay: { domain: "shopeepay.vn", color: "#f97316" },
+};
+
+const getProviderLogo = (provider = "") => {
+  const meta = PAYMENT_PROVIDER_LOGOS[provider] || { domain: "vnpay.vn" };
+  if (meta.logo) {
+    return meta.logo;
+  }
+
+  return `https://www.google.com/s2/favicons?domain=${meta.domain}&sz=128`;
 };
 
 const PAYMENT_WINDOW_SECONDS = 15 * 60;
@@ -35,6 +89,12 @@ const LOCALIZED_PAYMENT_METHODS = [
   { id: "card", label: "Thẻ quốc tế", helper: "Visa, Mastercard, JCB" },
   { id: "wallet", label: "Ví điện tử", helper: "VNPay QR, MoMo, ZaloPay" },
 ];
+
+const PAYMENT_SEARCH_PLACEHOLDERS = {
+  bank: "Tìm kiếm ngân hàng...",
+  card: "Tìm kiếm loại thẻ...",
+  wallet: "Tìm kiếm ví điện tử...",
+};
 
 const createSeatPatternRows = (rowBlocks = []) =>
   rowBlocks.map((blocks, rowIndex) => ({
@@ -282,6 +342,9 @@ export default function Booking({ showToast }) {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("bank");
   const [selectedProvider, setSelectedProvider] = useState(PAYMENT_PROVIDERS.bank[0]);
   const [providerSearch, setProviderSearch] = useState("");
+  const [useQrPayment, setUseQrPayment] = useState(false);
+  const [isQrPaymentConfirmed, setIsQrPaymentConfirmed] = useState(false);
+  const [paymentQrDataUrl, setPaymentQrDataUrl] = useState("");
   const [paymentForm, setPaymentForm] = useState({
     ownerName: "",
     reference: "",
@@ -315,6 +378,8 @@ export default function Booking({ showToast }) {
     const nextProviders = PAYMENT_PROVIDERS[selectedPaymentMethod];
     setSelectedProvider(nextProviders[0]);
     setProviderSearch("");
+    setUseQrPayment(false);
+    setIsQrPaymentConfirmed(false);
   }, [selectedPaymentMethod]);
 
   useEffect(() => {
@@ -480,6 +545,7 @@ export default function Booking({ showToast }) {
 
   useEffect(() => {
     setPaymentSecondsLeft(PAYMENT_WINDOW_SECONDS);
+    setIsQrPaymentConfirmed(false);
   }, [selectedShowtimeId]);
 
   useEffect(() => {
@@ -571,11 +637,65 @@ export default function Booking({ showToast }) {
   const serviceFee = selectedSeats.length > 0 ? selectedSeats.length * 3000 : 0;
   const finalTotal = ticketSubtotal + serviceFee;
   const seatBaseSize = isDesktopViewport ? 30 : 11;
+
+  useEffect(() => {
+    setIsQrPaymentConfirmed(false);
+  }, [finalTotal, selectedProvider, selectedSeats]);
+
+  const qrPaymentPayload = useMemo(
+    () =>
+      JSON.stringify({
+        type: "CINESKY_QR_PAYMENT",
+        provider: selectedProvider,
+        movieId: movie?.id || "",
+        movieTitle: movie?.title || "",
+        showtimeId: selectedShowtime?.id || "",
+        seats: selectedSeats,
+        amount: finalTotal,
+        currency: "VND",
+      }),
+    [finalTotal, movie, selectedProvider, selectedSeats, selectedShowtime]
+  );
+
+  useEffect(() => {
+    if (!useQrPayment) {
+      setPaymentQrDataUrl("");
+      setIsQrPaymentConfirmed(false);
+      return;
+    }
+
+    let isMounted = true;
+    QRCode.toDataURL(qrPaymentPayload, {
+      errorCorrectionLevel: "M",
+      margin: 1,
+      width: 220,
+      color: {
+        dark: "#111827",
+        light: "#ffffff",
+      },
+    })
+      .then((dataUrl) => {
+        if (isMounted) {
+          setPaymentQrDataUrl(dataUrl);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setPaymentQrDataUrl("");
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [qrPaymentPayload, useQrPayment]);
+
   const isPaymentFormReady = Boolean(
-    paymentForm.reference.trim() &&
+    (useQrPayment && isQrPaymentConfirmed) ||
+      (paymentForm.reference.trim() &&
       paymentForm.ownerName.trim() &&
-      paymentForm.secureCode.trim() &&
-      (selectedPaymentMethod === "wallet" || paymentForm.expiry.trim())
+      (selectedPaymentMethod === "wallet" ||
+        (paymentForm.expiry.trim() && paymentForm.secureCode.trim())))
   );
   const bookingStepStates = useMemo(() => {
     const steps = [
@@ -690,8 +810,8 @@ export default function Booking({ showToast }) {
     if (!isPaymentFormReady) {
       showToast?.({
         type: "error",
-        title: "Payment info missing",
-        message: "Please complete the payment form before confirming your booking.",
+        title: "Thiếu thông tin thanh toán",
+        message: "Vui lòng hoàn thiện thông tin thanh toán trước khi xác nhận đặt vé.",
       });
       setSubmitMessage({
         type: "error",
@@ -703,8 +823,8 @@ export default function Booking({ showToast }) {
     if (isPaymentExpired) {
       showToast?.({
         type: "error",
-        title: "Reservation expired",
-        message: "Please pick the showtime again to continue.",
+        title: "Hết thời gian giữ chỗ",
+        message: "Vui lòng chọn lại suất chiếu để tiếp tục.",
       });
       setSubmitMessage({
         type: "error",
@@ -735,7 +855,7 @@ export default function Booking({ showToast }) {
         seatNumbers: selectedSeats,
         paymentMethod: selectedPaymentMethod,
         paymentProvider: selectedProvider,
-        paymentReference: paymentForm.reference,
+        paymentReference: useQrPayment ? `QR-${Date.now()}` : paymentForm.reference,
       });
 
       if (booking.membership) {
@@ -764,7 +884,7 @@ export default function Booking({ showToast }) {
         seatNumbers: booking.seatNumbers,
         paymentLabel: [
           LOCALIZED_PAYMENT_METHODS.find((method) => method.id === selectedPaymentMethod)?.label,
-          selectedProvider,
+          useQrPayment ? `${selectedProvider} QR` : selectedProvider,
         ]
           .filter(Boolean)
           .join(" • "),
@@ -785,7 +905,7 @@ export default function Booking({ showToast }) {
       });
       showToast?.({
         type: "success",
-        title: "Booking completed",
+        title: "Đặt vé thành công",
         message: `${movie.title} • ${booking.seatNumbers.join(", ")} • ${formatCurrency(booking.totalPrice ?? finalTotal)} VND`,
       });
       navigate("/booking/success", {
@@ -795,8 +915,8 @@ export default function Booking({ showToast }) {
     } catch (error) {
       showToast?.({
         type: "error",
-        title: "Booking failed",
-        message: error.message || "Unable to complete your booking right now.",
+        title: "Đặt vé thất bại",
+        message: error.message || "Không thể đặt vé lúc này.",
       });
       setSubmitMessage({
         type: "error",
@@ -1207,15 +1327,6 @@ export default function Booking({ showToast }) {
               ))}
             </div>
 
-            <div className="booking-page__payment-brand-strip">
-              <span>VISA</span>
-              <span>MASTERCARD</span>
-              <span>JCB</span>
-              <span>VNPAY</span>
-              <span>MOMO</span>
-              <span>ZALOPAY</span>
-            </div>
-
             <div className="booking-page__payment-layout">
               <div className="booking-page__payment-bank-card">
                 <div className="booking-page__payment-card-header">
@@ -1231,27 +1342,35 @@ export default function Booking({ showToast }) {
                     type="text"
                     value={providerSearch}
                     onChange={(event) => setProviderSearch(event.target.value)}
-                    placeholder="Tìm kiếm ngân hàng hoặc ví..."
+                    placeholder={PAYMENT_SEARCH_PLACEHOLDERS[selectedPaymentMethod] || "Tìm kiếm nhà cung cấp..."}
                   />
                 </div>
 
                 <div className="booking-page__provider-grid">
-                  {visibleProviders.map((provider) => (
-                    <button
-                      key={provider}
-                      type="button"
-                      onClick={() => setSelectedProvider(provider)}
-                      className={
-                        "booking-page__provider-tile" +
-                        (selectedProvider === provider ? " is-active" : "")
-                      }
-                    >
-                      <span className="booking-page__provider-mark">
-                        {provider.replace(/[^A-Z0-9]/gi, "").slice(0, 3).toUpperCase()}
-                      </span>
-                      <span>{provider}</span>
-                    </button>
-                  ))}
+                  {visibleProviders.map((provider) => {
+                    const logo = getProviderLogo(provider);
+                    const providerColor = PAYMENT_PROVIDER_LOGOS[provider]?.color || "#f7b400";
+
+                    return (
+                      <button
+                        key={provider}
+                        type="button"
+                        onClick={() => setSelectedProvider(provider)}
+                        className={
+                          "booking-page__provider-tile" +
+                          (selectedProvider === provider ? " is-active" : "")
+                        }
+                        style={{ "--provider-color": providerColor }}
+                      >
+                        <img
+                          className="booking-page__provider-logo"
+                          src={logo}
+                          alt={`${provider} logo`}
+                        />
+                        <span>{provider}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 
@@ -1271,6 +1390,49 @@ export default function Booking({ showToast }) {
                   </span>
                 </div>
 
+                <div className="booking-page__qr-switch">
+                  <div>
+                    <strong>Quét QR thanh toán</strong>
+                    <span>Không cần liên kết tài khoản ngân hàng.</span>
+                  </div>
+                  <button
+                    type="button"
+                    className={useQrPayment ? "is-active" : ""}
+                    onClick={() => {
+                      setUseQrPayment((current) => !current);
+                      setIsQrPaymentConfirmed(false);
+                    }}
+                    aria-pressed={useQrPayment}
+                  >
+                    {useQrPayment ? "Đang bật" : "Bật QR"}
+                  </button>
+                </div>
+
+                {useQrPayment ? (
+                  <div className="booking-page__qr-panel">
+                    {paymentQrDataUrl ? (
+                      <img src={paymentQrDataUrl} alt="QR thanh toán mô phỏng" />
+                    ) : (
+                      <div className="booking-page__qr-placeholder">Đang tạo QR...</div>
+                    )}
+                    <div>
+                      <strong>{formatCurrency(finalTotal)} VND</strong>
+                      <span>
+                        {isQrPaymentConfirmed
+                          ? `${selectedProvider} • Đã xác nhận thanh toán`
+                          : `${selectedProvider} • Đang chờ thanh toán`}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className="booking-page__qr-confirm"
+                      onClick={() => setIsQrPaymentConfirmed(true)}
+                      disabled={isQrPaymentConfirmed || finalTotal <= 0}
+                    >
+                      {isQrPaymentConfirmed ? "Đã thanh toán" : "Tôi đã thanh toán"}
+                    </button>
+                  </div>
+                ) : (
                 <div className="booking-page__payment-form-grid">
                   <label className="booking-page__field booking-page__field--full">
                     <span>
@@ -1300,25 +1462,29 @@ export default function Booking({ showToast }) {
                     />
                   </label>
 
-                  <label className="booking-page__field">
-                    <span>Ngày hiệu lực</span>
-                    <input
-                      type="text"
-                      value={paymentForm.expiry}
-                      onChange={handlePaymentFieldChange("expiry")}
-                      placeholder="MM/YY"
-                    />
-                  </label>
+                  {selectedPaymentMethod !== "wallet" ? (
+                    <>
+                      <label className="booking-page__field">
+                        <span>Ngày hiệu lực</span>
+                        <input
+                          type="text"
+                          value={paymentForm.expiry}
+                          onChange={handlePaymentFieldChange("expiry")}
+                          placeholder="MM/YY"
+                        />
+                      </label>
 
-                  <label className="booking-page__field">
-                    <span>Mã bảo mật</span>
-                    <input
-                      type="text"
-                      value={paymentForm.secureCode}
-                      onChange={handlePaymentFieldChange("secureCode")}
-                      placeholder="CVV / OTP"
-                    />
-                  </label>
+                      <label className="booking-page__field">
+                        <span>Mã bảo mật</span>
+                        <input
+                          type="text"
+                          value={paymentForm.secureCode}
+                          onChange={handlePaymentFieldChange("secureCode")}
+                          placeholder="CVV / OTP"
+                        />
+                      </label>
+                    </>
+                  ) : null}
 
                   <label className="booking-page__field booking-page__field--full">
                     <span>Mã khuyến mãi</span>
@@ -1330,6 +1496,7 @@ export default function Booking({ showToast }) {
                     />
                   </label>
                 </div>
+                )}
 
                 <div className="booking-page__payment-note">
                   Thông tin trên chỉ dùng để mô phỏng giao diện thanh toán, không gửi tới cổng

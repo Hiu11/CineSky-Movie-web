@@ -85,7 +85,7 @@ export default function Profile() {
 
       try {
         const history = await getBookingHistory({
-          limit: 4,
+          limit: 20,
         });
 
         if (isMounted) {
@@ -146,9 +146,8 @@ export default function Profile() {
         label: "Đã chi tiêu",
         value: `${recentBookings.reduce((sum, booking) => sum + Number(booking.totalPrice || 0), 0).toLocaleString("vi-VN")} VND`,
       },
-      { label: "Kênh tài khoản", value: user?.email ? "Tài khoản email" : "Hồ sơ khách" },
     ],
-    [recentBookings, user?.email, user?.membership]
+    [recentBookings, user?.membership]
   );
 
   const handleFieldChange = (event) => {
@@ -442,7 +441,7 @@ export default function Profile() {
 
         {recentBookings.length > 0 ? (
           <div className="profile-bookings">
-            {recentBookings.map((booking) => (
+            {recentBookings.slice(0, 4).map((booking) => (
               <article key={booking.id} className="profile-booking">
                 <div className="profile-booking-main">
                   <strong>{booking.movieTitle || "Vé xem phim"}</strong>

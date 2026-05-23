@@ -11,7 +11,14 @@ import NotificationModel from "../models/notification.model.js";
 import ReviewModel from "../models/review.model.js";
 import ShowtimeModel from "../models/showtime.model.js";
 import UserModel from "../models/user.model.js";
+import { buildAdminAnalyticsPayload } from "../services/adminAnalytics.service.js";
 import tmdbService from "../services/tmdb.service.js";
+import {
+  buildNonAdminBookingFilter,
+  buildNonAdminFeedbackFilter,
+  buildNonAdminUserContentFilter,
+  mergeMongoFilters,
+} from "../utils/adminFilters.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -74,6 +81,7 @@ const serializeBooking = (booking, movie, showtime) => ({
   paymentProvider: booking.paymentProvider || "",
   paymentStatus: booking.paymentStatus || "mock_paid",
   paymentReference: booking.paymentReference || "",
+  isTestBooking: Boolean(booking.isTestBooking),
   status: getBookingEffectiveStatus(booking, movie, showtime),
   checkedInAt: booking.checkedInAt,
   cancelledAt: booking.cancelledAt,
@@ -146,9 +154,7 @@ const notifyFeedbackResponse = async (feedback) => {
     return null;
   }
 
-  const targetUser = feedback.userId
-    ? await UserModel.findById(feedback.userId)
-    : await UserModel.findOne({ email: feedback.email });
+  const targetUser = feedback.userId ? await UserModel.findById(feedback.userId) : null;
 
   if (!targetUser) {
     return null;
@@ -301,237 +307,6 @@ const expireBookingIfNeeded = async (booking, movie, showtime) => {
   booking.status = "expired";
   await booking.save();
   return booking;
-};
-
-const analyticsCinemaCatalog = [
-  { name: "CineSky Nguyen Hue", rooms: ["Sky Hall 1", "Sky Hall 2"] },
-  { name: "CineSky Hai Ba Trung", rooms: ["Moon Hall", "Galaxy Hall"] },
-  { name: "CineSky Dien Bien Phu", rooms: ["Nova Hall", "Aurora Hall"] },
-];
-
-const analyticsRoomToCinemaName = analyticsCinemaCatalog.reduce((map, cinema) => {
-  cinema.rooms.forEach((room) => map.set(room.toLowerCase(), cinema.name));
-  return map;
-}, new Map());
-
-const analyticsRangeTitles = {
-  day: "Hôm nay",
-  week: "Tuần này",
-  month: "Tháng này",
-  year: "Năm nay",
-};
-
-const analyticsColors = ["#f7b400", "#38bdf8", "#22c55e", "#f97316", "#a78bfa", "#ef4444"];
-
-const normalizeAnalyticsComparable = (value = "") => String(value).trim().toLowerCase();
-
-const normalizeAnalyticsCinemaName = (cinemaName = "", roomName = "") => {
-  const normalizedName = String(cinemaName || "").trim();
-  const matchedCinema = analyticsCinemaCatalog.find(
-    (cinema) => cinema.name.toLowerCase() === normalizedName.toLowerCase()
-  );
-
-  if (matchedCinema) {
-    return matchedCinema.name;
-  }
-
-  return analyticsRoomToCinemaName.get(String(roomName || "").trim().toLowerCase()) || analyticsCinemaCatalog[0].name;
-};
-
-const getAnalyticsBookingDate = (booking) => {
-  const date = new Date(booking?.createdAt);
-  return Number.isNaN(date.getTime()) ? null : date;
-};
-
-const isAnalyticsBookingInRange = (booking, range) => {
-  const date = getAnalyticsBookingDate(booking);
-
-  if (!date) {
-    return false;
-  }
-
-  const now = new Date();
-  const start = new Date(now);
-
-  if (range === "day") {
-    start.setHours(0, 0, 0, 0);
-  } else if (range === "week") {
-    start.setDate(now.getDate() - 6);
-    start.setHours(0, 0, 0, 0);
-  } else if (range === "month") {
-    start.setMonth(now.getMonth() - 1);
-    start.setHours(0, 0, 0, 0);
-  } else if (range === "year") {
-    start.setFullYear(now.getFullYear(), 0, 1);
-    start.setHours(0, 0, 0, 0);
-  }
-
-  return date >= start && date <= now;
-};
-
-const addAnalyticsMapValue = (map, key, amount) => {
-  const label = key || "Chưa cập nhật";
-  map.set(label, (map.get(label) || 0) + Number(amount || 0));
-};
-
-const normalizeAnalyticsRows = (items, limit = 6) => {
-  const topItems = [...items]
-    .sort((first, second) => Number(second.value || 0) - Number(first.value || 0))
-    .slice(0, limit);
-  const maxValue = Math.max(...topItems.map((item) => Number(item.value || 0)), 1);
-
-  return topItems.map((item, index) => ({
-    ...item,
-    percent: Math.max(item.value > 0 ? 5 : 0, Math.round((Number(item.value || 0) / maxValue) * 100)),
-    color: item.color || analyticsColors[index % analyticsColors.length],
-  }));
-};
-
-const normalizeAnalyticsFeedbackRating = (rating) => Math.max(1, Math.min(5, Number(rating) || 1));
-
-const buildAdminAnalyticsPayload = ({ bookings = [], movies = [], users = [], feedback = [], range = "month" }) => {
-  const scopedBookings = bookings.filter((booking) => isAnalyticsBookingInRange(booking, range));
-  const paidBookings = scopedBookings.filter((booking) => booking.status !== "cancelled");
-  const totalRevenue = paidBookings.reduce((sum, booking) => sum + Number(booking.totalPrice || 0), 0);
-  const totalSeats = paidBookings.reduce((sum, booking) => sum + (booking.seatNumbers || []).length, 0);
-  const checkedIn = scopedBookings.filter((booking) => booking.status === "used").length;
-  const cancelled = scopedBookings.filter((booking) => booking.status === "cancelled").length;
-
-  const byMovie = new Map();
-  const byGenre = new Map();
-  const byDay = new Map();
-  const byMonth = new Map();
-  const byStatus = new Map();
-  const byPayment = new Map();
-  const byCinema = new Map(analyticsCinemaCatalog.map((cinema) => [cinema.name, 0]));
-  const byRoom = new Map();
-  const bySeatVolume = new Map();
-  const byHour = new Map();
-  const byWeekday = new Map();
-  const byTicketSize = new Map();
-  const byPaymentCount = new Map();
-  const movieByTitle = new Map(
-    movies.map((movie) => [normalizeAnalyticsComparable(movie.title || movie.name), movie])
-  );
-
-  scopedBookings.forEach((booking) => {
-    const revenue = booking.status === "cancelled" ? 0 : Number(booking.totalPrice || 0);
-    const date = getAnalyticsBookingDate(booking);
-    const movieTitle = booking.movieTitle || "Phim chưa cập nhật";
-    const movie = movieByTitle.get(normalizeAnalyticsComparable(movieTitle));
-    const genres = movie?.genres?.length ? movie.genres : ["Chưa phân loại"];
-
-    addAnalyticsMapValue(byMovie, movieTitle, revenue);
-    genres.forEach((genre) => addAnalyticsMapValue(byGenre, genre, revenue));
-    addAnalyticsMapValue(
-      byStatus,
-      booking.status === "cancelled" ? "Đã hủy" : booking.status === "used" ? "Đã check-in" : "Đã thanh toán",
-      1
-    );
-    addAnalyticsMapValue(byPayment, booking.paymentProvider || booking.paymentMethod || "Mock", revenue);
-    addAnalyticsMapValue(byCinema, normalizeAnalyticsCinemaName(booking.cinemaName, booking.roomName), revenue);
-    addAnalyticsMapValue(byRoom, booking.roomName || "Chưa rõ phòng", revenue);
-    addAnalyticsMapValue(
-      bySeatVolume,
-      normalizeAnalyticsCinemaName(booking.cinemaName, booking.roomName),
-      (booking.seatNumbers || []).length
-    );
-    addAnalyticsMapValue(byPaymentCount, booking.paymentProvider || booking.paymentMethod || "Mock", 1);
-
-    if (date) {
-      addAnalyticsMapValue(byDay, new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit" }).format(date), revenue);
-      addAnalyticsMapValue(byMonth, new Intl.DateTimeFormat("vi-VN", { month: "2-digit", year: "numeric" }).format(date), revenue);
-      addAnalyticsMapValue(byWeekday, new Intl.DateTimeFormat("vi-VN", { weekday: "short" }).format(date), revenue);
-    }
-
-    const hour = Number(String(booking.displayTime || "").split(":")[0]);
-    const slot = Number.isFinite(hour) ? (hour < 12 ? "Sáng" : hour < 18 ? "Chiều" : "Tối") : "Chưa rõ";
-    addAnalyticsMapValue(byHour, slot, revenue);
-
-    const seatCount = (booking.seatNumbers || []).length;
-    const ticketSize = seatCount <= 1 ? "1 vé" : seatCount === 2 ? "2 vé" : seatCount <= 4 ? "3-4 vé" : "5+ vé";
-    addAnalyticsMapValue(byTicketSize, ticketSize, 1);
-  });
-
-  const movieRows = normalizeAnalyticsRows([...byMovie.entries()].map(([label, value]) => ({ label, value })), 8);
-  const allMovieRows = movies
-    .map((movie) => {
-      const title = movie.title || movie.name || "Phim chưa cập nhật";
-      return {
-        id: formatMovieId(movie.legacyId || movie.id),
-        label: title,
-        value: byMovie.get(title) || 0,
-        status: movie.status === "coming-soon" ? "Sắp chiếu" : "Đang chiếu",
-        genres: Array.isArray(movie.genres) ? movie.genres.join(", ") : "Chưa cập nhật",
-        releaseDate: movie.releaseDate || "Chưa cập nhật",
-      };
-    })
-    .sort((first, second) => Number(second.value || 0) - Number(first.value || 0) || first.label.localeCompare(second.label, "vi"));
-
-  const feedbackRows = normalizeAnalyticsRows(
-    [...feedback.reduce((map, item) => {
-      addAnalyticsMapValue(map, item.priorityLabel || item.priority || "Trung bình", 1);
-      return map;
-    }, new Map()).entries()].map(([label, value]) => ({ label, value })),
-    5
-  );
-
-  return {
-    source: "be-db",
-    scopeLabel: analyticsRangeTitles[range] || "Tháng này",
-    totalRevenue,
-    totalSeats,
-    totalBookings: scopedBookings.length,
-    paidBookings: paidBookings.length,
-    checkedIn,
-    cancelled,
-    averageOrder: paidBookings.length ? Math.round(totalRevenue / paidBookings.length) : 0,
-    movieRows,
-    allMovieRows,
-    genreRows: normalizeAnalyticsRows([...byGenre.entries()].map(([label, value]) => ({ label, value })), 8),
-    dailyRows: normalizeAnalyticsRows([...byDay.entries()].map(([label, value]) => ({ label, value })), 10),
-    monthlyRows: normalizeAnalyticsRows([...byMonth.entries()].map(([label, value]) => ({ label, value })), 12),
-    statusRows: normalizeAnalyticsRows([...byStatus.entries()].map(([label, value]) => ({ label, value })), 4),
-    paymentRows: normalizeAnalyticsRows([...byPayment.entries()].map(([label, value]) => ({ label, value })), 5),
-    cinemaRows: normalizeAnalyticsRows([...byCinema.entries()].map(([label, value]) => ({ label, value })), 5),
-    roomRows: normalizeAnalyticsRows([...byRoom.entries()].map(([label, value]) => ({ label, value })), 8),
-    seatVolumeRows: normalizeAnalyticsRows([...bySeatVolume.entries()].map(([label, value]) => ({ label, value })), 5),
-    hourRows: normalizeAnalyticsRows([...byHour.entries()].map(([label, value]) => ({ label, value })), 4),
-    weekdayRows: normalizeAnalyticsRows([...byWeekday.entries()].map(([label, value]) => ({ label, value })), 7),
-    ticketSizeRows: normalizeAnalyticsRows([...byTicketSize.entries()].map(([label, value]) => ({ label, value })), 4),
-    paymentCountRows: normalizeAnalyticsRows([...byPaymentCount.entries()].map(([label, value]) => ({ label, value })), 5),
-    tierRows: normalizeAnalyticsRows(
-      [...users.reduce((map, user) => {
-        addAnalyticsMapValue(map, user.membership?.tier || user.status || "Member", 1);
-        return map;
-      }, new Map()).entries()].map(([label, value]) => ({ label, value })),
-      5
-    ),
-    feedbackRows,
-    feedbackStatusRows: normalizeAnalyticsRows(
-      [...feedback.reduce((map, item) => {
-        addAnalyticsMapValue(map, item.status || "new", 1);
-        return map;
-      }, new Map()).entries()].map(([label, value]) => ({ label, value })),
-      5
-    ),
-    feedbackCategoryRows: normalizeAnalyticsRows(
-      [...feedback.reduce((map, item) => {
-        addAnalyticsMapValue(map, item.category || "Khác", 1);
-        return map;
-      }, new Map()).entries()].map(([label, value]) => ({ label, value })),
-      6
-    ),
-    feedbackRatingRows: normalizeAnalyticsRows(
-      [...feedback.reduce((map, item) => {
-        addAnalyticsMapValue(map, `${normalizeAnalyticsFeedbackRating(item.rating)} sao`, 1);
-        return map;
-      }, new Map()).entries()].map(([label, value]) => ({ label, value })),
-      5
-    ),
-    topMovie: movieRows[0],
-    topGenre: normalizeAnalyticsRows([...byGenre.entries()].map(([label, value]) => ({ label, value })), 8)[0],
-  };
 };
 
 const findBookingByTicketLookup = (lookupValue) => {
@@ -837,6 +612,10 @@ const adminController = {
 
   getDashboardOverview: async (req, res) => {
     try {
+      const adminUsers = await UserModel.find({ role: "admin" }).select("_id email");
+      const nonAdminBookingFilter = buildNonAdminBookingFilter(adminUsers);
+      const nonAdminUserContentFilter = buildNonAdminUserContentFilter(adminUsers);
+      const nonAdminFeedbackFilter = buildNonAdminFeedbackFilter(adminUsers);
       const [
         users,
         bookings,
@@ -853,29 +632,36 @@ const adminController = {
         unresolvedFeedbackEntries,
         feedbackRatingStats,
       ] = await Promise.all([
-        UserModel.countDocuments(),
-        BookingModel.countDocuments(),
-        ReviewModel.countDocuments(),
-        FavoriteModel.countDocuments(),
-        FeedbackModel.countDocuments({ isHidden: { $ne: true } }),
+        UserModel.countDocuments({ role: { $ne: "admin" } }),
+        BookingModel.countDocuments(nonAdminBookingFilter),
+        ReviewModel.countDocuments(nonAdminUserContentFilter),
+        FavoriteModel.countDocuments(nonAdminUserContentFilter),
+        FeedbackModel.countDocuments(mergeMongoFilters(nonAdminFeedbackFilter, { isHidden: { $ne: true } })),
         MovieModel.countDocuments({ deletedAt: null, status: "now-showing" }),
         MovieModel.countDocuments({ deletedAt: null, status: "coming-soon" }),
         ShowtimeModel.countDocuments(),
         BookingModel.aggregate([
-          { $match: { status: "booked" } },
+          {
+            $match: mergeMongoFilters(nonAdminBookingFilter, {
+              paymentStatus: { $ne: "refunded" },
+            }),
+          },
           { $group: { _id: null, total: { $sum: "$totalPrice" } } },
         ]),
-        BookingModel.countDocuments({ status: "cancelled" }),
+        BookingModel.countDocuments(mergeMongoFilters(nonAdminBookingFilter, { status: "cancelled" })),
         UserModel.countDocuments({
+          role: { $ne: "admin" },
           $or: [
             { "membership.tier": { $in: ["Gold", "Diamond"] } },
             { "membership.points": { $gte: 1500 } },
           ],
         }),
-        FeedbackModel.countDocuments({ isHidden: { $ne: true }, status: "new" }),
-        FeedbackModel.countDocuments({ isHidden: { $ne: true }, status: { $in: ["new", "in_progress"] } }),
+        FeedbackModel.countDocuments(mergeMongoFilters(nonAdminFeedbackFilter, { isHidden: { $ne: true }, status: "new" })),
+        FeedbackModel.countDocuments(
+          mergeMongoFilters(nonAdminFeedbackFilter, { isHidden: { $ne: true }, status: { $in: ["new", "in_progress"] } })
+        ),
         FeedbackModel.aggregate([
-          { $match: { isHidden: { $ne: true } } },
+          { $match: mergeMongoFilters(nonAdminFeedbackFilter, { isHidden: { $ne: true } }) },
           { $group: { _id: null, averageRating: { $avg: "$rating" } } },
         ]),
       ]);
@@ -912,11 +698,21 @@ const adminController = {
   getDashboardAnalytics: async (req, res) => {
     try {
       const range = ["day", "week", "month", "year"].includes(req.query.range) ? req.query.range : "month";
+      const filters = {
+        date: req.query.date,
+        month: req.query.month,
+        year: req.query.year,
+      };
+      const adminUsers = await UserModel.find({ role: "admin" }).select("_id email");
+      const nonAdminBookingFilter = buildNonAdminBookingFilter(adminUsers);
+      const nonAdminFeedbackFilter = buildNonAdminFeedbackFilter(adminUsers);
       const [bookings, movies, users, feedbackEntries] = await Promise.all([
-        BookingModel.find({}).sort({ createdAt: -1 }).limit(5000),
+        BookingModel.find(nonAdminBookingFilter).sort({ createdAt: -1 }).limit(5000),
         MovieModel.find({ deletedAt: null }).sort({ catalogOrder: 1, legacyId: 1 }).limit(500),
-        UserModel.find({}).limit(1000),
-        FeedbackModel.find({ isHidden: { $ne: true } }).sort({ createdAt: -1 }).limit(1000),
+        UserModel.find({ role: { $ne: "admin" } }).limit(1000),
+        FeedbackModel.find(mergeMongoFilters(nonAdminFeedbackFilter, { isHidden: { $ne: true } }))
+          .sort({ createdAt: -1 })
+          .limit(1000),
       ]);
 
       const movieLegacyIds = [...new Set(bookings.map((booking) => booking.movieLegacyId))];
@@ -940,6 +736,7 @@ const adminController = {
           users,
           feedback: feedbackEntries,
           range,
+          filters,
         }),
       });
     } catch (error) {
@@ -1019,7 +816,8 @@ const adminController = {
   getBookings: async (req, res) => {
     try {
       const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 50);
-      const bookings = await BookingModel.find({})
+      const adminUsers = await UserModel.find({ role: "admin" }).select("_id email");
+      const bookings = await BookingModel.find(buildNonAdminBookingFilter(adminUsers))
         .sort({ createdAt: -1 })
         .limit(limit);
 
@@ -1480,7 +1278,13 @@ const adminController = {
         ];
       }
 
-      const entries = await FeedbackModel.find(filter).sort({ createdAt: -1 }).limit(limit);
+      const adminUsers = await UserModel.find({ role: "admin" }).select("_id email");
+      const includeInternal = String(req.query.includeInternal || "").toLowerCase() === "true";
+      const entries = await FeedbackModel.find(
+        includeInternal ? filter : mergeMongoFilters(filter, buildNonAdminFeedbackFilter(adminUsers))
+      )
+        .sort({ createdAt: -1 })
+        .limit(limit);
 
       return res.status(200).send({
         success: true,
@@ -1525,19 +1329,15 @@ const adminController = {
       if (typeof response === "string") {
         const nextResponse = response.trim();
 
-        if (previousResponse && nextResponse !== previousResponse) {
-          return res.status(400).send({
-            success: false,
-            message: "Admin response cannot be edited after it is sent",
-            data: null,
-          });
-        }
-
         feedback.response = nextResponse;
         if (feedback.response) {
           feedback.status = "responded";
           feedback.respondedAt = new Date();
-          history.push({ action: "response", from: "", to: "Đã lưu phản hồi" });
+          history.push({
+            action: "response",
+            from: previousResponse ? "Đã có phản hồi" : "",
+            to: previousResponse ? "Đã cập nhật phản hồi" : "Đã lưu phản hồi",
+          });
         }
       }
 

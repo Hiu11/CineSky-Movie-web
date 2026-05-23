@@ -277,6 +277,71 @@ const dateRangeTitles = {
   year: "Năm nay",
 };
 
+const padDatePart = (value) => String(value).padStart(2, "0");
+
+const formatDateInput = (date = new Date()) =>
+  `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}-${padDatePart(date.getDate())}`;
+
+const formatMonthInput = (date = new Date()) =>
+  `${date.getFullYear()}-${padDatePart(date.getMonth() + 1)}`;
+
+const getCurrentYearInput = () => String(new Date().getFullYear());
+
+const parseLocalDateInput = (value) => {
+  const [year, month, day] = String(value || "").split("-").map(Number);
+
+  if (!year || !month || !day) {
+    return null;
+  }
+
+  const date = new Date(year, month - 1, day);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const getAnalyticsRangeSettings = ({ range = "month", date = "", month = "", year = "" } = {}) => {
+  const now = new Date();
+
+  if (range === "day") {
+    const targetDate = parseLocalDateInput(date) || now;
+    const start = new Date(targetDate);
+    const end = new Date(targetDate);
+    start.setHours(0, 0, 0, 0);
+    end.setHours(23, 59, 59, 999);
+
+    return {
+      start,
+      end,
+      scopeLabel: new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" }).format(targetDate),
+    };
+  }
+
+  if (range === "week") {
+    const start = new Date(now);
+    start.setDate(now.getDate() - 6);
+    start.setHours(0, 0, 0, 0);
+
+    return { start, end: now, scopeLabel: "Tuần này" };
+  }
+
+  if (range === "year") {
+    const selectedYear = Number(year) || now.getFullYear();
+    const start = new Date(selectedYear, 0, 1);
+    const end = new Date(selectedYear, 11, 31, 23, 59, 59, 999);
+
+    return { start, end, scopeLabel: `Năm ${selectedYear}` };
+  }
+
+  const [selectedYear, selectedMonth] = String(month || formatMonthInput(now)).split("-").map(Number);
+  const start = new Date(selectedYear || now.getFullYear(), (selectedMonth || now.getMonth() + 1) - 1, 1);
+  const end = new Date(start.getFullYear(), start.getMonth() + 1, 0, 23, 59, 59, 999);
+
+  return {
+    start,
+    end,
+    scopeLabel: `Tháng ${padDatePart(start.getMonth() + 1)}/${start.getFullYear()}`,
+  };
+};
+
 const chartColors = ["#f7b400", "#38bdf8", "#22c55e", "#f97316", "#a78bfa", "#ef4444"];
 
 const cinemaCatalog = [
@@ -441,30 +506,26 @@ const getBookingDate = (booking) => {
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
-const isBookingInRange = (booking, range) => {
+const isRecordInAnalyticsRange = (record, range, filters = {}) => {
+  const date = getBookingDate(record);
+
+  if (!date) {
+    return false;
+  }
+
+  const { start, end } = getAnalyticsRangeSettings({ range, ...filters });
+  return date >= start && date <= end;
+};
+
+const isBookingInRange = (booking, range, filters = {}) => {
   const date = getBookingDate(booking);
 
   if (!date) {
     return false;
   }
 
-  const now = new Date();
-  const start = new Date(now);
-
-  if (range === "day") {
-    start.setHours(0, 0, 0, 0);
-  } else if (range === "week") {
-    start.setDate(now.getDate() - 6);
-    start.setHours(0, 0, 0, 0);
-  } else if (range === "month") {
-    start.setMonth(now.getMonth() - 1);
-    start.setHours(0, 0, 0, 0);
-  } else if (range === "year") {
-    start.setFullYear(now.getFullYear(), 0, 1);
-    start.setHours(0, 0, 0, 0);
-  }
-
-  return date >= start && date <= now;
+  const { start, end } = getAnalyticsRangeSettings({ range, ...filters });
+  return date >= start && date <= end;
 };
 
 const normalizeChartRows = (items, limit = 6) => {
@@ -488,8 +549,9 @@ const addMapValue = (map, key, amount) => {
 const findMovieByTitle = (movies, title) =>
   movies.find((movie) => normalizeComparable(movie.title || movie.name) === normalizeComparable(title));
 
-const buildAnalyticsData = ({ bookings = [], movies = [], users = [], feedback = [], range = "month" }) => {
-  const scopedBookings = bookings.filter((booking) => isBookingInRange(booking, range));
+const buildAnalyticsData = ({ bookings = [], movies = [], users = [], feedback = [], range = "month", filters = {} }) => {
+  const scopedBookings = bookings.filter((booking) => isBookingInRange(booking, range, filters));
+  const scopedFeedback = feedback.filter((item) => isRecordInAnalyticsRange(item, range, filters));
   const paidBookings = scopedBookings.filter((booking) => booking.status !== "cancelled");
   const totalRevenue = paidBookings.reduce((sum, booking) => sum + Number(booking.totalPrice || 0), 0);
   const totalSeats = paidBookings.reduce((sum, booking) => sum + (booking.seatNumbers || []).length, 0);
@@ -580,28 +642,28 @@ const buildAnalyticsData = ({ bookings = [], movies = [], users = [], feedback =
     5
   );
   const feedbackRows = normalizeChartRows(
-    [...feedback.reduce((map, item) => {
+    [...scopedFeedback.reduce((map, item) => {
       addMapValue(map, item.priorityLabel || item.priority || "Trung bình", 1);
       return map;
     }, new Map()).entries()].map(([label, value]) => ({ label, value })),
     5
   );
   const feedbackStatusRows = normalizeChartRows(
-    [...feedback.reduce((map, item) => {
+    [...scopedFeedback.reduce((map, item) => {
       addMapValue(map, item.status || item.statusKey || "new", 1);
       return map;
     }, new Map()).entries()].map(([label, value]) => ({ label, value })),
     5
   );
   const feedbackCategoryRows = normalizeChartRows(
-    [...feedback.reduce((map, item) => {
+    [...scopedFeedback.reduce((map, item) => {
       addMapValue(map, item.categoryLabel || item.category || "Khác", 1);
       return map;
     }, new Map()).entries()].map(([label, value]) => ({ label, value })),
     6
   );
   const feedbackRatingRows = normalizeChartRows(
-    [...feedback.reduce((map, item) => {
+    [...scopedFeedback.reduce((map, item) => {
       addMapValue(map, `${normalizeFeedbackRating(item.rating)} sao`, 1);
       return map;
     }, new Map()).entries()].map(([label, value]) => ({ label, value })),
@@ -622,7 +684,7 @@ const buildAnalyticsData = ({ bookings = [], movies = [], users = [], feedback =
     .sort((first, second) => Number(second.value || 0) - Number(first.value || 0) || first.label.localeCompare(second.label, "vi"));
 
   return {
-    scopeLabel: dateRangeTitles[range] || "Tháng này",
+    scopeLabel: getAnalyticsRangeSettings({ range, ...filters }).scopeLabel || dateRangeTitles[range] || "Tháng này",
     totalRevenue,
     totalSeats,
     totalBookings: scopedBookings.length,
@@ -823,6 +885,9 @@ export default function AdminPage() {
   });
   const [formError, setFormError] = useState("");
   const [dateRange, setDateRange] = useState("month");
+  const [analyticsDate, setAnalyticsDate] = useState(formatDateInput);
+  const [analyticsMonth, setAnalyticsMonth] = useState(formatMonthInput);
+  const [analyticsYear, setAnalyticsYear] = useState(getCurrentYearInput);
   const [activePaymentLabel, setActivePaymentLabel] = useState("");
   const confirmResolverRef = useRef(null);
   const [confirmDialog, setConfirmDialog] = useState(null);
@@ -912,7 +977,12 @@ export default function AdminPage() {
 
     const loadAnalytics = async () => {
       try {
-        const analytics = await getAdminAnalytics({ range: dateRange });
+        const analytics = await getAdminAnalytics({
+          range: dateRange,
+          date: dateRange === "day" ? analyticsDate : "",
+          month: dateRange === "month" ? analyticsMonth : "",
+          year: dateRange === "year" ? analyticsYear : "",
+        });
 
         if (isMounted) {
           setAdminAnalytics(analytics);
@@ -929,7 +999,7 @@ export default function AdminPage() {
     return () => {
       isMounted = false;
     };
-  }, [dateRange]);
+  }, [analyticsDate, analyticsMonth, analyticsYear, dateRange]);
 
   useEffect(() => {
     let isMounted = true;
@@ -1087,6 +1157,14 @@ export default function AdminPage() {
   const activeConfig = moduleConfig.find((item) => item.key === activeModule) || moduleConfig[0];
   const activeRecords = useMemo(() => records[activeModule] || [], [activeModule, records]);
   const statuses = Array.from(new Set(activeRecords.map((item) => item.status)));
+  const analyticsFilters = useMemo(
+    () => ({
+      date: analyticsDate,
+      month: analyticsMonth,
+      year: analyticsYear,
+    }),
+    [analyticsDate, analyticsMonth, analyticsYear]
+  );
   const analyticsData = useMemo(
     () => {
       if (adminAnalytics) {
@@ -1099,9 +1177,10 @@ export default function AdminPage() {
         users: records.users,
         feedback: records.feedback,
         range: dateRange,
+        filters: analyticsFilters,
       });
     },
-    [adminAnalytics, adminBookings, dateRange, records.feedback, records.movies, records.users]
+    [adminAnalytics, adminBookings, analyticsFilters, dateRange, records.feedback, records.movies, records.users]
   );
   const compactDashboardStats = useMemo(() => dashboardStats.slice(0, 4), [dashboardStats]);
   const supportDashboardStats = useMemo(() => dashboardStats.slice(4), [dashboardStats]);
@@ -1826,28 +1905,42 @@ export default function AdminPage() {
     </div>
   );
 
-  const renderColumnChart = (rows, formatter = formatCurrency, unitLabel = "Đơn vị: VND") => (
-    <div className="admin-column-chart-wrap">
-      <div className="admin-chart-unit-row">
-        <span className="admin-chart-unit">{unitLabel}</span>
-        <span className="admin-chart-unit">Trục ngang: thời gian / nhóm</span>
+  const renderColumnChart = (rows, formatter = formatCurrency, unitLabel = "Đơn vị: VND") => {
+    if (rows.length === 1) {
+      const item = rows[0];
+
+      return (
+        <div className="admin-single-metric">
+          <span>{unitLabel}</span>
+          <strong>{formatter(item.value)}</strong>
+          <small>{item.label}</small>
+        </div>
+      );
+    }
+
+    return (
+      <div className="admin-column-chart-wrap">
+        <div className="admin-chart-unit-row">
+          <span className="admin-chart-unit">{unitLabel}</span>
+          <span className="admin-chart-unit">Trục ngang: thời gian / nhóm</span>
+        </div>
+        <div className="admin-column-chart">
+          {rows.length > 0 ? (
+            rows.map((item) => (
+              <div key={item.label} className="admin-column-chart__item">
+                <strong style={{ height: `${item.percent}%`, "--bar-color": item.color }} title={formatter(item.value)}>
+                  <em>{formatter(item.value)}</em>
+                </strong>
+                <span>{item.label}</span>
+              </div>
+            ))
+          ) : (
+            <p className="admin-chart-empty">Chưa có dữ liệu để vẽ biểu đồ.</p>
+          )}
+        </div>
       </div>
-      <div className="admin-column-chart">
-        {rows.length > 0 ? (
-          rows.map((item) => (
-            <div key={item.label} className="admin-column-chart__item">
-              <strong style={{ height: `${item.percent}%`, "--bar-color": item.color }} title={formatter(item.value)}>
-                <em>{formatter(item.value)}</em>
-              </strong>
-              <span>{item.label}</span>
-            </div>
-          ))
-        ) : (
-          <p className="admin-chart-empty">Chưa có dữ liệu để vẽ biểu đồ.</p>
-        )}
-      </div>
-    </div>
-  );
+    );
+  };
 
   const renderDonut = (rows, formatter = formatCurrency, unitLabel = "Đơn vị: VND") => {
     const total = rows.reduce((sum, item) => sum + Number(item.value || 0), 0);
@@ -1920,12 +2013,40 @@ export default function AdminPage() {
           <div>
             <h1>{activeTitle}</h1>
           </div>
-          <select value={dateRange} onChange={(event) => setDateRange(event.target.value)}>
-            <option value="day">Hôm nay</option>
-            <option value="week">Tuần này</option>
-            <option value="month">Tháng này</option>
-            <option value="year">Năm nay</option>
-          </select>
+          <div className="admin-date-controls">
+            <select value={dateRange} onChange={(event) => setDateRange(event.target.value)} aria-label="Chọn khoảng thống kê">
+              <option value="day">Hôm nay</option>
+              <option value="week">Tuần này</option>
+              <option value="month">Tháng này</option>
+              <option value="year">Năm nay</option>
+            </select>
+            {dateRange === "day" ? (
+              <input
+                type="date"
+                value={analyticsDate}
+                onChange={(event) => setAnalyticsDate(event.target.value || formatDateInput())}
+                aria-label="Chọn ngày thống kê"
+              />
+            ) : null}
+            {dateRange === "month" ? (
+              <input
+                type="month"
+                value={analyticsMonth}
+                onChange={(event) => setAnalyticsMonth(event.target.value || formatMonthInput())}
+                aria-label="Chọn tháng thống kê"
+              />
+            ) : null}
+            {dateRange === "year" ? (
+              <input
+                type="number"
+                min="2000"
+                max="2100"
+                value={analyticsYear}
+                onChange={(event) => setAnalyticsYear(event.target.value || getCurrentYearInput())}
+                aria-label="Chọn năm thống kê"
+              />
+            ) : null}
+          </div>
         </header>
 
         {adminFeedbackAlerts.length > 0 ? (
@@ -2038,7 +2159,7 @@ export default function AdminPage() {
             <section className="admin-panel admin-overview-ops">
               <div>
                 <span>Chỉ số phụ</span>
-                <h2>Tách khỏi dashboard để màn hình tổng quan gọn hơn</h2>
+                <h2>Theo dõi nhanh</h2>
               </div>
               <div className="admin-overview-chip-grid">
                 {supportDashboardStats.map((item) => (
@@ -2107,16 +2228,18 @@ export default function AdminPage() {
                   </div>
                   {renderDonut(analyticsData.statusRows, (value) => `${value} đơn`, "Đơn vị: số đơn")}
                 </article>
-                <article className="admin-panel admin-panel--wide">
-                  <div className="admin-chart-head">
-                    <div>
-                      <span>Biểu đồ cột</span>
-                      <h2>Doanh thu theo tháng</h2>
+                {analyticsData.monthlyRows.length > 1 ? (
+                  <article className="admin-panel admin-panel--wide">
+                    <div className="admin-chart-head">
+                      <div>
+                        <span>Biểu đồ cột</span>
+                        <h2>Doanh thu theo tháng</h2>
+                      </div>
+                      <small>Chú thích: hữu ích khi có nhiều tháng để so sánh.</small>
                     </div>
-                    <small>Chú thích: hữu ích khi chọn phạm vi năm.</small>
-                  </div>
-                  {renderColumnChart(analyticsData.monthlyRows, formatCurrency, "Trục dọc: doanh thu (VND)")}
-                </article>
+                    {renderColumnChart(analyticsData.monthlyRows, formatCurrency, "Trục dọc: doanh thu (VND)")}
+                  </article>
+                ) : null}
               </div>
             ) : null}
 

@@ -70,7 +70,6 @@ const Footer = ({ flushTop = false }) => {
         <div className="footer-links">
           <h4>HỆ THỐNG RẠP</h4>
           <ul>
-            <li>Tất cả hệ thống rạp</li>
             <li>CineSky Nguyen Hue (TP.HCM)</li>
             <li>CineSky Hai Ba Trung (TP.HCM)</li>
             <li>CineSky Dien Bien Phu (TP.HCM)</li>

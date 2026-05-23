@@ -73,6 +73,11 @@ const bookingSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    isTestBooking: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
     status: {
       type: String,
       enum: ["booked", "used", "cancelled", "expired"],

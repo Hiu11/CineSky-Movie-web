@@ -41,8 +41,29 @@ const buildScreeningDateTime = (screeningDate = "", displayTime = "") => {
 };
 
 const getBookingEffectiveStatus = (booking, showtime, movie) => {
+  const durationMinutes = Number(movie?.duration || 0) || 120;
+  const screeningStartFromBooking = booking.screeningDate
+    ? buildScreeningDateTime(booking.screeningDate, showtime?.displayTime)
+    : null;
+  const screeningEndFromBooking =
+    screeningStartFromBooking && !Number.isNaN(screeningStartFromBooking.getTime())
+      ? new Date(screeningStartFromBooking.getTime() + durationMinutes * 60000)
+      : null;
+
+  if (
+    booking.status === "expired" &&
+    screeningEndFromBooking &&
+    screeningEndFromBooking.getTime() >= Date.now()
+  ) {
+    return "booked";
+  }
+
   if (booking.status !== "booked") {
     return booking.status;
+  }
+
+  if (screeningEndFromBooking) {
+    return screeningEndFromBooking.getTime() < Date.now() ? "expired" : booking.status;
   }
 
   const screeningEndFromShowtime = showtime?.endTime ? new Date(showtime.endTime) : null;
@@ -59,7 +80,6 @@ const getBookingEffectiveStatus = (booking, showtime, movie) => {
     return booking.status;
   }
 
-  const durationMinutes = Number(movie?.duration || 0) || 120;
   const screeningEnd = new Date(screeningStart.getTime() + durationMinutes * 60000);
 
   return screeningEnd.getTime() < Date.now() ? "expired" : booking.status;
@@ -139,6 +159,7 @@ const serializeBooking = (booking, showtime, movie) => ({
   paymentProvider: booking.paymentProvider || "",
   paymentStatus: booking.paymentStatus || "mock_paid",
   paymentReference: booking.paymentReference || "",
+  isTestBooking: Boolean(booking.isTestBooking),
   status: getBookingEffectiveStatus(booking, showtime, movie),
   rawStatus: booking.status,
   checkedInAt: booking.checkedInAt,
@@ -241,6 +262,7 @@ const bookingsController = {
         paymentReference = "",
       } = req.body || {};
       const authUser = req.authUser;
+      const isAdminBooking = authUser?.role === "admin";
       const customerName = String(authUser?.fullName || "").trim();
       const customerEmail = String(authUser?.email || "").trim().toLowerCase();
 
@@ -320,18 +342,20 @@ const bookingsController = {
         });
       }
 
-      const reservedShowtime = await ShowtimeModel.findOneAndUpdate(
-        {
-          _id: showtime._id,
-          movieLegacyId: legacyId,
-          seats: { $all: seatNumbers },
-          bookedSeats: { $nin: seatNumbers },
-        },
-        {
-          $addToSet: { bookedSeats: { $each: seatNumbers } },
-        },
-        { new: true }
-      );
+      const reservedShowtime = isAdminBooking
+        ? showtime
+        : await ShowtimeModel.findOneAndUpdate(
+            {
+              _id: showtime._id,
+              movieLegacyId: legacyId,
+              seats: { $all: seatNumbers },
+              bookedSeats: { $nin: seatNumbers },
+            },
+            {
+              $addToSet: { bookedSeats: { $each: seatNumbers } },
+            },
+            { new: true }
+          );
 
       if (!reservedShowtime) {
         return res.status(409).send({
@@ -362,12 +386,15 @@ const bookingsController = {
           paymentProvider: String(paymentProvider).trim(),
           paymentReference: String(paymentReference).trim(),
           paymentStatus: "mock_paid",
+          isTestBooking: isAdminBooking,
         });
       } catch (error) {
-        await ShowtimeModel.updateOne(
-          { _id: reservedShowtime._id },
-          { $pull: { bookedSeats: { $in: seatNumbers } } }
-        );
+        if (!isAdminBooking) {
+          await ShowtimeModel.updateOne(
+            { _id: reservedShowtime._id },
+            { $pull: { bookedSeats: { $in: seatNumbers } } }
+          );
+        }
         throw error;
       }
 
@@ -458,10 +485,12 @@ const bookingsController = {
         });
       }
 
-      await ShowtimeModel.updateOne(
-        { _id: booking.showtimeId },
-        { $pull: { bookedSeats: { $in: booking.seatNumbers } } }
-      );
+      if (!booking.isTestBooking) {
+        await ShowtimeModel.updateOne(
+          { _id: booking.showtimeId },
+          { $pull: { bookedSeats: { $in: booking.seatNumbers } } }
+        );
+      }
 
       booking.status = "cancelled";
       booking.paymentStatus = booking.paymentStatus || "mock_paid";

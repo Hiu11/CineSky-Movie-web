@@ -3,7 +3,10 @@ import { useLocation } from "react-router-dom";
 import { normalizeAuthUser } from "../../services/authService";
 import {
   createFeedbackEntry,
+  getAdminFeedbackEntries,
   getFeedbackEntries,
+  getFeedbackEntriesPage,
+  updateAdminFeedbackEntry,
 } from "../../services/feedbackService";
 import "./FeedbackPage.css";
 
@@ -70,9 +73,17 @@ const FeedbackPage = ({ showToast }) => {
   const [feedbackEntries, setFeedbackEntries] = useState([]);
   const [isEntriesLoading, setIsEntriesLoading] = useState(true);
   const [entriesErrorMessage, setEntriesErrorMessage] = useState("");
+  const [entriesPage, setEntriesPage] = useState(1);
+  const [entriesTotalPages, setEntriesTotalPages] = useState(1);
+  const [isLoadingMoreEntries, setIsLoadingMoreEntries] = useState(false);
+  const [selectedReplyId, setSelectedReplyId] = useState("");
+  const [replyMessage, setReplyMessage] = useState("");
+  const [isReplySubmitting, setIsReplySubmitting] = useState(false);
 
+  const isAdmin = sessionUser?.role === "admin";
   const activeRating = hoveredRating || selectedRating;
   const messageLength = form.message.trim().length;
+  const selectedReply = feedbackEntries.find((entry) => entry.id === selectedReplyId) || feedbackEntries[0] || null;
 
   useEffect(() => {
     if (document.querySelector("script[data-lottie-player]")) {
@@ -97,10 +108,20 @@ const FeedbackPage = ({ showToast }) => {
         setIsEntriesLoading(true);
         setEntriesErrorMessage("");
 
-        const entries = await getFeedbackEntries({ limit: 6 });
+        const payload = isAdmin
+          ? { data: await getAdminFeedbackEntries({ limit: 50 }), pagination: { page: 1, totalPages: 1 } }
+          : await getFeedbackEntriesPage({ limit: 6, page: 1 });
+        const entries = payload.data;
 
         if (isMounted) {
-          setFeedbackEntries(Array.isArray(entries) ? entries : []);
+          const nextEntries = Array.isArray(entries) ? entries : [];
+          setFeedbackEntries(nextEntries);
+          setEntriesPage(payload.pagination?.page || 1);
+          setEntriesTotalPages(payload.pagination?.totalPages || 1);
+          if (isAdmin && nextEntries.length > 0) {
+            setSelectedReplyId(nextEntries[0].id);
+            setReplyMessage(nextEntries[0].response || "");
+          }
         }
       } catch (error) {
         if (isMounted) {
@@ -121,7 +142,7 @@ const FeedbackPage = ({ showToast }) => {
     return () => {
       isMounted = false;
     };
-  }, []);
+  }, [isAdmin]);
 
   const handleFieldChange = (field) => (event) => {
     if (status.message) {
@@ -217,6 +238,73 @@ const FeedbackPage = ({ showToast }) => {
     }
   };
 
+  const handleLoadMoreEntries = async () => {
+    const nextPage = entriesPage + 1;
+
+    try {
+      setIsLoadingMoreEntries(true);
+      const payload = await getFeedbackEntriesPage({ limit: 6, page: nextPage });
+      setFeedbackEntries((currentEntries) => [
+        ...currentEntries,
+        ...(Array.isArray(payload.data) ? payload.data : []),
+      ]);
+      setEntriesPage(payload.pagination?.page || nextPage);
+      setEntriesTotalPages(payload.pagination?.totalPages || entriesTotalPages);
+    } catch (error) {
+      const message = error.message || "Không thể tải thêm phản hồi.";
+      setEntriesErrorMessage(message);
+      showToast?.({ type: "error", title: "Tải phản hồi thất bại", message });
+    } finally {
+      setIsLoadingMoreEntries(false);
+    }
+  };
+
+  const handleSelectReply = (entry) => {
+    setSelectedReplyId(entry.id);
+    setReplyMessage(entry.response || "");
+    setStatus({ type: "", message: "" });
+  };
+
+  const handleSubmitAdminReply = async (event) => {
+    event.preventDefault();
+
+    if (!selectedReply?.id) {
+      return;
+    }
+
+    const nextReply = replyMessage.trim();
+    if (nextReply.length < 8) {
+      const message = "Phản hồi cho khách cần ít nhất 8 ký tự.";
+      setStatus({ type: "error", message });
+      showToast?.({ type: "error", title: "Phản hồi quá ngắn", message });
+      return;
+    }
+
+    try {
+      setIsReplySubmitting(true);
+      const updatedEntry = await updateAdminFeedbackEntry(selectedReply.id, {
+        response: nextReply,
+        status: "responded",
+      });
+
+      setFeedbackEntries((currentEntries) =>
+        currentEntries.map((entry) => (entry.id === updatedEntry.id ? updatedEntry : entry))
+      );
+      setStatus({ type: "success", message: "Đã gửi phản hồi cho khách." });
+      showToast?.({
+        type: "success",
+        title: "Đã phản hồi",
+        message: updatedEntry.fullName || "Phản hồi đã được lưu.",
+      });
+    } catch (error) {
+      const message = error.message || "Không thể gửi phản hồi lúc này.";
+      setStatus({ type: "error", message });
+      showToast?.({ type: "error", title: "Gửi phản hồi thất bại", message });
+    } finally {
+      setIsReplySubmitting(false);
+    }
+  };
+
   return (
     <main className="feedback-page">
       <div className="cinematic-film-bg" aria-hidden="true">
@@ -232,12 +320,14 @@ const FeedbackPage = ({ showToast }) => {
       </div>
 
       <div className="feedback-shell">
-        <section className="feedback-card">
+        <section className={"feedback-card" + (isAdmin ? " feedback-card--admin" : "")}>
           <div className="feedback-hero">
             <div className="feedback-header">
-              <h2>Góp ý với CineSky</h2>
+              <h2>{isAdmin ? "Phản hồi góp ý" : "Góp ý với CineSky"}</h2>
             </div>
-            <div className="feedback-speech">Bạn thấy lỗi thì la lên, đừng để nó sống thọ.</div>
+            <div className="feedback-speech">
+              {isAdmin ? "Chọn góp ý bên phải rồi trả lời khách." : "Bạn thấy lỗi thì la lên, đừng để nó sống thọ."}
+            </div>
             <div className="feedback-mascot" aria-hidden="true">
               <lottie-player
                 src="/assets/lottie/kicking-cats.json"
@@ -255,6 +345,38 @@ const FeedbackPage = ({ showToast }) => {
             </div>
           ) : null}
 
+          {isAdmin ? (
+            <form className="feedback-form feedback-admin-reply" onSubmit={handleSubmitAdminReply}>
+              <div className="feedback-admin-reply__target">
+                <span>Đang trả lời</span>
+                <strong>{selectedReply?.fullName || "Chưa có góp ý"}</strong>
+                <p>{selectedReply?.headline || "Chọn một góp ý ở cột bên phải để phản hồi."}</p>
+              </div>
+
+              <div className="feedback-field">
+                <label className="feedback-label" htmlFor="adminReply">
+                  Nội dung phản hồi
+                </label>
+                <textarea
+                  id="adminReply"
+                  className="feedback-textarea"
+                  placeholder="Nhập phản hồi chính thức cho khách..."
+                  value={replyMessage}
+                  onChange={(event) => setReplyMessage(event.target.value)}
+                  disabled={!selectedReply}
+                />
+                <strong className="feedback-char-count">{replyMessage.trim().length} ký tự</strong>
+              </div>
+
+              <button
+                type="submit"
+                className="feedback-submit"
+                disabled={!selectedReply || isReplySubmitting}
+              >
+                {isReplySubmitting ? "Đang gửi phản hồi..." : selectedReply?.response ? "Cập nhật phản hồi" : "Gửi phản hồi"}
+              </button>
+            </form>
+          ) : (
           <form className="feedback-form" onSubmit={handleSubmit}>
             <div className="feedback-form__grid">
               <div className="feedback-field">
@@ -341,6 +463,7 @@ const FeedbackPage = ({ showToast }) => {
               {isSubmitting ? "Đang gửi góp ý..." : "Gửi góp ý"}
             </button>
           </form>
+          )}
         </section>
 
         <aside className="feedback-rail">
@@ -359,8 +482,15 @@ const FeedbackPage = ({ showToast }) => {
                 <p>{entriesErrorMessage}</p>
               </div>
             ) : feedbackEntries.length > 0 ? (
-              feedbackEntries.map((review) => (
-                <article key={review.id} className="feedback-review-card">
+              <>
+              {feedbackEntries.map((review) => (
+                <article
+                  key={review.id}
+                  className={
+                    "feedback-review-card" +
+                    (isAdmin && selectedReply?.id === review.id ? " is-selected" : "")
+                  }
+                >
                   <div className="feedback-review-card__head">
                     <strong>{review.fullName}</strong>
                     <span>{"★".repeat(review.rating)}</span>
@@ -376,8 +506,28 @@ const FeedbackPage = ({ showToast }) => {
                       <p>{review.response}</p>
                     </div>
                   ) : null}
+                  {isAdmin ? (
+                    <button
+                      type="button"
+                      className="feedback-review-card__reply-button"
+                      onClick={() => handleSelectReply(review)}
+                    >
+                      {review.response ? "Xem phản hồi" : "Trả lời"}
+                    </button>
+                  ) : null}
                 </article>
-              ))
+              ))}
+              {!isAdmin && entriesPage < entriesTotalPages ? (
+                <button
+                  type="button"
+                  className="feedback-load-more"
+                  onClick={handleLoadMoreEntries}
+                  disabled={isLoadingMoreEntries}
+                >
+                  {isLoadingMoreEntries ? "Đang tải thêm..." : "Xem thêm phản hồi"}
+                </button>
+              ) : null}
+              </>
             ) : (
               <div className="feedback-rail__state">
                 <p>Chưa có phản hồi nào được gửi. Bạn có thể là người đầu tiên.</p>

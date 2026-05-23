@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import MovieModel from "../models/movie.model.js";
 import ReviewModel from "../models/review.model.js";
+import UserModel from "../models/user.model.js";
 
 const formatMovieId = (legacyId) => String(legacyId).padStart(3, "0");
 
@@ -45,7 +46,11 @@ const reviewsController = {
         });
       }
 
-      const reviews = await ReviewModel.find({ movieLegacyId })
+      const adminUsers = await UserModel.find({ role: "admin" }).select("_id");
+      const reviews = await ReviewModel.find({
+        movieLegacyId,
+        userId: { $nin: adminUsers.map((user) => user._id) },
+      })
         .populate("userId", "fullName email avatar")
         .sort({ createdAt: -1 })
         .limit(safeLimit);
@@ -66,6 +71,14 @@ const reviewsController = {
 
   createReview: async (req, res) => {
     try {
+      if (req.authUser?.role === "admin") {
+        return res.status(403).send({
+          success: false,
+          message: "Admin accounts cannot create public reviews",
+          data: null,
+        });
+      }
+
       const movieLegacyId = Number(req.params.movieId);
       const rating = Number(req.body?.rating);
       const content = String(req.body?.content || "").trim();

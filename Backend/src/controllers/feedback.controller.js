@@ -1,4 +1,6 @@
 import FeedbackModel from "../models/feedback.model.js";
+import UserModel from "../models/user.model.js";
+import { buildNonAdminFeedbackFilter, mergeMongoFilters } from "../utils/adminFilters.js";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -37,14 +39,31 @@ const feedbackController = {
   getFeedbackEntries: async (req, res) => {
     try {
       const safeLimit = Math.min(Math.max(Number(req.query.limit) || 6, 1), 12);
-      const feedbackEntries = await FeedbackModel.find({ isHidden: { $ne: true }, isSpam: { $ne: true } })
+      const page = Math.max(Number(req.query.page) || 1, 1);
+      const skip = (page - 1) * safeLimit;
+      const adminUsers = await UserModel.find({ role: "admin" }).select("_id email");
+      const filter = mergeMongoFilters(
+        { isHidden: { $ne: true }, isSpam: { $ne: true } },
+        buildNonAdminFeedbackFilter(adminUsers)
+      );
+      const [feedbackEntries, totalItems] = await Promise.all([
+        FeedbackModel.find(filter)
         .sort({ createdAt: -1 })
-        .limit(safeLimit);
+          .skip(skip)
+          .limit(safeLimit),
+        FeedbackModel.countDocuments(filter),
+      ]);
 
       return res.status(200).send({
         success: true,
         message: "Get feedback successfully",
         data: feedbackEntries.map(serializeFeedback),
+        pagination: {
+          page,
+          limit: safeLimit,
+          totalItems,
+          totalPages: Math.max(Math.ceil(totalItems / safeLimit), 1),
+        },
       });
     } catch (error) {
       return res.status(500).send({
@@ -70,6 +89,14 @@ const feedbackController = {
       const normalizedEmail = String(email).trim().toLowerCase();
       const trimmedMessage = String(message).trim();
       const safeRating = Number(rating);
+
+      if (req.authUser?.role === "admin") {
+        return res.status(403).send({
+          success: false,
+          message: "Admin accounts can reply to feedback from the admin flow, not create public feedback",
+          data: null,
+        });
+      }
 
       if (!trimmedFullName || !normalizedEmail || !trimmedMessage) {
         return res.status(400).send({
