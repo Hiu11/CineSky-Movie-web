@@ -1,0 +1,37 @@
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.875rem;
+  padding: 3rem 2rem;
+  text-align: center;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.empty-state__icon {
+  font-size: 3rem;
+  line-height: 1;
+  filter: drop-shadow(0 4px 12px rgba(249, 199, 79, 0.25));
+}
+
+.empty-state__title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #e5e7eb;
+  margin: 0;
+}
+
+.empty-state__description {
+  font-size: 0.9rem;
+  color: #6b7280;
+  max-width: 380px;
+  line-height: 1.6;
+  margin: 0;
+}
+
+.empty-state__action {
+  margin-top: 0.5rem;
+}

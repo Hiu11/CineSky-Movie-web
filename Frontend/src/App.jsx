@@ -21,6 +21,8 @@ import Promotions from "./pages/Promotions/Promotions";
 import CinemaNews from "./pages/CinemaNews/CinemaNews";
 import AdminPage from "./pages/AdminPage/AdminPage";
 import NotFound from "./pages/NotFound/NotFound";
+import Favorites from "./pages/Favorites/Favorites";
+import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 import { clearAuthSession, normalizeAuthUser } from "./services/authService";
 import "./App.css";
 
@@ -225,6 +227,7 @@ function AppContent() {
         <Route path="/notifications" element={isLoggedIn ? <Notifications /> : <Navigate to="/login" replace />} />
         <Route path="/promotions" element={<Promotions />} />
         <Route path="/news" element={<CinemaNews />} />
+        <Route path="/favorites" element={isLoggedIn ? <Favorites showToast={showToast} /> : <Navigate to="/login" replace />} />
         <Route
           path="/admin"
           element={user?.role === "admin" ? <AdminPage /> : <Navigate to="/login" replace />}
@@ -241,9 +244,11 @@ function AppContent() {
 
 function App() {
   return (
-    <Router>
-      <AppContent />
-    </Router>
+    <ErrorBoundary>
+      <Router>
+        <AppContent />
+      </Router>
+    </ErrorBoundary>
   );
 }
 

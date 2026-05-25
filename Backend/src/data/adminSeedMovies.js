@@ -40,26 +40,26 @@ const adminSeedMovies = [
     ],
     "trailerFacts": [
       {
-        "label": "Trang thai",
-        "value": "Sap chieu"
+        "label": "Trạng thái",
+        "value": "Sắp chiếu"
       },
       {
-        "label": "Do tuoi",
+        "label": "Độ tuổi",
         "value": "T18"
       },
       {
-        "label": "Suat noi bat",
-        "value": "1 suat"
+        "label": "Suất nổi bật",
+        "value": "Đang cập nhật"
       },
       {
         "label": "Xem nhanh",
-        "value": "Chưa có lịch"
+        "value": "Chưa có lịch chiếu"
       }
     ],
     "trailerPanel": {
-      "label": "Thong tin nhanh",
+      "label": "Thông tin nhanh",
       "title": "ĐẠI TIỆC TRĂNG MÁU",
-      "description": "Xem trailer truoc khi chon suat. Khu vuc nay tom tat nhanh trang thai phat hanh, do tuoi va lich chieu noi bat de ban quyet dinh thuan tien hon."
+      "description": "Phim hiện chưa có lịch chiếu khả dụng. Bạn vẫn có thể xem trailer, đọc mô tả và theo dõi trạng thái phát hành ngay trên trang chi tiết."
     },
     "catalogOrder": 8,
     "heroOrder": 8

@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import "./AboutPage.css";
+import DynamicLottie from "../../components/DynamicLottie/DynamicLottie";
 
 const projectPoints = [
   {
@@ -432,13 +433,11 @@ const AboutPage = () => {
             ))}
             </div>
 
-            <lottie-player
-              className="about-location-animation"
+            <DynamicLottie
               src="/assets/lottie/Space%20Tour.json"
-              background="transparent"
-              speed="1"
-              loop
-              autoplay
+              className="about-location-animation"
+              loop={true}
+              autoplay={true}
               aria-label="Minh họa phi hành gia CineSky"
             />
           </div>

@@ -34,6 +34,11 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
       trim: true,
+      // Phải là YYYY-MM-DD hoặc chuỗi rỗng
+      validate: {
+        validator: (value) => value === "" || /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(value),
+        message: "Ngày sinh phải có định dạng YYYY-MM-DD (ví dụ: 1999-12-31)",
+      },
     },
     role: {
       type: String,

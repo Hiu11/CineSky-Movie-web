@@ -230,6 +230,7 @@ export default function Header({
     setIsMobileMenuOpen(false);
     setActiveSuggestionIndex(-1);
     setTransitionTarget(null);
+    document.body.classList.remove("is-page-transitioning");
   }, [location.pathname, location.search]);
 
   useEffect(() => {
@@ -603,7 +604,7 @@ export default function Header({
                 <span className="user-menu__icon"><NavIcon id="history" /></span>
                 Lịch sử đặt vé
               </Link>
-              <Link to="/profile#favorites" className="user-menu__item">
+              <Link to="/favorites" className="user-menu__item">
                 <span className="user-menu__icon"><NavIcon id="favorite" /></span>
                 Phim yêu thích
               </Link>
@@ -806,7 +807,7 @@ export default function Header({
                   <Link to="/history" className="mobile-auth-link">
                     Lịch sử đặt vé
                   </Link>
-                  <Link to="/profile#favorites" className="mobile-auth-link">
+                  <Link to="/favorites" className="mobile-auth-link">
                     Phim yêu thích
                   </Link>
                   {isAdminUser ? <Link to="/admin" className="mobile-auth-link">Quản trị</Link> : null}

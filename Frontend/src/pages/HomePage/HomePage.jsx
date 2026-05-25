@@ -4,6 +4,9 @@ import MovieCard from "../../components/MovieCard/MovieCard";
 import { getMovies } from "../../services/movieService";
 import "./HomePage.css";
 
+import DynamicLottie from '../../components/DynamicLottie/DynamicLottie.jsx';
+import SPOTLIGHT_MOVIES from '../../data/spotlightMovies.js';
+
 const MOVIES_PER_PAGE = 12;
 
 const normalizeText = (value) =>
@@ -176,84 +179,25 @@ const cinematicParticles = Array.from({ length: 42 }, (_, index) => ({
   duration: `${8 + (index % 6)}s`,
 }));
 
-const requestedMovies = [
-  {
-    id: 204,
-    slug: "mua-do-2025",
-    title: "MƯA ĐỎ",
-    poster: "/assets/images/mua-do-2025.jpg",
-    genres: ["Chiến tranh", "Lịch sử", "Tâm lý"],
-    genre: "Chiến tranh, Lịch sử, Tâm lý",
-    country: "Việt Nam",
-    director: "Đặng Thái Huyền",
-    duration: 124,
-    rating: "T16",
-    ratingClass: "t16",
-    status: "now-showing",
-    statusOrder: 0,
-    catalogOrder: 1,
-    release: "22/08/2025",
-    times: ["09:15", "12:05", "15:10", "18:20", "21:05"],
-    description: "Mưa Đỏ tái hiện một giai đoạn khốc liệt bằng góc nhìn giàu cảm xúc, nơi những con người trẻ tuổi phải đối diện với mất mát, niềm tin và lựa chọn sinh tử.",
-  },
-  {
-    id: 205,
-    slug: "khe-uoc-ban-dau",
-    title: "KHẾ ƯỚC BÁN DÂU",
-    poster: "/assets/images/khe-uoc-ban-dau.jpg",
-    genres: ["Kinh dị", "Tâm lý", "Gia đình"],
-    genre: "Kinh dị, Tâm lý, Gia đình",
-    country: "Việt Nam",
-    director: "Lê Hoàng Nam",
-    duration: 108,
-    rating: "T18",
-    ratingClass: "t18",
-    status: "now-showing",
-    statusOrder: 0,
-    catalogOrder: 2,
-    release: "12/09/2025",
-    times: ["10:20", "13:30", "16:40", "19:50", "22:15"],
-    description: "Khế Ước Bán Dâu xoay quanh một lời hứa cũ trong gia tộc, kéo nhân vật chính vào chuỗi bí mật u ám giữa hôn nhân, nghi lễ và những món nợ không thể gọi tên.",
-  },
-  {
-    id: 206,
-    slug: "cai-ma-2025",
-    title: "CẢI MẢ",
-    poster: "/assets/images/cai-ma-2025.jpg",
-    genres: ["Kinh dị", "Dân gian", "Bí ẩn"],
-    genre: "Kinh dị, Dân gian, Bí ẩn",
-    country: "Việt Nam",
-    director: "Trần Hữu Tấn",
-    duration: 112,
-    rating: "T18",
-    ratingClass: "t18",
-    status: "now-showing",
-    statusOrder: 0,
-    catalogOrder: 3,
-    release: "31/10/2025",
-    times: ["09:50", "12:45", "15:35", "18:35", "21:30"],
-    description: "Cải Mả đưa người xem trở lại một vùng quê nơi nghi thức tâm linh và những bí mật bị chôn vùi dần trỗi dậy sau một biến cố gia đình.",
-  },
-  {
-    id: 207,
-    slug: "bay-tien",
-    title: "BẢY TIỀN",
-    poster: "/assets/images/bay-tien.jpg",
-    genres: ["Hài", "Tâm lý", "Đời sống"],
-    genre: "Hài, Tâm lý, Đời sống",
-    country: "Việt Nam",
-    director: "Vũ Ngọc Đãng",
-    duration: 105,
-    rating: "T16",
-    ratingClass: "t16",
-    status: "now-showing",
-    statusOrder: 0,
-    catalogOrder: 4,
-    release: "21/11/2025",
-    times: ["08:45", "11:20", "14:05", "17:15", "20:25"],
-    description: "Bảy Tiền kể câu chuyện đời thường bằng nhịp phim dí dỏm, xoay quanh những lựa chọn tưởng nhỏ nhưng làm thay đổi cách các nhân vật nhìn về gia đình và giá trị của đồng tiền.",
-  },
-];
+const requestedMovies = SPOTLIGHT_MOVIES.map(movie => ({
+  id: movie.id,
+  slug: movie.slug,
+  title: movie.title,
+  poster: `/assets/images/${movie.slug}.jpg`,
+  genres: ["Tâm lý", "Kịch tính"],
+  genre: "Tâm lý, Kịch tính",
+  country: "Việt Nam",
+  director: "CineSky Director",
+  duration: 120,
+  rating: "T16",
+  ratingClass: "t16",
+  status: "now-showing",
+  statusOrder: 0,
+  catalogOrder: 99,
+  release: "2026",
+  times: ["09:00", "12:00", "15:00", "18:00", "21:00"],
+  description: `Bộ phim truyền cảm hứng ${movie.title} hứa hẹn mang lại những cung bậc cảm xúc điện ảnh tuyệt vời nhất tại CineSky.`
+}));
 
 const getMovieDuplicateKeys = (movie = {}) =>
   [movie.slug, movie.title, movie.poster]
@@ -701,52 +645,6 @@ const HomePage = ({ searchQuery = "" }) => {
   const featuredMovieTab = featuredMovie?.status === "coming-soon" ? "soon" : "now";
   const heroReleaseYear = extractReleaseYear(featuredMovie?.release || "");
   const heroIsComingSoon = featuredMovie?.status === "coming-soon";
-  const faqMascotRef = useRef(null);
-
-  useEffect(() => {
-    if (document.querySelector("script[data-lottie-player]")) {
-      return undefined;
-    }
-
-    const script = document.createElement("script");
-
-    script.src = "https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js";
-    script.async = true;
-    script.dataset.lottiePlayer = "true";
-    document.body.appendChild(script);
-
-    return undefined;
-  }, []);
-
-  useEffect(() => {
-    let replayTimer = 0;
-    let playAttempts = 0;
-
-    const playMascot = () => {
-      const player = faqMascotRef.current;
-
-      if (player?.play) {
-        player.loop = true;
-        player.autoplay = true;
-        player.play();
-      }
-    };
-
-    if (window.customElements?.whenDefined) {
-      window.customElements.whenDefined("lottie-player").then(playMascot);
-    }
-
-    replayTimer = window.setInterval(() => {
-      playAttempts += 1;
-      playMascot();
-
-      if (playAttempts >= 10) {
-        window.clearInterval(replayTimer);
-      }
-    }, 500);
-
-    return () => window.clearInterval(replayTimer);
-  }, []);
 
   if (isLoading) {
     return <HomePageSkeleton />;
@@ -1262,14 +1160,11 @@ const HomePage = ({ searchQuery = "" }) => {
         </div>
 
         <div className="home-faq-mascot" aria-hidden="true">
-          <lottie-player
-            ref={faqMascotRef}
+          <DynamicLottie
             src="/assets/lottie/loader-cat.json"
-            background="transparent"
-            speed="1"
             loop
             autoplay
-          ></lottie-player>
+          />
         </div>
 
         <div className="home-faq-grid">

@@ -114,7 +114,7 @@
   pointer-events: none;
 }
 
-.md-spoiler-intro lottie-player {
+.md-spoiler-intro lottie-player, .md-spoiler-intro > div {
   width: min(760px, 94%);
   height: min(560px, 58vw);
   filter: drop-shadow(0 22px 38px rgba(0, 0, 0, 0.32));
@@ -473,7 +473,7 @@
   pointer-events: none;
 }
 
-.md-trailer-intro lottie-player {
+.md-trailer-intro lottie-player, .md-trailer-intro > div {
   width: min(420px, 70vw);
   height: min(330px, 54vw);
   filter: drop-shadow(0 22px 38px rgba(0, 0, 0, 0.32));
@@ -1206,8 +1206,6 @@
 }
 
 /* PREMIUM MOVIE DETAIL (PROMAX) */
-.md-promax {}
-
 /* Cinematic Hero Background */
 .md-hero__bg img {
   animation: kenBurns 20s ease-out forwards;
@@ -1231,8 +1229,6 @@
   overflow-x: auto;
   gap: 18px;
   padding: 8px 0 14px;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
 }
 .md-cast-grid::-webkit-scrollbar { display: none; }
 .md-cast-card {

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+﻿import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   addMyFavorite,
@@ -11,6 +11,7 @@ import {
   removeMyFavorite,
 } from "../../services/movieService";
 import "./MovieDetail.css";
+import DynamicLottie from "../../components/DynamicLottie/DynamicLottie";
 
 const getSessionUser = () => {
   if (typeof window === "undefined") {
@@ -194,20 +195,7 @@ export default function MovieDetail() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [id, location.hash]);
 
-  useEffect(() => {
-    if (document.querySelector("script[data-lottie-player]")) {
-      return undefined;
-    }
 
-    const script = document.createElement("script");
-
-    script.src = "https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js";
-    script.async = true;
-    script.dataset.lottiePlayer = "true";
-    document.body.appendChild(script);
-
-    return undefined;
-  }, []);
 
   useEffect(() => {
     setIsDetailIntroDone(false);
@@ -447,12 +435,11 @@ export default function MovieDetail() {
         <div className={"md-content-panel" + (isDetailIntroDone ? " is-ready" : " is-intro")}>
           {!isDetailIntroDone ? (
             <div className="md-spoiler-intro" aria-hidden="true">
-              <lottie-player
+              <DynamicLottie
                 src="/assets/lottie/spoiler-alert.json"
-                background="transparent"
-                speed="1"
-                autoplay
-              ></lottie-player>
+                loop={false}
+                autoplay={true}
+              />
             </div>
           ) : null}
 
@@ -536,12 +523,11 @@ export default function MovieDetail() {
           {!isTrailerIntroDone ? (
             <div className="md-trailer-intro" aria-hidden="true">
               {hasTrailerIntroStarted ? (
-                <lottie-player
+                <DynamicLottie
                   src="/assets/lottie/movie-clapboard.json"
-                  background="transparent"
-                  speed="1"
-                  autoplay
-                ></lottie-player>
+                  loop={false}
+                  autoplay={true}
+                />
               ) : null}
             </div>
           ) : null}

@@ -1,0 +1,291 @@
+/* PREMIUM ADMIN SIDEBAR GLOW */
+
+.admin-nav button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.admin-nav button.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 15%;
+  bottom: 15%;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: var(--primary-gold);
+  box-shadow: 0 0 12px var(--primary-gold);
+}
+.admin-nav button.active {
+  background: linear-gradient(90deg, rgba(247, 180, 0, 0.15), transparent) !important;
+  border-color: rgba(247, 180, 0, 0.3) !important;
+  text-shadow: 0 0 8px rgba(247, 180, 0, 0.4);
+}
+.admin-nav button:hover:not(.active) {
+  transform: translateX(4px);
+}
+
+/* PREMIUM ADMIN DASHBOARD (PROMAX) */
+/* Glass Data Table */
+.admin-table-wrap {
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.01)) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(180%) !important;
+  backdrop-filter: blur(24px) saturate(180%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 20px !important;
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1) !important;
+  overflow: hidden;
+}
+.admin-table tbody tr {
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  background: transparent;
+}
+.admin-table tbody tr:hover {
+  background: rgba(255, 255, 255, 0.05) !important;
+  transform: scale(1.01) translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 10;
+}
+/* 3D Stat Cards */
+.admin-stat-card {
+  background: var(--card-bg, #111421) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  backdrop-filter: blur(20px) !important;
+  border: 1px solid var(--card-border, rgba(255, 255, 255, 0.15)) !important;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22) !important;
+  transform-style: flat;
+  transition: transform 0.18s ease, border-color 0.18s ease;
+}
+.admin-stat-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--card-accent, var(--primary-gold)) !important;
+  box-shadow: 0 18px 34px rgba(0, 0, 0, 0.28) !important;
+}
+.admin-stat-card strong {
+  color: #fff;
+  text-shadow: none;
+}
+.admin-stat-card svg {
+  filter: drop-shadow(0 0 8px currentColor);
+}
+/* Vercel-like Split Form */
+.admin-form {
+  background: radial-gradient(circle at 100% 0%, rgba(247, 180, 0, 0.05), transparent 50%), rgba(10, 12, 18, 0.8) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(150%) !important;
+  backdrop-filter: blur(24px) saturate(150%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 24px !important;
+  padding: 32px !important;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.5) !important;
+}
+.admin-form input, .admin-form textarea, .admin-form select {
+  background: rgba(255, 255, 255, 0.03) !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-radius: 12px !important;
+  transition: all 0.3s ease;
+}
+.admin-form input:focus, .admin-form textarea:focus, .admin-form select:focus {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: var(--primary-gold) !important;
+  box-shadow: 0 0 0 4px rgba(247, 180, 0, 0.15) !important;
+}
+
+.admin-checkin-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.8fr) minmax(360px, 1.2fr);
+  gap: 22px;
+}
+
+.admin-checkin-card,
+.admin-checkin-result {
+  min-height: 280px;
+}
+
+.admin-checkin-card > span,
+.admin-checkin-result__head span {
+  color: var(--primary-gold);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.admin-checkin-card h2,
+.admin-checkin-result h2 {
+  margin: 10px 0 18px;
+  color: #fff;
+}
+
+.admin-checkin-form {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-checkin-form input {
+  min-height: 54px;
+  padding: 0 16px;
+  border-radius: 16px;
+  color: #fff;
+  text-transform: uppercase;
+}
+
+.admin-checkin-form button,
+.admin-checkin-confirm {
+  min-height: 48px;
+  border: none;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #f7b400, #ffe08a);
+  color: #111827;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.admin-checkin-form button:disabled,
+.admin-checkin-confirm:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.admin-checkin-message,
+.admin-checkin-empty {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.admin-checkin-result__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.admin-checkin-status {
+  padding: 9px 12px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.14);
+  color: #bbf7d0;
+  white-space: nowrap;
+}
+
+.admin-checkin-status--used {
+  background: rgba(59, 130, 246, 0.16);
+  color: #bfdbfe;
+}
+
+.admin-checkin-status--cancelled {
+  background: rgba(239, 68, 68, 0.16);
+  color: #fecaca;
+}
+
+.admin-checkin-meta {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+@media (max-width: 900px) {
+  .admin-checkin-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Check-in panel polish */
+.admin-checkin-form input {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  color: #f8fafc !important;
+  caret-color: var(--primary-gold);
+  font-family: "Courier New", monospace;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.admin-checkin-form input::placeholder {
+  color: rgba(226, 232, 240, 0.45) !important;
+  font-family: inherit;
+  letter-spacing: 0;
+}
+
+.admin-checkin-result {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 88% 20%, rgba(247, 180, 0, 0.13), transparent 28%),
+    linear-gradient(135deg, rgba(16, 20, 36, 0.96), rgba(9, 11, 22, 0.98)) !important;
+}
+
+.admin-checkin-result::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(115deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 9px);
+  opacity: 0.45;
+}
+
+.admin-checkin-result > * {
+  position: relative;
+  z-index: 1;
+}
+
+.admin-checkin-result__head {
+  align-items: center;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-checkin-result h2 {
+  margin-bottom: 0;
+  font-size: clamp(24px, 2.4vw, 38px);
+  line-height: 1.1;
+}
+
+.admin-checkin-status {
+  padding: 12px 16px;
+  font-size: 15px;
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+
+.admin-checkin-meta {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  margin: 20px 0 22px;
+}
+
+.admin-checkin-meta div {
+  min-height: 82px;
+  display: grid;
+  align-content: center;
+  gap: 7px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-checkin-meta small {
+  color: rgba(247, 180, 0, 0.86);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.admin-checkin-meta strong {
+  color: rgba(248, 250, 252, 0.9);
+  font-size: 15px;
+  line-height: 1.35;
+}
+
+.admin-checkin-confirm {
+  min-width: 180px;
+  padding: 0 20px;
+}
+
+@media (max-width: 700px) {
+  .admin-checkin-meta {
+    grid-template-columns: 1fr;
+  }
+}
+

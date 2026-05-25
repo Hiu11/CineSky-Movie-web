@@ -1,4 +1,4 @@
-import GenreModel from "../models/genre.model.js";
+﻿import GenreModel from "../models/genre.model.js";
 import { createShowtimesFromMovies } from "../data/seedShowtimes.js";
 import MovieModel from "../models/movie.model.js";
 import ReviewModel from "../models/review.model.js";
@@ -474,6 +474,20 @@ const moviesController = {
       });
     }
   },
+
+  /**
+   * Tra ve cau hinh phi dat ve (SERVICE_FEE_PER_TICKET env var, mac dinh 3000 VND).
+   * Frontend fetch endpoint nay thay vi hardcode.
+   */
+  getBookingFees: (req, res) => {
+    const serviceFeePerTicket = Number(process.env.SERVICE_FEE_PER_TICKET) || 3000;
+    return res.status(200).send({
+      success: true,
+      message: 'Get booking fees successfully',
+      data: { serviceFeePerTicket, currency: 'VND' },
+    });
+  },
+
 };
 
 export default moviesController;

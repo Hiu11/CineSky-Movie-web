@@ -548,6 +548,7 @@
   place-items: center;
   padding: 24px;
   background: rgba(3, 7, 18, 0.72);
+  -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
 }
 
@@ -1464,9 +1465,11 @@ body:has(.history-page) .nav-direct.active {
 .history-ticket__status--used,
 .history-ticket__status--cancelled,
 .history-ticket__status--expired {
-  background: rgba(var(--ticket-accent), 0.16) !important;
+  background: rgba(var(--ticket-accent), 0.28) !important;
   color: var(--ticket-text) !important;
-  border-color: rgba(var(--ticket-accent), 0.42) !important;
+  border-color: rgba(var(--ticket-accent), 0.65) !important;
+  box-shadow: 0 0 18px rgba(var(--ticket-accent), 0.25) !important;
+  text-shadow: 0 0 8px rgba(var(--ticket-accent), 0.4);
 }
 
 /* Remove the outer hero card, keep only the content */
@@ -1488,8 +1491,8 @@ body:has(.history-page) .nav-direct.active {
   background: none !important;
   border: none !important;
   box-shadow: none !important;
-  backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 
 /* Checked-in ticket state */
@@ -3168,7 +3171,7 @@ body:has(.history-page) .nav-direct.active {
 }
 
 .history-stats > div:not(.history-membership) {
-  min-height: auto !important;
+  min-height: 0 !important;
   padding: 4px 2px !important;
   border: 0 !important;
   border-radius: 0 !important;

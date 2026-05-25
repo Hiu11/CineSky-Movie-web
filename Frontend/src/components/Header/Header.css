@@ -941,7 +941,6 @@ body.is-page-transitioning .App > :not(.main-header):not(.toast-viewport):not(.f
   gap: 14px;
   padding: 10px 5% 12px;
   overflow: visible;
-  scrollbar-width: none;
   background: transparent;
   border-bottom: none;
   box-shadow: none;

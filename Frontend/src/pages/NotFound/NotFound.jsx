@@ -1,33 +1,16 @@
-import { useEffect } from "react";
 import { Link } from "react-router-dom";
+import DynamicLottie from "../../components/DynamicLottie/DynamicLottie";
 import "./NotFound.css";
 
 export default function NotFound() {
-  useEffect(() => {
-    if (document.querySelector("script[data-lottie-player]")) {
-      return undefined;
-    }
-
-    const script = document.createElement("script");
-
-    script.src = "https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js";
-    script.async = true;
-    script.dataset.lottiePlayer = "true";
-    document.body.appendChild(script);
-
-    return undefined;
-  }, []);
-
   return (
     <main className="not-found-page">
       <div className="not-found-animation" aria-hidden="true">
-        <lottie-player
+        <DynamicLottie
           src="/assets/lottie/error-404.json"
-          background="transparent"
-          speed="1"
           loop
           autoplay
-        ></lottie-player>
+        />
       </div>
       <section className="not-found-card">
         <span className="not-found-kicker">404</span>

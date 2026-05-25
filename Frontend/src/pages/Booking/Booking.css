@@ -1,5 +1,5 @@
 .booking-page {
-  --booking-summary-top: 180px;
+  --booking-summary-top: 216px;
   --booking-summary-width: min(350px, calc(100vw - 40px));
   --booking-page-padding-x: 5%;
   --booking-seat-size: clamp(20px, 1.7vw, 34px);
@@ -164,7 +164,7 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 14px;
   position: sticky;
-  top: 118px;
+  top: 216px;
   z-index: 5;
 }
 
@@ -1026,7 +1026,7 @@
   row-gap: 2px;
   justify-items: stretch;
   background: rgba(255, 255, 255, 0.07);
-  border-color: color-mix(in srgb, var(--provider-color, #fff) 36%, rgba(255, 255, 255, 0.18));
+  border-color: var(--provider-color, rgba(255, 255, 255, 0.25));
 }
 
 .booking-page__provider-tile > span:last-child {
@@ -1043,9 +1043,9 @@
   padding: 6px;
   border-radius: 14px;
   background: #fff;
-  border: 1px solid color-mix(in srgb, var(--provider-color, #fff) 38%, rgba(255, 255, 255, 0.82));
+  border: 1px solid var(--provider-color, rgba(255, 255, 255, 0.8));
   box-shadow:
-    0 12px 28px color-mix(in srgb, var(--provider-color, #000) 22%, rgba(0, 0, 0, 0.18)),
+    0 12px 28px rgba(0, 0, 0, 0.18),
     inset 0 1px 0 rgba(255, 255, 255, 0.28);
   object-fit: contain;
 }
@@ -1099,8 +1099,8 @@
   padding-right: 6px;
   overflow-y: auto;
   overflow-x: visible;
-  scrollbar-width: thin;
-  scrollbar-color: rgba(247, 180, 0, 0.42) rgba(255, 255, 255, 0.05);
+
+
   will-change: transform, opacity;
   pointer-events: auto;
   transition:

@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import { getMovies } from "../../services/movieService";
 import "./FilterPage.css";
@@ -22,17 +23,39 @@ const normalizeText = (value) =>
 
 const FilterSkeletonCard = () => <div className="filter-skeleton-card" aria-hidden="true"></div>;
 
-
-
 const FilterPage = ({ searchQuery = "" }) => {
-  const [selectedGenre, setSelectedGenre] = useState("");
-  const [selectedCountry, setSelectedCountry] = useState("");
-  const [selectedRating, setSelectedRating] = useState("");
-  const [openDropdown, setOpenDropdown] = useState(""); // eslint-disable-line no-unused-vars
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  // Đọc giá trị filter từ URL search parameters để giữ trạng thái (sync state) khi back/refresh
+  const [selectedGenre, setSelectedGenre] = useState(() => searchParams.get("genre") || "");
+  const [selectedCountry, setSelectedCountry] = useState(() => searchParams.get("country") || "");
+  const [selectedRating, setSelectedRating] = useState(() => searchParams.get("rating") || "");
+  
   const [movies, setMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Sync state từ searchParams mỗi khi URL thay đổi (ví dụ: nhấn Back)
+  useEffect(() => {
+    setSelectedGenre(searchParams.get("genre") || "");
+    setSelectedCountry(searchParams.get("country") || "");
+    setSelectedRating(searchParams.get("rating") || "");
+  }, [searchParams]);
+
+  // Cập nhật URL search parameters mỗi khi bộ lọc thay đổi
+  useEffect(() => {
+    const params = {};
+    if (selectedGenre) params.genre = selectedGenre;
+    if (selectedCountry) params.country = selectedCountry;
+    if (selectedRating) params.rating = selectedRating;
+    
+    // Giữ lại các param khác như q/search nếu có
+    const currentQ = searchParams.get("q") || searchParams.get("search");
+    if (currentQ) params.q = currentQ;
+
+    setSearchParams(params, { replace: true });
+  }, [selectedGenre, selectedCountry, selectedRating, setSearchParams, searchParams]);
 
   useEffect(() => {
     let isMounted = true;
@@ -97,6 +120,7 @@ const FilterPage = ({ searchQuery = "" }) => {
 
     return matchesQuery && matchesGenre && matchesCountry && matchesRating;
   });
+
   const pageCount = Math.max(1, Math.ceil(filteredMovies.length / MOVIES_PER_PAGE));
   const safeCurrentPage = Math.min(currentPage, pageCount);
   const paginatedMovies = filteredMovies.slice(
@@ -146,28 +170,6 @@ const FilterPage = ({ searchQuery = "" }) => {
       ? [...movies].reverse().filter((movie) => movie.poster)
       : filterFilmPosters.map((poster, index) => ({ id: `fallback-${index}`, poster }));
   const filmBackgroundLoopMovies = Array.from({ length: 3 }).flatMap(() => filmBackgroundMovies);
-  const dropdownOptions = {
-    genre: {
-      label: "Thá»ƒ loáº¡i",
-      value: selectedGenre,
-      options: genreOptions,
-      onChange: setSelectedGenre,
-    },
-    country: {
-      label: "Quá»‘c gia",
-      value: selectedCountry,
-      options: countryOptions,
-      onChange: setSelectedCountry,
-    },
-    rating: {
-      label: "Äá»™ tuá»•i",
-      value: selectedRating,
-      options: ratingOptions,
-      onChange: setSelectedRating,
-    },
-  };
-  // eslint-disable-next-line no-unused-vars
-  const activeDropdown = dropdownOptions[openDropdown];
 
   return (
     <main className="filter-view-container">
@@ -337,4 +339,3 @@ const FilterPage = ({ searchQuery = "" }) => {
 };
 
 export default FilterPage;
-

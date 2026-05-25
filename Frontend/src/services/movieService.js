@@ -81,6 +81,11 @@ export const getGenres = async () => {
   return parseResponse(response);
 };
 
+export const getBookingFees = async () => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/movies/config/booking-fees`);
+  return parseResponse(response);
+};
+
 export const getBookingHistory = async (params = {}) => {
   const { limit } = params || {};
 

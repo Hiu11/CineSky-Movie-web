@@ -3222,7 +3222,7 @@
 .home-membership-tier {
   flex: 0 0 clamp(250px, 31%, 320px);
   aspect-ratio: 1.586 / 1;
-  min-height: auto;
+  min-height: 0;
   margin-left: clamp(-88px, -7.5vw, -56px);
   transform: translateY(var(--card-drop, 0)) rotate(var(--card-tilt, 0deg)) !important;
   opacity: 1;
@@ -3367,7 +3367,7 @@
   top: var(--stack-top, 28px);
   left: var(--stack-left, 0);
   width: clamp(210px, 32%, 290px);
-  min-height: auto;
+  min-height: 0;
   margin: 0 !important;
   aspect-ratio: 1.586 / 1;
   opacity: 1 !important;

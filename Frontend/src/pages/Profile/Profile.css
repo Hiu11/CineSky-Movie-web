@@ -87,8 +87,18 @@ body:has(.profile-page) .search-pill-modern input::placeholder {
 .profile-hero {
   padding: 40px;
   display: flex;
-  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
   gap: 32px;
+  flex-wrap: wrap;
+}
+
+.profile-membership-container {
+  flex: 1;
+  min-width: 320px;
+  display: flex;
+  justify-content: flex-end;
+  z-index: 2;
 }
 
 .profile-identity {

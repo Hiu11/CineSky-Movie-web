@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+﻿import React, { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { normalizeAuthUser } from "../../services/authService";
 import {
@@ -9,6 +9,7 @@ import {
   updateAdminFeedbackEntry,
 } from "../../services/feedbackService";
 import "./FeedbackPage.css";
+import DynamicLottie from "../../components/DynamicLottie/DynamicLottie";
 
 const feedbackFilmPosters = [
   "/assets/images/khe-uoc-ban-dau.jpg",

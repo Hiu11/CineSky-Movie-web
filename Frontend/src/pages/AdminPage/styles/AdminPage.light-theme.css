@@ -1,0 +1,765 @@
+/* Light admin palette aligned with profile/history pages */
+body:has(.admin-page) {
+  background: #fffaf0;
+  color: #181b25;
+}
+
+.admin-page {
+  background: #fffaf0;
+  color: #181b25;
+}
+
+.admin-sidebar {
+  background:
+    linear-gradient(180deg, rgba(255, 251, 242, 0.98), rgba(248, 239, 221, 0.96));
+  border-right-color: rgba(214, 199, 170, 0.82);
+  box-shadow: 16px 0 38px rgba(49, 38, 21, 0.08);
+}
+
+.admin-brand,
+.admin-header span,
+.admin-feedback-alert span,
+.admin-overview-card > span,
+.admin-overview-ops > div:first-child span,
+.admin-chart-head span,
+.admin-checkin-card > span,
+.admin-checkin-result__head span,
+.admin-poster-picker label {
+  color: #8a5b00;
+}
+
+.admin-nav-group,
+.admin-stat-card,
+.admin-panel,
+.admin-table-wrap,
+.admin-form,
+.admin-checkin-result {
+  background: rgba(255, 251, 242, 0.96) !important;
+  border-color: rgba(225, 211, 184, 0.9) !important;
+  box-shadow: 0 22px 48px rgba(49, 38, 21, 0.12), inset 0 1px 0 rgba(255, 255, 255, 0.86) !important;
+}
+
+.admin-nav-group summary,
+.admin-nav button,
+.admin-toolbar button,
+.admin-pagination button,
+.admin-row-actions button,
+.admin-header h1,
+.admin-panel h2,
+.admin-overview-card h2,
+.admin-feedback-alert h2,
+.admin-checkin-card h2,
+.admin-checkin-result h2,
+.admin-stat-card strong,
+.admin-overview-chip-grid strong,
+.admin-movie-analytics-row > strong,
+.admin-analytics-bar strong,
+.admin-column-chart__item strong em,
+.admin-detail dd,
+.admin-feedback-meta strong,
+.admin-checkin-meta strong {
+  color: #181b25 !important;
+  text-shadow: none !important;
+}
+
+.admin-nav button,
+.admin-toolbar button,
+.admin-pagination button,
+.admin-row-actions button {
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(214, 199, 170, 0.82);
+}
+
+.admin-nav button.active,
+.admin-nav button:hover {
+  background: rgba(247, 180, 0, 0.16) !important;
+  border-color: rgba(180, 124, 14, 0.3) !important;
+  color: #8a5b00 !important;
+}
+
+.admin-nav button.active {
+  text-shadow: none;
+}
+
+.admin-nav-group.is-active {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(247, 180, 0, 0.13), transparent 38%),
+    rgba(255, 255, 255, 0.72);
+  border-color: rgba(180, 124, 14, 0.3);
+}
+
+.admin-feedback-alert {
+  background: rgba(255, 247, 225, 0.96);
+  border-color: rgba(247, 180, 0, 0.32);
+  box-shadow: 0 16px 34px rgba(49, 38, 21, 0.1);
+}
+
+.admin-feedback-alert p,
+.admin-overview-card p,
+.admin-chart-head small,
+.admin-chart-empty,
+.admin-stat-card span,
+.admin-stat-card small,
+.admin-bar-chart span,
+.admin-donut-legend span,
+.admin-chart-unit,
+.admin-chart-unit-row,
+.admin-analytics-bar span,
+.admin-column-chart__item span,
+.admin-analytics-legend span,
+.admin-movie-analytics-row div span,
+.admin-movie-analytics-row > span,
+.admin-table th,
+.admin-detail p,
+.admin-detail dt,
+.admin-feedback-meta span,
+.admin-feedback-message,
+.admin-poster-picker small,
+.admin-poster-preview small,
+.admin-checkin-message,
+.admin-checkin-empty,
+.admin-checkin-meta,
+.admin-form-error {
+  color: rgba(55, 58, 70, 0.68) !important;
+}
+
+.admin-header select,
+.admin-date-controls input,
+.admin-toolbar input,
+.admin-toolbar select,
+.admin-form input,
+.admin-form select,
+.admin-form textarea,
+.admin-feedback-detail textarea,
+.admin-feedback-detail select,
+.admin-checkin-form input {
+  background: rgba(255, 255, 255, 0.84) !important;
+  border-color: rgba(214, 199, 170, 0.82) !important;
+  color: #181b25 !important;
+  box-shadow: none !important;
+}
+
+.admin-header select,
+.admin-toolbar select,
+.admin-form select {
+  background:
+    linear-gradient(45deg, transparent 50%, #3a2a10 50%) right 20px center / 7px 7px no-repeat,
+    linear-gradient(135deg, #3a2a10 50%, transparent 50%) right 14px center / 7px 7px no-repeat,
+    rgba(255, 255, 255, 0.84) !important;
+}
+
+.admin-header option,
+.admin-toolbar option,
+.admin-form option {
+  background: #fffaf0;
+  color: #181b25;
+}
+
+.admin-header select:hover,
+.admin-date-controls input:hover,
+.admin-toolbar select:hover,
+.admin-form select:hover,
+.admin-header select:focus,
+.admin-date-controls input:focus,
+.admin-toolbar select:focus,
+.admin-form select:focus,
+.admin-form input:focus,
+.admin-form textarea:focus,
+.admin-checkin-form input:focus {
+  background-color: rgba(255, 255, 255, 0.96) !important;
+  border-color: #f7b400 !important;
+  box-shadow: 0 0 0 4px rgba(247, 180, 0, 0.12) !important;
+}
+
+.admin-table td,
+.admin-overview-chip-grid span,
+.admin-movie-analytics-row,
+.admin-detail div,
+.admin-detail .admin-feedback-detail dl div,
+.admin-checkin-meta div,
+.admin-column-chart,
+.admin-line-chart {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border-color: rgba(225, 211, 184, 0.82) !important;
+  color: #181b25;
+}
+
+.admin-table tr:hover td {
+  background: rgba(255, 247, 225, 0.96) !important;
+  border-color: rgba(247, 180, 0, 0.28) !important;
+  color: #181b25;
+}
+
+.admin-donut__hole {
+  fill: #fffaf0;
+}
+
+.admin-analytics-donut__track {
+  stroke: rgba(55, 58, 70, 0.12);
+}
+
+.admin-analytics-donut text {
+  fill: #181b25;
+}
+
+.admin-analytics-donut text:last-child {
+  fill: rgba(55, 58, 70, 0.58);
+}
+
+.admin-poster-picker,
+.admin-file-control,
+.admin-feedback-note,
+.admin-feedback-response {
+  background: rgba(255, 247, 225, 0.78) !important;
+  border-color: rgba(247, 180, 0, 0.28) !important;
+  color: #181b25;
+}
+
+.admin-checkin-result::before {
+  background: repeating-linear-gradient(115deg, rgba(49, 38, 21, 0.045) 0 1px, transparent 1px 9px);
+}
+
+.admin-checkin-form input::placeholder,
+.admin-feedback-detail textarea::placeholder {
+  color: rgba(55, 58, 70, 0.42) !important;
+}
+
+@media (max-width: 720px) {
+  .admin-sidebar {
+    border-bottom-color: rgba(214, 199, 170, 0.82);
+  }
+}
+
+/* Admin light cleanup: dark header, flatter white cards */
+body:has(.admin-page) .main-header::before {
+  background: rgba(9, 10, 24, 0.86);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  backdrop-filter: blur(12px) saturate(120%);
+}
+
+body:has(.admin-page) .movie-tabs-navigation {
+  background: transparent;
+  -webkit-backdrop-filter: blur(16px) saturate(120%);
+  backdrop-filter: blur(16px) saturate(120%);
+}
+
+body:has(.admin-page) .tab-btn,
+body:has(.admin-page) .nav-dropdown__trigger {
+  background: rgba(255, 251, 242, 0.92);
+  border-color: rgba(214, 199, 170, 0.78);
+  color: #2b2e3a;
+  text-shadow: none;
+  box-shadow: 0 12px 28px rgba(49, 38, 21, 0.1);
+}
+
+body:has(.admin-page) .tab-btn.active,
+body:has(.admin-page) .tab-btn:hover,
+body:has(.admin-page) .nav-dropdown.active .nav-dropdown__trigger,
+body:has(.admin-page) .nav-direct.active {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(20, 22, 32, 0.48);
+  color: #171923;
+}
+
+.admin-stat-card,
+.admin-panel,
+.admin-table-wrap,
+.admin-form,
+.admin-checkin-card,
+.admin-checkin-result,
+.admin-feedback-alert {
+  background: #fffdf7 !important;
+  background-image: none !important;
+  border-color: rgba(225, 211, 184, 0.88) !important;
+  box-shadow: 0 14px 30px rgba(49, 38, 21, 0.08) !important;
+}
+
+.admin-table td,
+.admin-overview-chip-grid span,
+.admin-movie-analytics-row,
+.admin-detail div,
+.admin-detail .admin-feedback-detail dl div,
+.admin-checkin-meta div,
+.admin-column-chart,
+.admin-line-chart {
+  background: #ffffff !important;
+  background-image: none !important;
+  border-color: rgba(225, 211, 184, 0.76) !important;
+}
+
+.admin-table-wrap {
+  border-radius: 20px !important;
+}
+
+.admin-column-chart,
+.admin-line-chart {
+  box-shadow: none !important;
+}
+
+.admin-analytics-bar i,
+.admin-line-chart span,
+.admin-bar-chart strong {
+  box-shadow: none !important;
+}
+
+/* Cleaner analytics cards: plain white so chart values stay readable */
+.admin-analytics .admin-panel,
+.admin-analytics .admin-panel.admin-panel--wide,
+.admin-analytics .admin-movie-analytics-list {
+  background: #ffffff !important;
+  background-image: none !important;
+  border-color: rgba(218, 205, 180, 0.9) !important;
+  box-shadow: 0 10px 24px rgba(49, 38, 21, 0.07) !important;
+}
+
+.admin-analytics .admin-chart-head,
+.admin-analytics .admin-analytics-bars,
+.admin-analytics .admin-column-chart-wrap,
+.admin-analytics .admin-analytics-donut-wrap,
+.admin-analytics .admin-movie-analytics-list {
+  background: transparent !important;
+  background-image: none !important;
+}
+
+.admin-analytics .admin-chart-head h2,
+.admin-analytics .admin-analytics-bar strong,
+.admin-analytics .admin-column-chart__item strong em,
+.admin-analytics .admin-movie-analytics-row > strong {
+  color: #151821 !important;
+  font-weight: 900;
+}
+
+.admin-analytics .admin-analytics-bar span,
+.admin-analytics .admin-column-chart__item span,
+.admin-analytics .admin-movie-analytics-row div span,
+.admin-analytics .admin-movie-analytics-row > span,
+.admin-analytics .admin-chart-unit,
+.admin-analytics .admin-chart-unit-row,
+.admin-analytics .admin-chart-head small,
+.admin-analytics .admin-analytics-legend span {
+  color: rgba(35, 38, 50, 0.72) !important;
+}
+
+.admin-analytics .admin-column-chart,
+.admin-analytics .admin-line-chart,
+.admin-analytics .admin-movie-analytics-row {
+  background: #ffffff !important;
+  background-image: none !important;
+  border-color: rgba(225, 211, 184, 0.74) !important;
+  box-shadow: none !important;
+}
+
+.admin-analytics .admin-analytics-bar i,
+.admin-analytics .admin-line-chart span,
+.admin-analytics .admin-bar-chart strong,
+.admin-analytics .admin-column-chart__item strong {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* Brighter status badges for light admin tables */
+.admin-status {
+  background: #fff3c4 !important;
+  border-color: rgba(217, 158, 23, 0.36) !important;
+  color: #8a5b00 !important;
+  box-shadow: 0 8px 18px rgba(138, 91, 0, 0.1) !important;
+}
+
+.admin-status--success,
+.admin-status--feedback-responded {
+  background: #dcfce7 !important;
+  border-color: rgba(34, 197, 94, 0.34) !important;
+  color: #166534 !important;
+}
+
+.admin-status--danger {
+  background: #fee2e2 !important;
+  border-color: rgba(239, 68, 68, 0.32) !important;
+  color: #991b1b !important;
+}
+
+.admin-status--warning {
+  background: #fef3c7 !important;
+  border-color: rgba(245, 158, 11, 0.34) !important;
+  color: #92400e !important;
+}
+
+.admin-status--info,
+.admin-status--feedback-new {
+  background: #dbeafe !important;
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  color: #1d4ed8 !important;
+}
+
+.admin-status--purple,
+.admin-status--feedback-in_progress {
+  background: #ede9fe !important;
+  border-color: rgba(139, 92, 246, 0.3) !important;
+  color: #5b21b6 !important;
+}
+
+.admin-status--neutral,
+.admin-status--feedback-closed {
+  background: #f1f5f9 !important;
+  border-color: rgba(100, 116, 139, 0.24) !important;
+  color: #475569 !important;
+}
+
+.admin-feedback-alert button {
+  background: #fff7d6 !important;
+  border-color: rgba(217, 158, 23, 0.34) !important;
+  color: #8a5b00 !important;
+  box-shadow: 0 10px 22px rgba(138, 91, 0, 0.1) !important;
+}
+
+.admin-feedback-alert button:hover {
+  background: #ffffff !important;
+  border-color: rgba(217, 158, 23, 0.5) !important;
+}
+
+/* Reduce secondary copy on admin screens */
+.admin-chart-head small,
+.admin-feedback-alert p {
+  display: none !important;
+}
+
+.admin-feedback-alert {
+  padding-block: 14px !important;
+}
+
+/* Compact admin density: keep the dashboard readable without oversized empty cards. */
+.admin-main {
+  gap: 16px;
+}
+
+.admin-header h1 {
+  font-size: clamp(30px, 3vw, 42px);
+  line-height: 1.05;
+}
+
+.admin-feedback-alert {
+  min-height: 0;
+  padding: 14px 18px !important;
+  border-radius: 14px !important;
+}
+
+.admin-feedback-alert h2 {
+  margin: 2px 0 0;
+  font-size: 18px;
+}
+
+.admin-dashboard,
+.admin-analytics {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-stat-grid,
+.admin-analytics-summary {
+  gap: 10px;
+}
+
+.admin-stat-card {
+  min-height: 86px;
+  padding: 14px 16px 13px 18px !important;
+  border-radius: 14px !important;
+  box-shadow: 0 8px 18px rgba(49, 38, 21, 0.06) !important;
+}
+
+.admin-stat-card::before {
+  top: 12px;
+  bottom: 12px;
+  width: 3px;
+}
+
+.admin-stat-card span,
+.admin-stat-card small {
+  font-size: 12px;
+  line-height: 1.3;
+}
+
+.admin-stat-card strong {
+  margin: 6px 0 4px !important;
+  font-size: 24px !important;
+  line-height: 1.05;
+}
+
+.admin-panel {
+  padding: 16px !important;
+  border-radius: 14px !important;
+  box-shadow: 0 8px 20px rgba(49, 38, 21, 0.06) !important;
+}
+
+.admin-panel h2 {
+  margin-bottom: 10px;
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.admin-overview-grid,
+.admin-analytics-grid {
+  gap: 12px;
+  margin-top: 0;
+}
+
+.admin-overview-card {
+  min-height: 132px;
+  gap: 8px;
+}
+
+.admin-overview-card::before {
+  width: 34px;
+  height: 3px;
+}
+
+.admin-overview-card h2 {
+  font-size: clamp(22px, 1.8vw, 28px);
+}
+
+.admin-overview-card p {
+  line-height: 1.35;
+}
+
+.admin-overview-card button {
+  min-height: 34px;
+  padding: 0 12px;
+  border-radius: 10px;
+}
+
+.admin-overview-ops {
+  grid-template-columns: 170px 1fr;
+  gap: 14px;
+  margin-top: 0;
+  align-items: stretch;
+}
+
+.admin-overview-ops > div:first-child {
+  align-self: center;
+}
+
+.admin-overview-ops h2 {
+  font-size: 18px;
+  line-height: 1.2;
+}
+
+.admin-overview-chip-grid {
+  grid-template-columns: repeat(5, minmax(120px, 1fr));
+  gap: 8px;
+}
+
+.admin-overview-chip-grid span {
+  min-height: 54px;
+  padding: 9px 12px 9px 14px;
+  border-radius: 12px;
+  gap: 3px;
+}
+
+.admin-overview-chip-grid strong {
+  font-size: 19px !important;
+  line-height: 1;
+}
+
+.admin-workspace {
+  gap: 12px;
+}
+
+.admin-toolbar {
+  gap: 8px;
+  margin-bottom: 10px;
+}
+
+.admin-toolbar button,
+.admin-pagination button,
+.admin-form button {
+  min-height: 38px;
+}
+
+.admin-table-wrap {
+  border-radius: 14px !important;
+  box-shadow: 0 8px 18px rgba(49, 38, 21, 0.05) !important;
+}
+
+.admin-table {
+  border-spacing: 0 5px;
+}
+
+.admin-table th {
+  padding: 8px 12px;
+  font-size: 10px;
+}
+
+.admin-table td {
+  padding: 10px 12px !important;
+}
+
+.admin-table tbody tr:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.admin-status {
+  min-height: 24px;
+  min-width: 62px;
+  padding: 4px 9px;
+  font-size: 10px;
+}
+
+.admin-chart-head {
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.admin-chart-head h2 {
+  margin-top: 2px;
+  font-size: 18px;
+}
+
+.admin-chart-head small {
+  max-width: 280px;
+  line-height: 1.35;
+}
+
+.admin-analytics-bars {
+  gap: 10px;
+}
+
+.admin-analytics-bar {
+  gap: 5px;
+}
+
+.admin-analytics-bar i {
+  height: 10px;
+}
+
+.admin-column-chart {
+  height: 220px;
+  padding: 12px 10px 8px;
+  border-radius: 12px;
+}
+
+.admin-single-metric {
+  min-height: 116px;
+  display: grid;
+  align-content: center;
+  justify-items: start;
+  gap: 6px;
+  padding: 18px;
+  border-radius: 12px;
+  background: #ffffff !important;
+  border: 1px solid rgba(225, 211, 184, 0.74);
+}
+
+.admin-single-metric span {
+  color: rgba(35, 38, 50, 0.62);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.admin-single-metric strong {
+  color: #151821;
+  font-size: clamp(26px, 3vw, 36px);
+  line-height: 1;
+}
+
+.admin-single-metric small {
+  color: rgba(35, 38, 50, 0.62);
+  font-size: 13px;
+}
+
+.admin-line-chart {
+  height: 190px;
+  padding: 12px;
+  border-radius: 12px;
+}
+
+.admin-analytics-donut-wrap {
+  grid-template-columns: minmax(160px, 210px) minmax(220px, 360px);
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 760px;
+  margin: 0 auto;
+}
+
+.admin-analytics-donut {
+  max-width: 210px;
+  justify-self: center;
+}
+
+.admin-analytics-legend {
+  gap: 6px;
+  align-self: center;
+  justify-self: stretch;
+}
+
+.admin-analytics-legend span {
+  min-height: 30px;
+  padding: 4px 0;
+}
+
+.admin-panel:has(.admin-analytics-donut-wrap) {
+  display: grid;
+  align-content: start;
+}
+
+.admin-movie-analytics-row {
+  min-height: 48px;
+  padding: 8px 10px !important;
+  border-radius: 12px;
+}
+
+.admin-form {
+  padding: 18px !important;
+  border-radius: 16px !important;
+}
+
+.admin-form-grid {
+  gap: 10px;
+}
+
+.admin-form textarea {
+  min-height: 76px;
+}
+
+.admin-detail {
+  gap: 10px;
+}
+
+@media (min-width: 1500px) {
+  .admin-overview-chip-grid {
+    grid-template-columns: repeat(6, minmax(110px, 1fr));
+  }
+}
+
+@media (max-width: 1180px) {
+  .admin-overview-chip-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .admin-stat-card,
+  .admin-panel {
+    border-radius: 12px !important;
+  }
+
+  .admin-overview-ops {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-overview-chip-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-analytics-donut-wrap {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    max-width: 360px;
+  }
+
+  .admin-analytics-legend {
+    width: 100%;
+  }
+}
+
+

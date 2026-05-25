@@ -1,4 +1,4 @@
-import crypto from "crypto";
+﻿import crypto from "crypto";
 import fs from "fs/promises";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -29,12 +29,12 @@ const normalizeGender = (gender = "") => {
     return "Nam";
   }
 
-  if (["female", "nu", "nữ"].includes(normalizedValue)) {
-    return "Nữ";
+  if (["female", "nu", "ná»¯"].includes(normalizedValue)) {
+    return "Ná»¯";
   }
 
-  if (["other", "khac", "khác"].includes(normalizedValue)) {
-    return "Khác";
+  if (["other", "khac", "khĂ¡c"].includes(normalizedValue)) {
+    return "KhĂ¡c";
   }
 
   return "";
@@ -48,8 +48,8 @@ const normalizeGenderSafe = (gender = "") => {
     .replace(/[\u0300-\u036f]/g, "");
 
   if (["male", "nam"].includes(normalizedValue)) return "Nam";
-  if (["female", "nu"].includes(normalizedValue)) return "Nữ";
-  if (["other", "khac"].includes(normalizedValue)) return "Khác";
+  if (["female", "nu"].includes(normalizedValue)) return "Ná»¯";
+  if (["other", "khac"].includes(normalizedValue)) return "KhĂ¡c";
   return "";
 };
 
@@ -75,7 +75,7 @@ const slugify = (value = "") =>
   String(value)
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/đ/gi, "d")
+    .replace(/Ä‘/gi, "d")
     .toLowerCase()
     .trim()
     .replace(/[^a-z0-9]+/g, "-")
@@ -183,8 +183,8 @@ const getOrCreateSocialUser = async ({ email, fullName, avatar }) => {
     throw new Error("Social account does not provide an email address");
   }
 
-  // Login mạng xã hội được nối theo email: email đã có thì dùng lại tài khoản cũ,
-  // email mới thì tạo user mới với mật khẩu random đã hash và cấp JWT như bình thường.
+  // Login máº¡ng xĂ£ há»™i Ä‘Æ°á»£c ná»‘i theo email: email Ä‘Ă£ cĂ³ thĂ¬ dĂ¹ng láº¡i tĂ i khoáº£n cÅ©,
+  // email má»›i thĂ¬ táº¡o user má»›i vá»›i máº­t kháº©u random Ä‘Ă£ hash vĂ  cáº¥p JWT nhÆ° bĂ¬nh thÆ°á»ng.
   let user = await UserModel.findOne({ email: normalizedEmail }).select("+refreshToken");
 
   if (!user) {
@@ -332,7 +332,7 @@ const authController = {
       if (!normalizedEmail) {
         return res.status(400).send({
           success: false,
-          message: "Email là bắt buộc",
+          message: "Email lĂ  báº¯t buá»™c",
           data: null,
         });
       }
@@ -351,23 +351,23 @@ const authController = {
           normalizedEmail
         )}`;
 
-        // Demo project chưa cấu hình SMTP, nên backend tạo token thật trong DB và log link để test luồng reset.
-        console.log(`Password reset link for ${normalizedEmail}: ${resetUrl}`);
+        // Demo: chÆ°a cĂ³ SMTP â†’ chá»‰ log link trĂªn server Ä‘á»ƒ dev test, KHĂ”NG tráº£ vá» trong response
+        console.log(`[DEV] Password reset link for ${normalizedEmail}: ${resetUrl}`);
 
         return res.status(200).send({
           success: true,
-          message: "Nếu email tồn tại, hệ thống đã tạo liên kết đặt lại mật khẩu.",
+          message: "Náº¿u email tá»“n táº¡i, há»‡ thá»‘ng Ä‘Ă£ táº¡o liĂªn káº¿t Ä‘áº·t láº¡i máº­t kháº©u vĂ  gá»­i qua email.",
           data: {
             email: normalizedEmail,
             expiresInMinutes: 15,
-            resetUrl,
+            // resetUrl khĂ´ng Ä‘Æ°á»£c tráº£ vá» client vĂ¬ lĂ½ do báº£o máº­t
           },
         });
       }
 
       return res.status(200).send({
         success: true,
-        message: "Nếu email tồn tại, hệ thống đã tạo liên kết đặt lại mật khẩu.",
+        message: "Náº¿u email tá»“n táº¡i, há»‡ thá»‘ng Ä‘Ă£ táº¡o liĂªn káº¿t Ä‘áº·t láº¡i máº­t kháº©u.",
         data: {
           email: normalizedEmail,
           expiresInMinutes: 15,
@@ -390,7 +390,7 @@ const authController = {
       if (!normalizedEmail || !token || !password) {
         return res.status(400).send({
           success: false,
-          message: "Email, token và mật khẩu mới là bắt buộc",
+          message: "Email, token vĂ  máº­t kháº©u má»›i lĂ  báº¯t buá»™c",
           data: null,
         });
       }
@@ -398,7 +398,7 @@ const authController = {
       if (String(password).length < 6) {
         return res.status(400).send({
           success: false,
-          message: "Mật khẩu mới phải có ít nhất 6 ký tự",
+          message: "Máº­t kháº©u má»›i pháº£i cĂ³ Ă­t nháº¥t 6 kĂ½ tá»±",
           data: null,
         });
       }
@@ -416,7 +416,7 @@ const authController = {
       ) {
         return res.status(400).send({
           success: false,
-          message: "Liên kết đặt lại mật khẩu không hợp lệ hoặc đã hết hạn",
+          message: "LiĂªn káº¿t Ä‘áº·t láº¡i máº­t kháº©u khĂ´ng há»£p lá»‡ hoáº·c Ä‘Ă£ háº¿t háº¡n",
           data: null,
         });
       }
@@ -429,7 +429,7 @@ const authController = {
 
       return res.status(200).send({
         success: true,
-        message: "Đặt lại mật khẩu thành công",
+        message: "Äáº·t láº¡i máº­t kháº©u thĂ nh cĂ´ng",
         data: null,
       });
     } catch (error) {
@@ -467,7 +467,7 @@ const authController = {
         return redirectWithOAuthError(res, "Google login was cancelled");
       }
 
-      // Đổi code một lần của Google lấy access token, rồi dùng token đó lấy profile.
+      // Äá»•i code má»™t láº§n cá»§a Google láº¥y access token, rá»“i dĂ¹ng token Ä‘Ă³ láº¥y profile.
       const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
         method: "POST",
         headers: {
@@ -498,7 +498,7 @@ const authController = {
         throw new Error(profile.error?.message || "Google profile request failed");
       }
 
-      // Đổi profile Google thành session đăng nhập chuẩn của app.
+      // Äá»•i profile Google thĂ nh session Ä‘Äƒng nháº­p chuáº©n cá»§a app.
       const session = await getOrCreateSocialUser({
         email: profile.email,
         fullName: profile.name,
@@ -521,7 +521,7 @@ const authController = {
     const params = new URLSearchParams({
       client_id: clientId,
       redirect_uri: getOAuthRedirectUri("facebook"),
-      // App demo chưa được Meta duyệt quyền email, nên chỉ xin public_profile để tránh lỗi Invalid Scopes.
+      // App demo chÆ°a Ä‘Æ°á»£c Meta duyá»‡t quyá»n email, nĂªn chá»‰ xin public_profile Ä‘á»ƒ trĂ¡nh lá»—i Invalid Scopes.
       scope: "public_profile",
     });
 
@@ -536,7 +536,7 @@ const authController = {
         return redirectWithOAuthError(res, "Facebook login was cancelled");
       }
 
-      // Đổi code một lần của Facebook lấy access token, rồi dùng token đó lấy profile.
+      // Äá»•i code má»™t láº§n cá»§a Facebook láº¥y access token, rá»“i dĂ¹ng token Ä‘Ă³ láº¥y profile.
       const tokenParams = new URLSearchParams({
         client_id: getFacebookClientId(),
         client_secret: getFacebookClientSecret(),
@@ -553,7 +553,7 @@ const authController = {
       }
 
       const profileParams = new URLSearchParams({
-        // Không lấy email vì quyền email cần Meta xét duyệt; app vẫn lưu user bằng email nội bộ bên dưới.
+        // KhĂ´ng láº¥y email vĂ¬ quyá»n email cáº§n Meta xĂ©t duyá»‡t; app váº«n lÆ°u user báº±ng email ná»™i bá»™ bĂªn dÆ°á»›i.
         fields: "id,name,picture.type(large)",
         access_token: tokenPayload.access_token,
       });
@@ -566,9 +566,9 @@ const authController = {
         throw new Error(profile.error?.message || "Facebook profile request failed");
       }
 
-      // Đổi profile Facebook thành session đăng nhập chuẩn của app.
+      // Äá»•i profile Facebook thĂ nh session Ä‘Äƒng nháº­p chuáº©n cá»§a app.
       const session = await getOrCreateSocialUser({
-        // Nếu Facebook không trả email, tạo email nội bộ ổn định theo Facebook ID để lưu vào collection users.
+        // Náº¿u Facebook khĂ´ng tráº£ email, táº¡o email ná»™i bá»™ á»•n Ä‘á»‹nh theo Facebook ID Ä‘á»ƒ lÆ°u vĂ o collection users.
         email: profile.email || `facebook-${profile.id}@cinesky.local`,
         fullName: profile.name,
         avatar: profile.picture?.data?.url,
@@ -665,6 +665,22 @@ const authController = {
       }
 
       if (password) {
+        if (String(password).length < 6) {
+          return res.status(400).send({
+            success: false,
+            message: 'M\u1eadt kh\u1ea9u m\u1edbi ph\u1ea3i c\u00f3 \u00edt nh\u1ea5t 6 k\u00fd t\u1ef1',
+            data: null,
+          });
+        }
+
+        if (String(password).length > 128) {
+          return res.status(400).send({
+            success: false,
+            message: 'M\u1eadt kh\u1ea9u kh\u00f4ng \u0111\u01b0\u1ee3c qu\u00e1 128 k\u00fd t\u1ef1',
+            data: null,
+          });
+        }
+
         user.password = await hashPassword(password);
       }
 
@@ -688,7 +704,7 @@ const authController = {
     try {
       const { fileName = "", fileData = "" } = req.body || {};
 
-      // Frontend gửi ảnh dưới dạng data URL, backend tách mime type và phần base64 để lưu file.
+      // Frontend gá»­i áº£nh dÆ°á»›i dáº¡ng data URL, backend tĂ¡ch mime type vĂ  pháº§n base64 Ä‘á»ƒ lÆ°u file.
       const matchedDataUrl = String(fileData).match(/^data:(image\/(?:jpeg|png|webp|gif));base64,(.+)$/);
 
       if (!matchedDataUrl) {
@@ -712,13 +728,13 @@ const authController = {
 
       await fs.mkdir(avatarUploadDir, { recursive: true });
 
-      // File được lưu trong Backend/public/uploads/avatars để express.static có thể public ra URL.
+      // File Ä‘Æ°á»£c lÆ°u trong Backend/public/uploads/avatars Ä‘á»ƒ express.static cĂ³ thá»ƒ public ra URL.
       const storedFileName = buildAvatarFileName(req.authUser, fileName, mimeType);
       const targetPath = path.join(avatarUploadDir, storedFileName);
 
       await fs.writeFile(targetPath, imageBuffer);
 
-      // Database chỉ lưu URL ảnh, không lưu base64/file binary.
+      // Database chá»‰ lÆ°u URL áº£nh, khĂ´ng lÆ°u base64/file binary.
       const avatarUrl = `${getBackendPublicUrl()}/uploads/avatars/${storedFileName}`;
       req.authUser.avatar = avatarUrl;
       await req.authUser.save();

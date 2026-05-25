@@ -8,6 +8,7 @@ import {
   updateStoredUser,
   uploadMyAvatar,
 } from "../../services/authService";
+import MembershipCard3D from "../../components/MembershipCard3D/MembershipCard3D";
 import "./Profile.css";
 
 const getSessionUser = () => {
@@ -272,13 +273,8 @@ export default function Profile() {
           </div>
         </div>
 
-        <div className="profile-stats">
-          {profileStats.map((item) => (
-            <article key={item.label} className="profile-stat">
-              <span>{item.label}</span>
-              <strong>{item.value}</strong>
-            </article>
-          ))}
+        <div className="profile-membership-container">
+          <MembershipCard3D user={user} recentBookings={recentBookings} />
         </div>
       </section>
 

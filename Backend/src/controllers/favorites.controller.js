@@ -10,12 +10,8 @@ const serializeFavorite = (favorite, movie) => ({
   createdAt: favorite.createdAt,
   movie: movie
     ? {
+        ...movie.toObject(),
         id: formatMovieId(movie.legacyId),
-        title: movie.title,
-        slug: movie.slug,
-        poster: movie.poster,
-        rating: movie.rating,
-        status: movie.status,
       }
     : null,
 });

@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+﻿import mongoose from "mongoose";
 import crypto from "crypto";
 import BookingModel from "../models/booking.model.js";
 import MovieModel from "../models/movie.model.js";
@@ -173,10 +173,12 @@ const serializeBooking = (booking, showtime, movie) => ({
 const bookingsController = {
   getBookingHistory: async (req, res) => {
     try {
-      const { limit = "6" } = req.query || {};
+      const { limit = "10", page = "1" } = req.query || {};
       const authUserId = String(req.authUser?._id || "").trim();
       const authUserEmail = String(req.authUser?.email || "").trim().toLowerCase();
-      const safeLimit = Math.min(Math.max(Number(limit) || 6, 1), 20);
+      const safeLimit = Math.min(Math.max(Number(limit) || 10, 1), 50);
+      const safePage = Math.max(Number(page) || 1, 1);
+      const skip = (safePage - 1) * safeLimit;
 
       if (!authUserId && !authUserEmail) {
         return res.status(200).send({
@@ -198,9 +200,11 @@ const bookingsController = {
 
       const bookingFilter = filters.length === 1 ? filters[0] : { $or: filters };
 
-      const bookings = await BookingModel.find(bookingFilter)
-        .sort({ createdAt: -1 })
-        .limit(safeLimit);
+      const [totalItems, bookings] = await Promise.all([
+        BookingModel.countDocuments(bookingFilter),
+        BookingModel.find(bookingFilter).sort({ createdAt: -1 }).skip(skip).limit(safeLimit),
+      ]);
+      const totalPages = Math.max(Math.ceil(totalItems / safeLimit), 1);
 
       const movieLegacyIds = [...new Set(bookings.map((booking) => booking.movieLegacyId))];
       const showtimeIds = [...new Set(bookings.map((booking) => String(booking.showtimeId)))];
@@ -238,6 +242,12 @@ const bookingsController = {
             )
           ),
           membership: serializeMembership(req.authUser?.membership),
+          pagination: {
+            page: safePage,
+            limit: safeLimit,
+            totalItems,
+            totalPages,
+          },
         },
       });
     } catch (error) {
@@ -506,6 +516,12 @@ const bookingsController = {
         data: {
           ...serializeBooking(booking, updatedShowtime, movie),
           membership: serializeMembership(req.authUser?.membership),
+          pagination: {
+            page: safePage,
+            limit: safeLimit,
+            totalItems,
+            totalPages,
+          },
         },
       });
     } catch (error) {
