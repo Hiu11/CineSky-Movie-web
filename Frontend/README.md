@@ -41,4 +41,4 @@ Ung dung chay tai `http://localhost:3000`.
 - Can dung Node `^20.19.0` hoac `>=22.12.0` de chay Vite 7.
 - Backend can chay truoc o `http://localhost:5000` neu dung cau hinh mac dinh.
 - Sau khi doi `VITE_API_BASE_URL`, can tat va chay lai frontend.
-- OAuth, JWT, database va seed data duoc cau hinh o thu muc `Backend`.
+- OAuth, JWT, database va seed data duoc cau hinh o thu muc  `Backend`.
