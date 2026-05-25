@@ -42,3 +42,5 @@ Ung dung chay tai `http://localhost:3000`.
 - Backend can chay truoc o `http://localhost:5000` neu dung cau hinh mac dinh.
 - Sau khi doi `VITE_API_BASE_URL`, can tat va chay lai frontend.
 - OAuth, JWT, database va seed data duoc cau hinh o thu muc  `Backend`.
+
+
