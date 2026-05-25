@@ -11,6 +11,8 @@ import {
   getFrontendUrl,
   getGoogleClientId,
   getGoogleClientSecret,
+  getGoogleRedirectUri,
+  getFacebookRedirectUri,
   getJwtExpiresIn,
   getJwtRefreshExpiresIn,
   getJwtRefreshSecret,
@@ -158,8 +160,17 @@ const encodeRedirectPayload = (payload) =>
     .replace(/\//g, "_")
     .replace(/=+$/, "");
 
-const getOAuthRedirectUri = (provider) =>
-  `${getBackendPublicUrl()}/api/v1/auth/${provider}/callback`;
+const getOAuthRedirectUri = (provider) => {
+  if (provider === "google" && getGoogleRedirectUri()) {
+    return getGoogleRedirectUri();
+  }
+
+  if (provider === "facebook" && getFacebookRedirectUri()) {
+    return getFacebookRedirectUri();
+  }
+
+  return `${getBackendPublicUrl().replace(/\/+$/, "")}/api/v1/auth/${provider}/callback`;
+};
 
 const redirectWithAuthSession = (res, session) =>
   res.redirect(`${getFrontendUrl()}/login?authSession=${encodeRedirectPayload(session)}`);

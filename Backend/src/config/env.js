@@ -26,13 +26,17 @@ export const getFrontendUrl = () =>
 export const getBackendPublicUrl = () =>
   getEnvValue("BACKEND_PUBLIC_URL") ||
   `http://localhost:${getEnvValue("PORT") || "5000"}`;
-      
+
 export const getTmdbApiKey = () => getEnvValue("TMDB_API_KEY");
 
 export const getGoogleClientId = () => getEnvValue("GOOGLE_CLIENT_ID");
 
 export const getGoogleClientSecret = () => getEnvValue("GOOGLE_CLIENT_SECRET");
 
+export const getGoogleRedirectUri = () => getEnvValue("GOOGLE_REDIRECT_URI");
+
 export const getFacebookClientId = () => getEnvValue("FACEBOOK_CLIENT_ID");
 
 export const getFacebookClientSecret = () => getEnvValue("FACEBOOK_CLIENT_SECRET");
+
+export const getFacebookRedirectUri = () => getEnvValue("FACEBOOK_REDIRECT_URI");
