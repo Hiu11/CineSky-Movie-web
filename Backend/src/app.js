@@ -9,17 +9,46 @@ import rootRouter from "./routes/index.js";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
 
-// Chỉ cho phép frontend domain đã cấu hình – không mở wildcard "*"
+const configuredFrontendOrigins = String(
+  process.env.FRONTEND_URLS || process.env.FRONTEND_URL || ""
+)
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const isAllowedOrigin = (origin = "") => {
+  if (!origin) {
+    return true;
+  }
+
+  if (configuredFrontendOrigins.includes(origin)) {
+    return true;
+  }
+
+  return (
+    origin === "http://localhost:3000" ||
+    origin === "http://localhost:5173" ||
+    /^https:\/\/cine-sky-fe(?:-[a-z0-9-]+)?-[a-z0-9-]+\.vercel\.app$/i.test(origin) ||
+    /^https:\/\/cine-sky-[a-z0-9-]+-cine-sky-s-projects\.vercel\.app$/i.test(origin)
+  );
+};
+
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin(origin, callback) {
+      if (isAllowedOrigin(origin)) {
+        callback(null, true);
+        return;
+      }
+
+      callback(new Error("Not allowed by CORS"));
+    },
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 app.use(express.json({ limit: "10mb" }));
 
-// Cho phép frontend mở ảnh đã upload bằng URL dạng http://localhost:5000/uploads/...
 app.use("/uploads", express.static(path.resolve(__dirname, "../public/uploads")));
 
 app.get("/api/v1/health", (req, res) => {
