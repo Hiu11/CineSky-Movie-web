@@ -4,9 +4,12 @@
   "private": true,
   "type": "module",
   "main": "src/server.js",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
-    "dev": "title Backend && nodemon src/server.js",
-    "start": "title Backend && node src/server.js",
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
     "seed": "node src/scripts/seed.js"
   },
   "dependencies": {
