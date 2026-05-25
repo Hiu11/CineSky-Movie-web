@@ -17,9 +17,9 @@ export default function Booking({ showToast }) {
     return (
       <div className="booking-page booking-page--empty">
         <div className="booking-page__empty-card">
-          <span className="booking-page__eyebrow">Äang táº£i</span>
-          <h2>Äang táº£i thĂ´ng tin Ä‘áº·t vĂ©...</h2>
-          <p>Há»‡ thá»‘ng Ä‘ang chuáº©n bá»‹ dá»¯ liá»‡u phim, ráº¡p vĂ  suáº¥t chiáº¿u cho báº¡n.</p>
+          <span className="booking-page__eyebrow">Đang tải</span>
+          <h2>Đang tải thông tin đặt vé...</h2>
+          <p>Hệ thống đang chuẩn bị dữ liệu phim, rạp và suất chiếu cho bạn.</p>
         </div>
       </div>
     );
@@ -29,10 +29,10 @@ export default function Booking({ showToast }) {
     return (
       <div className="booking-page booking-page--empty">
         <div className="booking-page__empty-card">
-          <span className="booking-page__eyebrow">KhĂ´ng kháº£ dá»¥ng</span>
-          <h2>{flow.errorMessage || "KhĂ´ng tĂ¬m tháº¥y phim"}</h2>
-          <p>Vui lĂ²ng quay láº¡i danh sĂ¡ch phim Ä‘á»ƒ chá»n má»™t phim khĂ¡c hoáº·c thá»­ láº¡i sau.</p>
-          <Link to="/?tab=now" className="booking-page__back-link">Quay láº¡i danh sĂ¡ch phim</Link>
+          <span className="booking-page__eyebrow">Không khả dụng</span>
+          <h2>{flow.errorMessage || "Không tìm thấy phim"}</h2>
+          <p>Vui lòng quay lại danh sách phim để chọn một phim khác hoặc thử lại sau.</p>
+          <Link to="/?tab=now" className="booking-page__back-link">Quay lại danh sách phim</Link>
         </div>
       </div>
     );

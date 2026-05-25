@@ -3,13 +3,12 @@ import QRCode from "qrcode";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   createBooking,
-  getBookingHistory,
   getBookingFees,
+  getBookingHistory,
   getMovieShowtimes,
 } from "../../../services/movieService";
 import { updateStoredUser } from "../../../services/authService";
 
-// --------------- Constants ---------------
 const DATE_OPTIONS_DAYS = 7;
 const PAYMENT_WINDOW_SECONDS = 15 * 60;
 const DEFAULT_SERVICE_FEE_PER_TICKET = 3000;
@@ -71,7 +70,6 @@ export const PAYMENT_PROVIDER_LOGOS = {
   ShopeePay: { domain: "shopeepay.vn", color: "#ee4d2d" },
 };
 
-// --------------- Pure utilities ---------------
 export const formatCurrency = (value) => Number(value || 0).toLocaleString("vi-VN");
 export const formatCountdown = (totalSeconds = 0) => {
   const safe = Math.max(Number(totalSeconds) || 0, 0);
@@ -107,7 +105,6 @@ const buildRollingDateOptions = (days = DATE_OPTIONS_DAYS) => {
   });
 };
 
-// --------------- Main hook ---------------
 export function useBookingFlow({ showToast } = {}) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -119,11 +116,12 @@ export function useBookingFlow({ showToast } = {}) {
     try {
       const raw = sessionStorage.getItem("user");
       return raw ? JSON.parse(raw) : null;
-    } catch { return null; }
+    } catch {
+      return null;
+    }
   });
   const isAuthenticated = Boolean(sessionUser?.id || sessionUser?.email);
 
-  // Booking selections
   const [selectedScreeningDate, setSelectedScreeningDate] = useState(availableDateOptions[0]?.iso || "");
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [selectedCinemaName, setSelectedCinemaName] = useState("");
@@ -132,21 +130,17 @@ export function useBookingFlow({ showToast } = {}) {
   const [selectedProvider, setSelectedProvider] = useState(PAYMENT_PROVIDERS.bank[0]);
   const [providerSearch, setProviderSearch] = useState("");
 
-  // QR Payment
   const [useQrPayment, setUseQrPayment] = useState(false);
   const [isQrPaymentConfirmed, setIsQrPaymentConfirmed] = useState(false);
   const [paymentQrDataUrl, setPaymentQrDataUrl] = useState("");
 
-  // Payment form
   const [paymentForm, setPaymentForm] = useState({ ownerName: "", reference: "", expiry: "", secureCode: "", promoCode: "" });
 
-  // Data
   const [movie, setMovie] = useState(null);
   const [showtimes, setShowtimes] = useState([]);
   const [bookingHistory, setBookingHistory] = useState([]);
   const [serviceFeePerTicket, setServiceFeePerTicket] = useState(DEFAULT_SERVICE_FEE_PER_TICKET);
 
-  // UI state
   const [isLoading, setIsLoading] = useState(true);
   const [isHistoryLoading, setIsHistoryLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -160,11 +154,12 @@ export function useBookingFlow({ showToast } = {}) {
   const [seatScale, setSeatScale] = useState(1);
   const [currentTime, setCurrentTime] = useState(() => new Date());
 
-  // Fetch service fee from API (no hardcode)
   useEffect(() => {
     getBookingFees()
-      .then((data) => { if (data?.serviceFeePerTicket) setServiceFeePerTicket(data.serviceFeePerTicket); })
-      .catch(() => {}); // fallback to default 3000
+      .then((data) => {
+        if (data?.serviceFeePerTicket) setServiceFeePerTicket(data.serviceFeePerTicket);
+      })
+      .catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -207,32 +202,49 @@ export function useBookingFlow({ showToast } = {}) {
         setSelectedShowtimeId("");
         setSelectedSeats([]);
       } catch (err) {
-        if (mounted) { setMovie(null); setShowtimes([]); setErrorMessage(err.message || "Không thể tải thông tin đặt vé."); }
+        if (mounted) {
+          setMovie(null);
+          setShowtimes([]);
+          setErrorMessage(err.message || "Không thể tải thông tin đặt vé.");
+        }
       } finally {
         if (mounted) setIsLoading(false);
       }
     };
     if (movieId) fetch();
-    else { setMovie(null); setShowtimes([]); setIsLoading(false); }
-    return () => { mounted = false; };
+    else {
+      setMovie(null);
+      setShowtimes([]);
+      setIsLoading(false);
+    }
+    return () => {
+      mounted = false;
+    };
   }, [movieId]);
 
   useEffect(() => {
     let mounted = true;
     const load = async () => {
-      if (!sessionUser?.id && !sessionUser?.email) { setBookingHistory([]); return; }
+      if (!sessionUser?.id && !sessionUser?.email) {
+        setBookingHistory([]);
+        return;
+      }
       try {
         setIsHistoryLoading(true);
         const payload = await getBookingHistory({ limit: 6 });
         if (mounted) setBookingHistory(Array.isArray(payload?.bookings) ? payload.bookings : []);
-      } catch { if (mounted) setBookingHistory([]); }
-      finally { if (mounted) setIsHistoryLoading(false); }
+      } catch {
+        if (mounted) setBookingHistory([]);
+      } finally {
+        if (mounted) setIsHistoryLoading(false);
+      }
     };
     load();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [sessionUser]);
 
-  // Derived values
   const cinemaOptions = useMemo(() => {
     const map = new Map();
     showtimes.forEach((st) => {
@@ -258,7 +270,6 @@ export function useBookingFlow({ showToast } = {}) {
     [showtimes, selectedShowtimeId]
   );
 
-  // Auto-expire stale showtime
   useEffect(() => {
     if (!selectedShowtime || !isShowtimeInPast(selectedScreeningDate, selectedShowtime.displayTime, currentTime)) return;
     setSelectedShowtimeId("");
@@ -266,18 +277,25 @@ export function useBookingFlow({ showToast } = {}) {
     setSubmitMessage({ type: "error", message: "Suất chiếu này đã qua giờ. Vui lòng chọn suất chiếu khác." });
   }, [currentTime, selectedScreeningDate, selectedShowtime]);
 
-  useEffect(() => { setPaymentSecondsLeft(PAYMENT_WINDOW_SECONDS); setIsQrPaymentConfirmed(false); }, [selectedShowtimeId]);
+  useEffect(() => {
+    setPaymentSecondsLeft(PAYMENT_WINDOW_SECONDS);
+    setIsQrPaymentConfirmed(false);
+  }, [selectedShowtimeId]);
 
-  // Payment countdown
   useEffect(() => {
     if (!selectedShowtime || paymentSecondsLeft <= 0) return undefined;
     const id = window.setInterval(() => {
-      setPaymentSecondsLeft((s) => { if (s <= 1) { window.clearInterval(id); return 0; } return s - 1; });
+      setPaymentSecondsLeft((s) => {
+        if (s <= 1) {
+          window.clearInterval(id);
+          return 0;
+        }
+        return s - 1;
+      });
     }, 1000);
     return () => window.clearInterval(id);
   }, [selectedShowtime, paymentSecondsLeft]);
 
-  // QR generation
   const qrPaymentPayload = useMemo(() => JSON.stringify({
     type: "CINESKY_QR_PAYMENT",
     provider: selectedProvider,
@@ -290,17 +308,28 @@ export function useBookingFlow({ showToast } = {}) {
   }), [movie, selectedProvider, selectedSeats, selectedShowtime, serviceFeePerTicket]);
 
   useEffect(() => {
-    if (!useQrPayment) { setPaymentQrDataUrl(""); setIsQrPaymentConfirmed(false); return; }
+    if (!useQrPayment) {
+      setPaymentQrDataUrl("");
+      setIsQrPaymentConfirmed(false);
+      return;
+    }
     let mounted = true;
     QRCode.toDataURL(qrPaymentPayload, { errorCorrectionLevel: "M", margin: 1, width: 220, color: { dark: "#111827", light: "#ffffff" } })
-      .then((url) => { if (mounted) setPaymentQrDataUrl(url); })
-      .catch(() => { if (mounted) setPaymentQrDataUrl(""); });
-    return () => { mounted = false; };
+      .then((url) => {
+        if (mounted) setPaymentQrDataUrl(url);
+      })
+      .catch(() => {
+        if (mounted) setPaymentQrDataUrl("");
+      });
+    return () => {
+      mounted = false;
+    };
   }, [qrPaymentPayload, useQrPayment]);
 
-  useEffect(() => { setIsQrPaymentConfirmed(false); }, [selectedShowtimeId, selectedProvider, selectedSeats.length]);
+  useEffect(() => {
+    setIsQrPaymentConfirmed(false);
+  }, [selectedShowtimeId, selectedProvider, selectedSeats.length]);
 
-  // Auto-open summary when QR payment is confirmed
   useEffect(() => {
     if (useQrPayment && isQrPaymentConfirmed && selectedCinemaName && selectedShowtimeId && selectedSeats.length > 0) {
       setIsSummaryCollapsed(false);
@@ -354,7 +383,6 @@ export function useBookingFlow({ showToast } = {}) {
     }));
   }, [isPaymentFormReady, selectedCinemaName, selectedScreeningDateLabel, selectedSeats.length, selectedShowtime, selectedShowtimeId]);
 
-  // Handlers
   const toggleSeat = useCallback((seat) => {
     if (bookedSeats.includes(seat)) return;
     setSelectedSeats((prev) => prev.includes(seat) ? prev.filter((s) => s !== seat) : [...prev, seat]);
@@ -462,24 +490,18 @@ export function useBookingFlow({ showToast } = {}) {
   ]);
 
   return {
-    // Data
     movieId, movie, showtimes, bookingHistory, availableDateOptions, cinemaOptions, filteredShowtimes,
     selectedShowtime, selectedScreeningDateOption, selectedScreeningDateLabel,
-    // Selections
     selectedCinemaName, selectedShowtimeId, selectedScreeningDate,
     selectedSeats, selectedPaymentMethod, selectedProvider, providerSearch,
-    // Payment state
     paymentForm, useQrPayment, setUseQrPayment, isQrPaymentConfirmed, setIsQrPaymentConfirmed,
     paymentQrDataUrl, visibleProviders,
-    // UI state
     isLoading, isHistoryLoading, errorMessage, submitMessage,
     isSubmitting, isDesktopViewport, isSummaryCollapsed, setIsSummaryCollapsed,
     isDesktopSummaryCollapsed, seatScale, setSeatScale, currentTime,
-    // Computed
     bookedSeats, ticketSubtotal, serviceFee, finalTotal, seatBaseSize,
     isPaymentExpired, paymentCountdownLabel, isComingSoon, isPaymentFormReady,
     movieMetaItems, bookingStepStates,
-    // Handlers
     toggleSeat, handleCinemaChange, handleScreeningDateChange, handleShowtimeChange,
     handlePaymentFieldChange, handleConfirmBooking, setSelectedPaymentMethod, setSelectedProvider,
     setProviderSearch, setShowtimes, setSelectedSeats, isAuthenticated, sessionUser,

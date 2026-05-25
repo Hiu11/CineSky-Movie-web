@@ -3,10 +3,10 @@ export default function CinemaSelector({ cinemaOptions, selectedCinemaName, onCi
     <section className="booking-page__panel">
       <div className="booking-page__panel-header">
         <div>
-          <span className="booking-page__eyebrow">BÆ°á»›c 1</span>
-          <h2>Chá»n ráº¡p</h2>
+          <span className="booking-page__eyebrow">Bước 1</span>
+          <h2>Chọn rạp</h2>
         </div>
-        <p>Æ¯u tiĂªn cá»¥m ráº¡p thuáº­n tiá»‡n Ä‘á»ƒ tiáº¿p tá»¥c chá»n suáº¥t chiáº¿u nhanh hÆ¡n.</p>
+        <p>Ưu tiên cụm rạp thuận tiện để tiếp tục chọn suất chiếu nhanh hơn.</p>
       </div>
       <div className="booking-page__row">
         {cinemaOptions.length > 0 ? (
@@ -21,7 +21,7 @@ export default function CinemaSelector({ cinemaOptions, selectedCinemaName, onCi
             </button>
           ))
         ) : (
-          <p className="booking-page__hint">Phim nĂ y hiá»‡n chÆ°a cĂ³ ráº¡p vĂ  lá»‹ch chiáº¿u.</p>
+          <p className="booking-page__hint">Phim này hiện chưa có rạp và lịch chiếu.</p>
         )}
       </div>
     </section>

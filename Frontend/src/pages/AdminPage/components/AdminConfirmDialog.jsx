@@ -9,7 +9,7 @@ export default function AdminConfirmDialog({ dialog, onClose }) {
         <h2 id="admin-confirm-title">{dialog.title}</h2>
         <p>{dialog.message}</p>
         <div className="admin-confirm-actions">
-          <button type="button" onClick={() => onClose(false)}>Há»§y</button>
+          <button type="button" onClick={() => onClose(false)}>Hủy</button>
           <button type="button" onClick={() => onClose(true)}>{dialog.confirmText}</button>
         </div>
       </section>

@@ -1,8 +1,7 @@
 import {
   LOCALIZED_PAYMENT_METHODS,
-  PAYMENT_PROVIDERS,
-  PAYMENT_SEARCH_PLACEHOLDERS,
   PAYMENT_PROVIDER_LOGOS,
+  PAYMENT_SEARCH_PLACEHOLDERS,
 } from "../hooks/useBookingFlow";
 
 const getProviderLogo = (provider = "") => {
@@ -46,7 +45,6 @@ export default function PaymentPanel({
       </div>
 
       <div className="booking-page__payment-layout">
-        {/* Provider selector */}
         <div className="booking-page__payment-bank-card">
           <div className="booking-page__payment-card-header">
             <div>
@@ -85,7 +83,6 @@ export default function PaymentPanel({
           </div>
         </div>
 
-        {/* Payment form / QR */}
         <div className="booking-page__payment-form-card">
           <div className="booking-page__payment-card-header">
             <div>

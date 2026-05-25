@@ -11,12 +11,12 @@ export default function ShowtimeSelector({
     <section className="booking-page__panel">
       <div className="booking-page__panel-header">
         <div>
-          <span className="booking-page__eyebrow">BÆ°á»›c 2</span>
-          <h2>Chá»n suáº¥t chiáº¿u</h2>
+          <span className="booking-page__eyebrow">Bước 2</span>
+          <h2>Chọn suất chiếu</h2>
         </div>
-        <p>Chá»n ngĂ y xem vĂ  khung giá» phĂ¹ há»£p vá»›i lá»‹ch trĂ¬nh cá»§a báº¡n trong ráº¡p Ä‘Ă£ chá»n.</p>
+        <p>Chọn ngày xem và khung giờ phù hợp với lịch trình của bạn trong rạp đã chọn.</p>
       </div>
-      <div className="booking-page__date-strip" aria-label="Chá»n ngĂ y chiáº¿u">
+      <div className="booking-page__date-strip" aria-label="Chọn ngày chiếu">
         {availableDateOptions.map((d) => (
           <button
             key={d.iso}
@@ -38,11 +38,11 @@ export default function ShowtimeSelector({
               className={"booking-page__option booking-page__option--showtime" + (selectedShowtimeId === String(st.id) ? " is-active" : "")}
             >
               <span>{st.displayTime}</span>
-              <small>{selectedScreeningDateLabel + " â€¢ " + st.roomName}</small>
+              <small>{selectedScreeningDateLabel + " • " + st.roomName}</small>
             </button>
           ))
         ) : (
-          <p className="booking-page__hint">Phim nĂ y hiá»‡n chÆ°a cĂ³ suáº¥t chiáº¿u kháº£ dá»¥ng.</p>
+          <p className="booking-page__hint">Phim này hiện chưa có suất chiếu khả dụng.</p>
         )}
       </div>
     </section>

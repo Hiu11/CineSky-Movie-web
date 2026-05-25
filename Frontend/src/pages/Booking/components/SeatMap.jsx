@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 
-// ============ Pure utilities ============
 const createSeatPatternRows = (rowBlocks = []) =>
   rowBlocks.map((blocks, i) => ({
     rowKey: String.fromCharCode(65 + i),
@@ -67,7 +66,6 @@ const getSeatToneForRow = (rowKey = "", totalRows = 0) => {
   return "standard";
 };
 
-// ============ Seat button ============
 function SeatBtn({ seat, seatTone, isBooked, isSelected, onToggle }) {
   return (
     <button
@@ -80,7 +78,6 @@ function SeatBtn({ seat, seatTone, isBooked, isSelected, onToggle }) {
   );
 }
 
-// ============ SeatMap Component ============
 export default function SeatMap({ selectedShowtime, selectedSeats, bookedSeats, seatScale, setSeatScale, seatBaseSize, selectedScreeningDateLabel, onToggleSeat }) {
   const groupedSeats = useMemo(() => groupSeatsByRow(selectedShowtime?.seats || []), [selectedShowtime]);
 
