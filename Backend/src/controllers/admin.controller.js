@@ -272,9 +272,39 @@ const buildTicketCode = (bookingId) =>
     .toUpperCase()
     .padStart(10, "0")}`;
 
+const buildScreeningDateTime = (screeningDate = "", displayTime = "") => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(screeningDate)) || !/^\d{2}:\d{2}$/.test(String(displayTime))) {
+    return null;
+  }
+
+  const date = new Date(`${screeningDate}T${displayTime}:00+07:00`);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
 const getBookingEffectiveStatus = (booking, movie, showtime) => {
+  const durationMinutes = Number(movie?.duration || 0) || 120;
+  const screeningStartFromBooking = booking.screeningDate
+    ? buildScreeningDateTime(booking.screeningDate, showtime?.displayTime)
+    : null;
+  const screeningEndFromBooking =
+    screeningStartFromBooking && !Number.isNaN(screeningStartFromBooking.getTime())
+      ? new Date(screeningStartFromBooking.getTime() + durationMinutes * 60000)
+      : null;
+
+  if (
+    booking.status === "expired" &&
+    screeningEndFromBooking &&
+    screeningEndFromBooking.getTime() >= Date.now()
+  ) {
+    return "booked";
+  }
+
   if (booking.status !== "booked") {
     return booking.status;
+  }
+
+  if (screeningEndFromBooking) {
+    return screeningEndFromBooking.getTime() < Date.now() ? "expired" : booking.status;
   }
 
   const screeningEndFromShowtime = showtime?.endTime ? new Date(showtime.endTime) : null;
@@ -283,24 +313,33 @@ const getBookingEffectiveStatus = (booking, movie, showtime) => {
     return screeningEndFromShowtime.getTime() < Date.now() ? "expired" : booking.status;
   }
 
-  const screeningStart = showtime?.startTime ? new Date(showtime.startTime) : null;
+  const screeningStart =
+    buildScreeningDateTime(booking.screeningDate || showtime?.displayDate, showtime?.displayTime) ||
+    (showtime?.startTime ? new Date(showtime.startTime) : null);
 
   if (!screeningStart || Number.isNaN(screeningStart.getTime())) {
     return booking.status;
   }
 
-  const durationMinutes = Number(movie?.duration || 0) || 120;
   const screeningEnd = new Date(screeningStart.getTime() + durationMinutes * 60000);
 
   return screeningEnd.getTime() < Date.now() ? "expired" : booking.status;
 };
 
 const expireBookingIfNeeded = async (booking, movie, showtime) => {
-  if (!booking || booking.status !== "booked") {
+  if (!booking) {
     return booking;
   }
 
-  if (getBookingEffectiveStatus(booking, movie, showtime) !== "expired") {
+  const effectiveStatus = getBookingEffectiveStatus(booking, movie, showtime);
+
+  if (booking.status === "expired" && effectiveStatus === "booked") {
+    booking.status = "booked";
+    await booking.save();
+    return booking;
+  }
+
+  if (booking.status !== "booked" || effectiveStatus !== "expired") {
     return booking;
   }
 
