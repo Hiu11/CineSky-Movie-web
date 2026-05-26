@@ -1,6 +1,6 @@
 .admin-workspace {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(300px, 340px);
+  grid-template-columns: minmax(0, 1fr);
   gap: 18px;
   min-width: 0;
 }
@@ -27,7 +27,7 @@
   width: 100%;
   border-collapse: separate;
   border-spacing: 0 8px;
-  min-width: 760px;
+  min-width: 900px;
 }
 
 .admin-table th {
@@ -46,6 +46,8 @@
   border-top: 1px solid rgba(255, 255, 255, 0.04);
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  vertical-align: middle;
+  overflow-wrap: anywhere;
 }
 
 .admin-table td:first-child {

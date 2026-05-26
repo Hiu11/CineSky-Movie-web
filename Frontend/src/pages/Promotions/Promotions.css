@@ -3,12 +3,9 @@
   min-height: 100vh;
   padding: 132px 5% 90px;
   color: #fff;
-  background:
-    radial-gradient(circle at 16% 8%, rgba(250, 204, 21, 0.28), transparent 24%),
-    radial-gradient(circle at 84% 12%, rgba(56, 189, 248, 0.18), transparent 26%),
-    radial-gradient(circle at 52% 100%, rgba(148, 163, 184, 0.16), transparent 32%),
-    linear-gradient(180deg, #1a2233 0%, #121827 48%, #0b1020 100%);
+  background: transparent;
   overflow: hidden;
+  isolation: isolate;
 }
 
 .promotions-page::before {

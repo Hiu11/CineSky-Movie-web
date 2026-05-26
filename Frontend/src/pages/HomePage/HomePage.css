@@ -845,6 +845,12 @@
 
 .home-preview-card__status,
 .home-preview-card__rating {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  width: max-content;
+  min-width: 42px;
   padding: 5px 8px;
   border-radius: 999px;
   font-size: 10px;
@@ -854,6 +860,50 @@
 
 .home-preview-card__status {
   background: rgba(8, 10, 20, 0.72);
+}
+
+.home-preview-card__rating.p,
+.home-preview-card__rating.p-rating,
+.home-soon-card__rating.p,
+.home-soon-card__rating.p-rating {
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  color: #ecfdf5;
+}
+
+.home-preview-card__rating.k,
+.home-preview-card__rating.k-rating,
+.home-soon-card__rating.k,
+.home-soon-card__rating.k-rating {
+  background: linear-gradient(135deg, #38bdf8, #2563eb);
+  color: #eff6ff;
+}
+
+.home-preview-card__rating.t13,
+.home-preview-card__rating.t13-rating,
+.home-soon-card__rating.t13,
+.home-soon-card__rating.t13-rating {
+  background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+  color: #f5f3ff;
+}
+
+.home-preview-card__rating.t16,
+.home-preview-card__rating.t16-rating,
+.home-soon-card__rating.t16,
+.home-soon-card__rating.t16-rating {
+  background: linear-gradient(135deg, #f97316, #ea580c);
+  color: #fff7ed;
+}
+
+.home-preview-card__rating.t18,
+.home-preview-card__rating.t18-rating,
+.home-soon-card__rating.t18,
+.home-soon-card__rating.t18-rating,
+.home-preview-card__rating.c18,
+.home-preview-card__rating.c18-rating,
+.home-soon-card__rating.c18,
+.home-soon-card__rating.c18-rating {
+  background: linear-gradient(135deg, #ef4444, #be123c);
+  color: #fff1f2;
 }
 
 .home-preview-card__body {
@@ -1588,7 +1638,7 @@
 
   .home-preview-grid,
   .home-insight-grid,
-  .home-partner-grid {
+  .home-deals-brief__rail {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -1677,7 +1727,8 @@
   .home-overview-grid,
   .home-preview-grid,
   .home-insight-grid,
-  .home-partner-grid,
+  .home-editorial-news-grid,
+  .home-deals-brief__rail,
   .home-membership-promo {
     grid-template-columns: 1fr;
   }
@@ -1693,6 +1744,20 @@
     line-clamp: 4;
     -webkit-box-orient: vertical;
     overflow: hidden;
+  }
+
+  .home-news-brief-card:nth-child(2) {
+    margin-top: 0;
+  }
+
+  .home-deal-ticket {
+    padding-left: 170px;
+    background-size: 220px 100%;
+  }
+
+  .home-deal-ticket::before,
+  .home-deal-ticket::after {
+    left: 136px;
   }
 
   .home-hero__meta {
@@ -1817,53 +1882,238 @@
   box-shadow: 0 26px 50px rgba(0, 0, 0, 0.28);
 }
 
-.home-partner-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.home-partner-card,
-.home-tech-panel {
-  border-radius: 24px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  background: linear-gradient(160deg, rgba(16, 20, 36, 0.95), rgba(8, 10, 20, 0.95));
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.22);
-}
-
-.home-partner-card {
-  padding: 20px;
-  display: grid;
-  gap: 8px;
-}
-
-.home-partner-card strong {
-  color: #fff;
-  font-size: 20px;
-}
-
-.home-partner-card span {
-  color: rgba(255, 255, 255, 0.68);
-}
-
-.home-tech-panel {
-  margin-top: 4px;
-  padding: 20px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.home-tech-badge {
+.home-editorial-more {
+  min-height: 42px;
   display: inline-flex;
   align-items: center;
-  min-height: 40px;
-  padding: 0 14px;
+  padding: 0 16px;
   border-radius: 999px;
-  background: rgba(247, 180, 0, 0.12);
+  border: 1px solid rgba(247, 180, 0, 0.28);
+  background: rgba(247, 180, 0, 0.1);
   color: var(--primary-gold);
+  font-size: 14px;
+  font-weight: 900;
+  text-decoration: none;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+}
+
+.home-editorial-more:hover {
+  transform: translateY(-2px);
+  background: rgba(247, 180, 0, 0.18);
+  border-color: rgba(247, 180, 0, 0.48);
+}
+
+.home-editorial-news-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.home-news-brief-card {
+  position: relative;
+  min-height: 230px;
+  display: grid;
+  align-content: end;
+  gap: 10px;
+  overflow: hidden;
+  padding: 28px 32px 28px clamp(300px, 36vw, 440px);
+  border-radius: 8px;
+  border: 1px solid rgba(140, 190, 255, 0.16);
+  background:
+    linear-gradient(135deg, rgba(15, 23, 42, 0.78), rgba(5, 8, 18, 0.96)),
+    radial-gradient(circle at 78% 18%, rgba(96, 165, 250, 0.16), transparent 34%);
+  color: #fff;
+  text-decoration: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 24px 58px rgba(0, 0, 0, 0.28);
+  isolation: isolate;
+  transition: transform 0.28s ease, border-color 0.28s ease, box-shadow 0.28s ease;
+}
+
+.home-news-brief-card:nth-child(2) {
+  padding: 28px clamp(300px, 36vw, 440px) 28px 32px;
+}
+
+.home-news-brief-card::before {
+  content: "";
+  position: absolute;
+  inset: 14px auto 14px 14px;
+  width: min(38%, 380px);
+  border-radius: 6px;
+  z-index: -1;
+  background: var(--editorial-image) center / cover;
+  filter: saturate(0.9) brightness(0.82);
+  transition: transform 0.45s ease, filter 0.45s ease;
+}
+
+.home-news-brief-card:nth-child(2)::before {
+  inset: 14px 14px 14px auto;
+}
+
+.home-news-brief-card::after {
+  content: "";
+  position: absolute;
+  inset: 14px auto 14px calc(min(38%, 380px) + 26px);
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(147, 197, 253, 0.72), transparent);
+}
+
+.home-news-brief-card:nth-child(2)::after {
+  inset: 14px calc(min(38%, 380px) + 26px) 14px auto;
+}
+
+.home-news-brief-card:hover {
+  transform: translateX(8px);
+  border-color: rgba(147, 197, 253, 0.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 28px 68px rgba(0, 0, 0, 0.34),
+    0 0 34px rgba(96, 165, 250, 0.12);
+}
+
+.home-news-brief-card:nth-child(2):hover {
+  transform: translateX(-8px);
+}
+
+.home-news-brief-card:hover::before {
+  transform: scale(1.04);
+  filter: saturate(1.1) brightness(0.9);
+}
+
+.home-news-brief-card span,
+.home-deal-ticket span {
+  width: fit-content;
+  color: var(--primary-gold);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.home-news-brief-card h3 {
+  max-width: 520px;
+  margin: 0;
+  font-size: clamp(24px, 2.7vw, 38px);
+  line-height: 1.08;
+}
+
+.home-news-brief-card p {
+  max-width: 460px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.78);
+  line-height: 1.58;
+}
+
+.home-news-brief-card strong {
+  color: var(--primary-gold);
+  font-weight: 900;
+}
+
+.home-section--deals-brief {
+  position: relative;
+}
+
+.home-deals-brief__panel {
+  padding: 34px;
+  border-radius: 8px;
+  border: 1px solid rgba(247, 180, 0, 0.2);
+  background:
+    radial-gradient(circle at 10% 15%, rgba(247, 180, 0, 0.22), transparent 28%),
+    radial-gradient(circle at 92% 0%, rgba(255, 255, 255, 0.1), transparent 26%),
+    linear-gradient(135deg, rgba(36, 27, 11, 0.78), rgba(8, 10, 20, 0.96));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 26px 70px rgba(0, 0, 0, 0.3);
+}
+
+.home-deals-brief__head {
+  display: block;
+  margin-bottom: 20px;
+}
+
+.home-deals-brief__head span {
+  color: var(--primary-gold);
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.home-deals-brief__rail {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.home-deal-ticket {
+  position: relative;
+  min-height: 230px;
+  display: grid;
+  align-content: center;
+  gap: 10px;
+  overflow: hidden;
+  padding: 26px 30px 26px 190px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background:
+    linear-gradient(90deg, rgba(7, 9, 18, 0.18), rgba(7, 9, 18, 0.88) 36%, rgba(7, 9, 18, 0.98)),
+    var(--editorial-image) left center / 240px 100%;
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.28);
+  transition: transform 0.24s ease, border-color 0.24s ease, box-shadow 0.24s ease;
+}
+
+.home-deal-ticket::before,
+.home-deal-ticket::after {
+  content: "";
+  position: absolute;
+  left: 154px;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: #090b16;
+  box-shadow: inset 0 0 0 1px rgba(247, 180, 0, 0.2);
+}
+
+.home-deal-ticket::before {
+  top: -14px;
+}
+
+.home-deal-ticket::after {
+  bottom: -14px;
+}
+
+.home-deal-ticket:hover {
+  transform: translateY(-6px) scale(1.01);
+  border-color: rgba(247, 180, 0, 0.42);
+  box-shadow:
+    0 26px 62px rgba(0, 0, 0, 0.34),
+    0 0 30px rgba(247, 180, 0, 0.12);
+}
+
+.home-deal-ticket h3 {
+  margin: 0;
+  font-size: clamp(24px, 2.5vw, 38px);
+  line-height: 1.04;
+}
+
+.home-deal-ticket p {
+  max-width: 420px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  line-height: 1.55;
+}
+
+.home-deal-ticket strong {
+  width: fit-content;
+  margin-top: 4px;
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: var(--primary-gold);
+  color: #10131f;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: 900;
 }
 
 .home-membership-promo {
@@ -2300,6 +2550,88 @@
   }
 }
 
+@keyframes homeNewsSectionUnveil {
+  from {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+    filter: blur(8px);
+  }
+
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+    filter: blur(0);
+  }
+}
+
+@keyframes homeNewsCardSweepLeft {
+  from {
+    opacity: 0;
+    transform: translate3d(-76px, 0, 0);
+  }
+
+  62% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes homeNewsCardSweepRight {
+  from {
+    opacity: 0;
+    transform: translate3d(76px, 0, 0);
+  }
+
+  62% {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes homeDealPanelIgnite {
+  from {
+    opacity: 0;
+    transform: perspective(900px) rotateX(8deg) translateY(44px);
+    filter: brightness(0.72) saturate(0.85);
+  }
+
+  58% {
+    opacity: 1;
+    transform: perspective(900px) rotateX(-1.5deg) translateY(-4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: perspective(900px) rotateX(0) translateY(0);
+    filter: brightness(1) saturate(1);
+  }
+}
+
+@keyframes homeDealTicketPunch {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 34px, 0) rotateZ(-2deg) scale(0.92);
+  }
+
+  66% {
+    opacity: 1;
+    transform: translate3d(0, -5px, 0) rotateZ(0.7deg) scale(1.025);
+  }
+
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) rotateZ(0) scale(1);
+  }
+}
+
 @media (max-width: 960px) {
   .home-faq-mascot {
     position: relative;
@@ -2317,8 +2649,8 @@
 
 .home-section[data-reveal] .home-overview-card,
 .home-insight-grid[data-reveal] .home-insight-card,
-.home-section[data-reveal] .home-partner-card,
-.home-section[data-reveal] .home-tech-panel,
+.home-section[data-reveal] .home-news-brief-card,
+.home-section[data-reveal] .home-deal-ticket,
 .home-section[data-reveal] .home-soon-card,
 .home-section[data-reveal] .home-faq-card,
 .home-section[data-reveal] .home-faq-card__button span:first-child {
@@ -2391,31 +2723,85 @@
   animation: none;
 }
 
-.home-section[data-reveal] .home-partner-card,
-.home-section[data-reveal] .home-tech-panel {
+.home-section--news-brief[data-reveal],
+.home-section--deals-brief[data-reveal] {
+  opacity: 1;
+  transform: none;
+  transition: none;
+}
+
+.home-section--news-brief[data-reveal] .home-section__header,
+.home-section--news-brief[data-reveal] .home-editorial-news-grid {
+  opacity: 0;
+  clip-path: inset(0 100% 0 0);
+  filter: blur(8px);
+}
+
+.home-section--news-brief[data-reveal].is-visible .home-section__header {
+  animation: homeNewsSectionUnveil 0.68s cubic-bezier(0.18, 0.78, 0.22, 1) forwards;
+}
+
+.home-section--news-brief[data-reveal].is-visible .home-editorial-news-grid {
+  animation: homeNewsSectionUnveil 0.82s cubic-bezier(0.18, 0.78, 0.22, 1) 0.08s forwards;
+}
+
+.home-section--news-brief[data-reveal] .home-news-brief-card {
+  opacity: 0;
+}
+
+.home-section--news-brief[data-reveal].is-visible .home-news-brief-card:first-child {
+  animation: homeNewsCardSweepLeft 0.82s cubic-bezier(0.18, 0.78, 0.22, 1) 0.18s forwards;
+}
+
+.home-section--news-brief[data-reveal].is-visible .home-news-brief-card:nth-child(2) {
+  animation: homeNewsCardSweepRight 0.82s cubic-bezier(0.18, 0.78, 0.22, 1) 0.28s forwards;
+}
+
+.home-section--deals-brief[data-reveal] .home-section__header {
+  opacity: 0;
+  transform: translateY(18px) scale(0.98);
+}
+
+.home-section--deals-brief[data-reveal] .home-deals-brief__panel {
+  opacity: 0;
+  transform: perspective(900px) rotateX(8deg) translateY(44px);
+  transform-origin: top center;
+}
+
+.home-section--deals-brief[data-reveal] .home-deal-ticket {
+  opacity: 0;
+}
+
+.home-section--deals-brief[data-reveal].is-visible .home-section__header {
+  animation: homeDealTicketPunch 0.62s cubic-bezier(0.18, 0.78, 0.22, 1) forwards;
+}
+
+.home-section--deals-brief[data-reveal].is-visible .home-deals-brief__panel {
+  animation: homeDealPanelIgnite 0.82s cubic-bezier(0.18, 0.78, 0.22, 1) 0.08s forwards;
+}
+
+.home-section--deals-brief[data-reveal].is-visible .home-deal-ticket {
+  animation: homeDealTicketPunch 0.68s cubic-bezier(0.18, 0.78, 0.22, 1) 0.28s forwards;
+}
+
+.home-section--deals-brief[data-reveal].is-visible .home-deal-ticket:nth-child(2) {
+  animation-delay: 0.4s;
+}
+
+.home-section[data-reveal]:not(.home-section--news-brief):not(.home-section--deals-brief) .home-news-brief-card,
+.home-section[data-reveal]:not(.home-section--news-brief):not(.home-section--deals-brief) .home-deal-ticket {
   opacity: 0;
   transform: translateY(28px);
 }
 
-.home-section[data-reveal].is-visible .home-partner-card,
-.home-section[data-reveal].is-visible .home-tech-panel {
+.home-section[data-reveal].is-visible:not(.home-section--news-brief):not(.home-section--deals-brief) .home-news-brief-card,
+.home-section[data-reveal].is-visible:not(.home-section--news-brief):not(.home-section--deals-brief) .home-deal-ticket {
   animation: homeOverviewDrop 0.62s cubic-bezier(0.18, 0.78, 0.22, 1) forwards;
 }
 
-.home-section[data-reveal].is-visible .home-partner-card:nth-child(2) {
+.home-section[data-reveal].is-visible:not(.home-section--news-brief):not(.home-section--deals-brief) .home-news-brief-card:nth-child(2),
+.home-section[data-reveal].is-visible:not(.home-section--news-brief):not(.home-section--deals-brief) .home-deal-ticket:nth-child(2) {
   animation-delay: 60ms;
-}
-
-.home-section[data-reveal].is-visible .home-partner-card:nth-child(3) {
-  animation-delay: 120ms;
-}
-
-.home-section[data-reveal].is-visible .home-partner-card:nth-child(4) {
-  animation-delay: 180ms;
-}
-
-.home-section[data-reveal].is-visible .home-tech-panel {
-  animation-delay: 240ms;
 }
 
 .home-section[data-reveal] .home-faq-card {
@@ -2590,6 +2976,63 @@
 
   .home-soon-card__poster {
     height: 260px;
+  }
+
+  .home-news-brief-card,
+  .home-news-brief-card:nth-child(2) {
+    min-height: 300px;
+    padding: 214px 20px 22px;
+  }
+
+  .home-news-brief-card::before,
+  .home-news-brief-card:nth-child(2)::before {
+    inset: 10px 10px auto;
+    width: auto;
+    height: 184px;
+  }
+
+  .home-news-brief-card::after,
+  .home-news-brief-card:nth-child(2)::after {
+    inset: 204px 20px auto;
+    width: auto;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(147, 197, 253, 0.72), transparent);
+  }
+
+  .home-news-brief-card:hover,
+  .home-news-brief-card:nth-child(2):hover {
+    transform: translateY(-5px);
+  }
+
+  .home-deals-brief__panel {
+    padding: 22px;
+  }
+
+  .home-deals-brief__head {
+    margin-bottom: 16px;
+  }
+
+  .home-deal-ticket {
+    min-height: 300px;
+    padding: 180px 20px 22px;
+    background:
+      linear-gradient(180deg, rgba(7, 9, 18, 0.04), rgba(7, 9, 18, 0.78) 48%, rgba(7, 9, 18, 0.98)),
+      var(--editorial-image) top center / 100% 190px;
+  }
+
+  .home-deal-ticket::before,
+  .home-deal-ticket::after {
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .home-deal-ticket::before {
+    top: 150px;
+  }
+
+  .home-deal-ticket::after {
+    bottom: auto;
+    top: 178px;
   }
 }
 

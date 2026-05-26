@@ -1,11 +1,12 @@
 import { Link } from "react-router-dom";
+import "../HomePage/HomePage.css";
 import "./CinemaNews.css";
 
 const featuredNews = [
   {
     category: "Sắp ra mắt",
     title: "Loạt phim hè 2026 bắt đầu nóng lên với nhiều suất chiếu sớm.",
-    image: "/assets/images/supergirl-2026.jpg",
+    image: "/assets/images/dai-tiec-trang-mau.jpg",
     summary: "CineSky gợi ý những tựa phim đáng chú ý cho nhóm bạn, gia đình và fan siêu anh hùng.",
   },
   {
@@ -47,9 +48,44 @@ const editorPicks = [
   },
 ];
 
+const cinematicParticles = Array.from({ length: 42 }, (_, index) => ({
+  id: index,
+  left: `${(index * 37) % 100}%`,
+  top: `${(index * 53) % 100}%`,
+  size: `${1 + (index % 3)}px`,
+  delay: `${(index % 9) * -0.7}s`,
+  duration: `${8 + (index % 6)}s`,
+}));
+
 export default function CinemaNews() {
   return (
     <main className="cinema-news-page">
+      <div className="home-cinematic-backdrop" aria-hidden="true">
+        <div className="home-cinematic-backdrop__grain"></div>
+        <div className="home-cinematic-backdrop__light home-cinematic-backdrop__light--gold"></div>
+        <div className="home-cinematic-backdrop__light home-cinematic-backdrop__light--blue"></div>
+        <div className="home-cinematic-backdrop__beam home-cinematic-backdrop__beam--left"></div>
+        <div className="home-cinematic-backdrop__beam home-cinematic-backdrop__beam--right"></div>
+        <div className="home-cinematic-backdrop__orb home-cinematic-backdrop__orb--one"></div>
+        <div className="home-cinematic-backdrop__orb home-cinematic-backdrop__orb--two"></div>
+        <div className="home-cinematic-backdrop__film home-cinematic-backdrop__film--left"></div>
+        <div className="home-cinematic-backdrop__film home-cinematic-backdrop__film--right"></div>
+        <div className="home-cinematic-backdrop__particles">
+          {cinematicParticles.map((particle) => (
+            <span
+              key={particle.id}
+              style={{
+                "--particle-left": particle.left,
+                "--particle-top": particle.top,
+                "--particle-size": particle.size,
+                "--particle-delay": particle.delay,
+                "--particle-duration": particle.duration,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
       <section className="cinema-news-hero">
         <span>Tin tức điện ảnh</span>
         <h1>Bài viết phim sắp ra mắt, hậu trường, review nhanh và lịch chiếu nổi bật.</h1>

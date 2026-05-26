@@ -42,6 +42,12 @@ const shortenText = (value = "", maxLength = 220) => {
   return `${value.slice(0, maxLength).trim()}...`;
 };
 
+const getRatingClass = (movie = {}) => {
+  const rating = String(movie.rating || "").toLowerCase();
+
+  return movie.ratingClass || (rating === "p" ? "p-rating" : rating ? `${rating}-rating` : "");
+};
+
 const CountUpNumber = ({ value, duration = 3000 }) => {
   const [displayValue, setDisplayValue] = useState(0);
   const [hasStarted, setHasStarted] = useState(false);
@@ -152,22 +158,35 @@ const faqItems = [
   },
 ];
 
-const partnerItems = [
-  { name: "IMAX with Laser", type: "Dai canh do net cao - Canada" },
-  { name: "Dolby Atmos", type: "Am thanh vom vat the - USA" },
-  { name: "ScreenX 270", type: "Man hinh ba mat - South Korea" },
-  { name: "4DX Motion", type: "Ghe chuyen dong va hieu ung - South Korea" },
-];
-
-const techShowcase = [
-  "Laser projection HDR",
-  "Premium recliner seating",
-  "Online seat reservation",
-  "QR ticket check-in",
-  "Pre-order snack combo",
-  "Couple seat zone",
-  "Assistive listening support",
-  "Mobile booking reminders",
+const homeEditorialItems = [
+  {
+    type: "Tin tức",
+    title: "Phim mới đáng chú ý trong tuần",
+    text: "Cập nhật nhanh trailer, lịch mở bán và những tựa phim đang được quan tâm.",
+    image: "/assets/images/dai-tiec-trang-mau.jpg",
+    to: "/news",
+  },
+  {
+    type: "Review nhanh",
+    title: "Gợi ý chọn phim trước khi đặt vé",
+    text: "Xem thể loại, độ tuổi, thời lượng và không khí rạp phù hợp với buổi đi xem.",
+    image: "/assets/images/running-man.jpg",
+    to: "/news",
+  },
+  {
+    type: "Ưu đãi",
+    title: "Voucher đặt vé online",
+    text: "Săn ưu đãi theo hạng thành viên và giảm giá cho hóa đơn vé kèm combo.",
+    image: "/assets/images/song-hy-lam-nguy.jpg",
+    to: "/promotions",
+  },
+  {
+    type: "Combo",
+    title: "Bắp nước cho nhóm bạn",
+    text: "Các gói combo tiết kiệm cho cặp đôi, gia đình và suất chiếu cuối tuần.",
+    image: "/assets/images/mui-pho.webp",
+    to: "/promotions",
+  },
 ];
 
 const cinematicParticles = Array.from({ length: 42 }, (_, index) => ({
@@ -280,7 +299,7 @@ const HomeMoviePreviewCard = ({ movie, tab }) => (
       }}
     >
       <span className="home-preview-card__status">{tab === "soon" ? "Sắp chiếu" : "Đang chiếu"}</span>
-      <span className={`home-preview-card__rating ${movie.ratingClass}`}>{movie.rating}</span>
+      <span className={`home-preview-card__rating ${getRatingClass(movie)}`}>{movie.rating}</span>
     </div>
 
     <div className="home-preview-card__body">
@@ -298,7 +317,7 @@ const HomeNowShowcaseCard = ({ movie }) => (
   <article className="home-now-card">
     <img src={toBackgroundUrl(movie.poster)} alt={movie.title} className="home-now-card__poster" />
     <div className="home-now-card__overlay">
-      <span className={`home-preview-card__rating ${movie.ratingClass}`}>{movie.rating}</span>
+      <span className={`home-preview-card__rating ${getRatingClass(movie)}`}>{movie.rating}</span>
       <h3>{movie.title}</h3>
       <p>{shortenText(movie.description || movie.genre, 112)}</p>
       <div className="home-now-card__actions">
@@ -328,7 +347,7 @@ const HomeSoonShowcaseCard = ({ movie, index }) => (
       <h3>{movie.title}</h3>
       <p>{movie.genre}</p>
       <div className="home-soon-card__meta">
-        <span>{movie.rating}</span>
+        <span className={`home-soon-card__rating ${getRatingClass(movie)}`}>{movie.rating}</span>
         <span>{movie.duration} phút</span>
       </div>
     </div>
@@ -1067,6 +1086,62 @@ const HomePage = ({ searchQuery = "" }) => {
         </div>
       </section>
 
+      <section className="home-section home-section--news-brief" data-reveal>
+        <div className="home-section__header">
+          <div>
+            <h2>Tin tức mới</h2>
+          </div>
+          <Link to="/news" className="home-editorial-more">Xem tất cả</Link>
+        </div>
+
+        <div className="home-editorial-news-grid">
+          {homeEditorialItems.filter((item) => item.to === "/news").map((item) => (
+            <Link
+              key={item.title}
+              to={item.to}
+              className="home-news-brief-card"
+              style={{ "--editorial-image": `url("${toBackgroundUrl(item.image)}")` }}
+            >
+              <span>{item.type}</span>
+              <h3>{item.title}</h3>
+              <p>{item.text}</p>
+              <strong>Đọc tin</strong>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <section className="home-section home-section--deals-brief" data-reveal>
+        <div className="home-section__header">
+          <div>
+            <h2>Ưu đãi CineSky</h2>
+          </div>
+          <Link to="/promotions" className="home-editorial-more">Xem tất cả</Link>
+        </div>
+
+        <div className="home-deals-brief__panel">
+          <div className="home-deals-brief__head">
+            <span>Giữ ví nhẹ hơn trước khi vào rạp</span>
+          </div>
+
+          <div className="home-deals-brief__rail">
+            {homeEditorialItems.filter((item) => item.to === "/promotions").map((item) => (
+              <Link
+                key={item.title}
+                to={item.to}
+                className="home-deal-ticket"
+                style={{ "--editorial-image": `url("${toBackgroundUrl(item.image)}")` }}
+              >
+                <span>{item.type}</span>
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+                <strong>Xem ưu đãi</strong>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
       <section className="home-section home-section--insights">
         <div className="home-section__header">
           <div>
@@ -1120,31 +1195,6 @@ const HomePage = ({ searchQuery = "" }) => {
             Mở biểu mẫu góp ý
           </Link>
         </article>
-        </div>
-      </section>
-
-      <section className="home-section home-section--partners" data-reveal>
-        <div className="home-section__header">
-          <div>
-            <h2>Công nghệ & Đối tác</h2>
-          </div>
-        </div>
-
-        <div className="home-partner-grid">
-          {partnerItems.map((item) => (
-            <article key={item.name} className="home-partner-card">
-              <strong>{item.name}</strong>
-              <span>{item.type}</span>
-            </article>
-          ))}
-        </div>
-
-        <div className="home-tech-panel">
-          {techShowcase.map((item) => (
-            <span key={item} className="home-tech-badge">
-              {item}
-            </span>
-          ))}
         </div>
       </section>
 

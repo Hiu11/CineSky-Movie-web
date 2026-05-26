@@ -561,11 +561,25 @@ body:has(.admin-page) .nav-direct.active {
 
 .admin-workspace {
   gap: 12px;
+  grid-template-columns: minmax(0, 1fr);
 }
 
 .admin-toolbar {
+  display: flex;
+  flex-wrap: wrap;
   gap: 8px;
   margin-bottom: 10px;
+  align-items: center;
+}
+
+.admin-toolbar input {
+  flex: 1 1 360px;
+  min-width: 240px;
+}
+
+.admin-toolbar select,
+.admin-toolbar button {
+  flex: 0 0 auto;
 }
 
 .admin-toolbar button,
@@ -577,10 +591,13 @@ body:has(.admin-page) .nav-direct.active {
 .admin-table-wrap {
   border-radius: 14px !important;
   box-shadow: 0 8px 18px rgba(49, 38, 21, 0.05) !important;
+  overflow-x: auto;
 }
 
 .admin-table {
   border-spacing: 0 5px;
+  min-width: 1080px;
+  table-layout: fixed;
 }
 
 .admin-table th {
@@ -590,11 +607,48 @@ body:has(.admin-page) .nav-direct.active {
 
 .admin-table td {
   padding: 10px 12px !important;
+  line-height: 1.45;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+.admin-table th:nth-child(1),
+.admin-table td:nth-child(1) {
+  width: 17%;
+}
+
+.admin-table th:nth-child(2),
+.admin-table td:nth-child(2) {
+  width: 20%;
+}
+
+.admin-table th:nth-child(3),
+.admin-table td:nth-child(3) {
+  width: 11%;
+}
+
+.admin-table th:nth-child(4),
+.admin-table td:nth-child(4) {
+  width: 12%;
+}
+
+.admin-table th:nth-child(6),
+.admin-table td:nth-child(6) {
+  width: 11%;
 }
 
 .admin-table tbody tr:hover {
   transform: none;
   box-shadow: none;
+}
+
+.admin-table-panel {
+  width: 100%;
+  overflow: hidden;
+}
+
+.admin-row-actions {
+  justify-content: flex-start;
 }
 
 .admin-status {
@@ -759,6 +813,13 @@ body:has(.admin-page) .nav-direct.active {
 
   .admin-analytics-legend {
     width: 100%;
+  }
+
+  .admin-toolbar input,
+  .admin-toolbar select,
+  .admin-toolbar button {
+    width: 100%;
+    flex-basis: 100%;
   }
 }
 
