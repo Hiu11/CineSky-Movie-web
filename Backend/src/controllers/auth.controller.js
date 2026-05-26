@@ -1,7 +1,4 @@
 ﻿import crypto from "crypto";
-import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import {
@@ -20,8 +17,6 @@ import {
 } from "../config/env.js";
 import UserModel from "../models/user.model.js";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const avatarUploadDir = path.resolve(__dirname, "../../public/uploads/avatars");
 const normalizeEmail = (email = "") => email.trim().toLowerCase();
 
 const normalizeGender = (gender = "") => {
@@ -72,27 +67,6 @@ const hashResetToken = (token = "") =>
   crypto.createHash("sha256").update(token).digest("hex");
 
 const createResetPasswordToken = () => crypto.randomBytes(32).toString("hex");
-
-const slugify = (value = "") =>
-  String(value)
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/Ä‘/gi, "d")
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
-
-const getImageExtension = (mimeType = "") => {
-  const extensionMap = {
-    "image/jpeg": ".jpg",
-    "image/png": ".png",
-    "image/webp": ".webp",
-    "image/gif": ".gif",
-  };
-
-  return extensionMap[mimeType] || "";
-};
 
 const isPasswordMatch = async (storedPassword = "", plainPassword = "") => {
   if (!storedPassword || !plainPassword) {
@@ -177,15 +151,6 @@ const redirectWithAuthSession = (res, session) =>
 
 const redirectWithOAuthError = (res, message = "Social login failed") =>
   res.redirect(`${getFrontendUrl()}/login?authError=${encodeURIComponent(message)}`);
-
-const buildAvatarFileName = (user, rawName = "", mimeType = "") => {
-  const parsedName = path.parse(String(rawName || "avatar"));
-  const safeUserName = slugify(user.fullName || user.email || user._id.toString()) || "user";
-  const safeBaseName = slugify(parsedName.name || "avatar") || "avatar";
-  const safeExtension = getImageExtension(mimeType) || parsedName.ext.toLowerCase() || ".jpg";
-
-  return `${safeUserName}-${Date.now()}-${safeBaseName}${safeExtension}`;
-};
 
 const getOrCreateSocialUser = async ({ email, fullName, avatar }) => {
   const normalizedEmail = normalizeEmail(email);
@@ -713,9 +678,9 @@ const authController = {
 
   uploadAvatar: async (req, res) => {
     try {
-      const { fileName = "", fileData = "" } = req.body || {};
+      const { fileData = "" } = req.body || {};
 
-      // Frontend gá»­i áº£nh dÆ°á»›i dáº¡ng data URL, backend tĂ¡ch mime type vĂ  pháº§n base64 Ä‘á»ƒ lÆ°u file.
+      // Frontend sends a data URL; MongoDB stores the value so production does not write runtime files.
       const matchedDataUrl = String(fileData).match(/^data:(image\/(?:jpeg|png|webp|gif));base64,(.+)$/);
 
       if (!matchedDataUrl) {
@@ -737,17 +702,7 @@ const authController = {
         });
       }
 
-      await fs.mkdir(avatarUploadDir, { recursive: true });
-
-      // File Ä‘Æ°á»£c lÆ°u trong Backend/public/uploads/avatars Ä‘á»ƒ express.static cĂ³ thá»ƒ public ra URL.
-      const storedFileName = buildAvatarFileName(req.authUser, fileName, mimeType);
-      const targetPath = path.join(avatarUploadDir, storedFileName);
-
-      await fs.writeFile(targetPath, imageBuffer);
-
-      // Database chá»‰ lÆ°u URL áº£nh, khĂ´ng lÆ°u base64/file binary.
-      const avatarUrl = `${getBackendPublicUrl()}/uploads/avatars/${storedFileName}`;
-      req.authUser.avatar = avatarUrl;
+      req.authUser.avatar = `data:${mimeType};base64,${base64Data}`;
       await req.authUser.save();
 
       return res.status(201).send({

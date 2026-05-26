@@ -195,7 +195,7 @@ export const updateMyProfile = async (payload) =>
   });
 
 export const uploadMyAvatar = async (payload) =>
-  // Upload ảnh lên backend để nhận lại user có avatar là URL http.
+  // Upload ảnh lên backend để nhận lại user có avatar đã lưu trong database.
   requestPrivateAuth("profile/avatar", {
     method: "POST",
     body: JSON.stringify(payload),

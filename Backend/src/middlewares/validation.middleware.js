@@ -86,9 +86,18 @@ export const updateProfileSchema = Joi.object({
     .messages({
       "string.pattern.base": "Ngày sinh phải có định dạng YYYY-MM-DD (ví dụ: 1999-12-31)",
     }),
-  avatar: Joi.string().uri().max(2000).allow("").optional().messages({
-    "string.uri": "Avatar phải là URL hợp lệ",
-  }),
+  avatar: Joi.alternatives()
+    .try(
+      Joi.string().uri({ scheme: ["http", "https"] }).max(2000),
+      Joi.string()
+        .pattern(/^data:image\/(?:jpeg|png|webp|gif);base64,[A-Za-z0-9+/=]+$/)
+        .max(3 * 1024 * 1024),
+      Joi.valid("")
+    )
+    .optional()
+    .messages({
+      "alternatives.match": "Avatar phải là URL hợp lệ hoặc dữ liệu ảnh hợp lệ",
+    }),
   password: passwordField().optional(),
 });
 

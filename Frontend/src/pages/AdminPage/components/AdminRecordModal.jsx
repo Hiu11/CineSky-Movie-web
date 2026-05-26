@@ -162,7 +162,7 @@ export default function AdminRecordModal({
                           <small>{form.poster}</small>
                         </div>
                       ) : (
-                        <small>{isPosterUploading ? "Đang lưu ảnh vào assets/images..." : "Chưa chọn poster. Ảnh sẽ được lưu vào Frontend/public/assets/images."}</small>
+                        <small>{isPosterUploading ? "Đang lưu ảnh vào database..." : "Chưa chọn poster. Ảnh sẽ được lưu vào MongoDB."}</small>
                       )}
                     </div>
                     <input className="admin-field--medium" required value={form.trailer} onChange={(event) => setForm({ ...form, trailer: event.target.value })} placeholder="Link trailer YouTube" />

@@ -181,7 +181,7 @@ export default function Profile() {
       setSaveError("");
 
       try {
-        // Gửi file dạng data URL; backend sẽ lưu thành file thật và trả về avatar URL.
+        // Gửi file dạng data URL; backend lưu trực tiếp vào database.
         const updatedUser = await uploadMyAvatar({
           fileName: file.name,
           fileData: reader.result,

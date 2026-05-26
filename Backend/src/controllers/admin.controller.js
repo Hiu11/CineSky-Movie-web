@@ -1,7 +1,4 @@
 import mongoose from "mongoose";
-import fs from "fs/promises";
-import path from "path";
-import { fileURLToPath } from "url";
 import AdminActivityModel from "../models/adminActivity.model.js";
 import BookingModel from "../models/booking.model.js";
 import FavoriteModel from "../models/favorite.model.js";
@@ -19,11 +16,6 @@ import {
   buildNonAdminUserContentFilter,
   mergeMongoFilters,
 } from "../utils/adminFilters.js";
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-const posterUploadDir = path.resolve(__dirname, "../../../Frontend/public/assets/images");
-const adminSeedMoviesPath = path.resolve(__dirname, "../data/adminSeedMovies.js");
 
 const getMembershipTier = (points = 0) => {
   if (points >= 3000) return "Diamond";
@@ -413,48 +405,6 @@ const serializeAdminMovie = (movie) => ({
   deletedAt: movie.deletedAt || null,
 });
 
-const serializeMovieForSeed = (movie) => ({
-  legacyId: movie.legacyId,
-  slug: movie.slug,
-  title: movie.title,
-  poster: movie.poster,
-  genres: movie.genres || [],
-  country: movie.country || "",
-  director: movie.director || "",
-  duration: movie.duration || 0,
-  rating: movie.rating || "P",
-  status: movie.status,
-  showtimes: movie.showtimes || [],
-  releaseDate: movie.releaseDate || "",
-  trailer: movie.trailer || "",
-  description: movie.description || "",
-  cast: movie.cast || [],
-  gallery: movie.gallery || [],
-  trailerFacts: movie.trailerFacts || [],
-  trailerPanel: movie.trailerPanel || null,
-  catalogOrder: movie.catalogOrder ?? 999,
-  heroOrder: movie.heroOrder ?? null,
-});
-
-const writeAdminSeedMovies = async (movies = []) => {
-  const seedContent = `const adminSeedMovies = ${JSON.stringify(movies, null, 2)};\n\nexport default adminSeedMovies;\n`;
-  await fs.writeFile(adminSeedMoviesPath, seedContent, "utf8");
-};
-
-const syncAdminSeedMovie = async (movie) => {
-  const adminMovies = await MovieModel.find({
-    deletedAt: null,
-    legacyId: { $gte: 107 },
-  }).sort({ legacyId: 1 });
-  const seedMovies = adminMovies.map(serializeMovieForSeed);
-  const shouldIncludeMovie = movie && !movie.deletedAt && Number(movie.legacyId) >= 107;
-  const nextSeedMovies = !shouldIncludeMovie || seedMovies.some((item) => item.legacyId === movie.legacyId)
-    ? seedMovies
-    : [...seedMovies, serializeMovieForSeed(movie)];
-
-  await writeAdminSeedMovies(nextSeedMovies);
-};
-
 const buildMoviePayload = (body = {}) => {
   const title = String(body.title || body.name || "").trim();
   const slug = slugify(body.slug || title);
@@ -522,37 +472,6 @@ const validateMoviePayload = (payload) => {
   return "";
 };
 
-const getImageExtension = (mimeType = "") => {
-  const extensionMap = {
-    "image/jpeg": ".jpg",
-    "image/png": ".png",
-    "image/webp": ".webp",
-    "image/gif": ".gif",
-  };
-
-  return extensionMap[mimeType] || "";
-};
-
-const buildPosterFileName = async (rawName = "", mimeType = "") => {
-  const parsedName = path.parse(String(rawName || "poster"));
-  const safeBaseName = slugify(parsedName.name || "poster") || `poster-${Date.now()}`;
-  const safeExtension = getImageExtension(mimeType) || parsedName.ext.toLowerCase() || ".jpg";
-  let fileName = `${safeBaseName}${safeExtension}`;
-  let targetPath = path.join(posterUploadDir, fileName);
-  let suffix = 1;
-
-  while (true) {
-    try {
-      await fs.access(targetPath);
-      fileName = `${safeBaseName}-${suffix}${safeExtension}`;
-      targetPath = path.join(posterUploadDir, fileName);
-      suffix += 1;
-    } catch {
-      return { fileName, targetPath };
-    }
-  }
-};
-
 const findDuplicateMovie = async (payload, currentLegacyId = null) => {
   const duplicateMovie = await MovieModel.findOne({
     $or: [
@@ -606,7 +525,7 @@ const adminController = {
 
   uploadPoster: async (req, res) => {
     try {
-      const { fileName = "", fileData = "" } = req.body || {};
+      const { fileData = "" } = req.body || {};
       const matchedDataUrl = String(fileData).match(/^data:(image\/(?:jpeg|png|webp|gif));base64,(.+)$/);
 
       if (!matchedDataUrl) {
@@ -628,16 +547,11 @@ const adminController = {
         });
       }
 
-      await fs.mkdir(posterUploadDir, { recursive: true });
-      const posterFile = await buildPosterFileName(fileName, mimeType);
-      await fs.writeFile(posterFile.targetPath, imageBuffer);
-
       return res.status(201).send({
         success: true,
         message: "Upload poster successfully",
         data: {
-          poster: `/assets/images/${posterFile.fileName}`,
-          fileName: posterFile.fileName,
+          poster: `data:${mimeType};base64,${base64Data}`,
         },
       });
     } catch (error) {
@@ -957,7 +871,6 @@ const adminController = {
       }
 
       const movie = await MovieModel.create(payload);
-      await syncAdminSeedMovie(movie);
       await createAdminActivity(req, {
         action: "CREATE",
         name: movie.title,
@@ -1026,7 +939,6 @@ const adminController = {
         });
       }
 
-      await syncAdminSeedMovie(movie);
       await createAdminActivity(req, {
         action: "UPDATE",
         name: movie.title,
@@ -1075,7 +987,6 @@ const adminController = {
         });
       }
 
-      await syncAdminSeedMovie(movie);
       await createAdminActivity(req, {
         action: "DELETE",
         name: movie.title,
@@ -1124,7 +1035,6 @@ const adminController = {
         });
       }
 
-      await syncAdminSeedMovie(movie);
       await createAdminActivity(req, {
         action: "RESTORE",
         name: movie.title,

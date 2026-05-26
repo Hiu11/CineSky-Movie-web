@@ -524,7 +524,7 @@ export default function AdminPage() {
         }));
         setFormError("");
       } catch (error) {
-        setFormError(error.message || "Không thể lưu ảnh poster vào thư mục assets.");
+        setFormError(error.message || "Không thể lưu ảnh poster vào database.");
       } finally {
         setIsPosterUploading(false);
       }
