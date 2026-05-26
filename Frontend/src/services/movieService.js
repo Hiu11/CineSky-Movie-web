@@ -59,25 +59,31 @@ const normalizeMoviePayload = (payload) =>
 
 export const getMovies = async (params = {}) => {
   const response = await fetch(
-    `${API_BASE_URL}/api/v1/movies${buildQueryString(params)}`
+    `${API_BASE_URL}/api/v1/movies${buildQueryString(params)}`,
+    { cache: "no-store" }
   );
   return normalizeMoviePayload(await parseResponse(response));
 };
 
 export const getMovieById = async (movieId) => {
-  const response = await fetch(`${API_BASE_URL}/api/v1/movies/${movieId}`);
+  const response = await fetch(`${API_BASE_URL}/api/v1/movies/${movieId}`, {
+    cache: "no-store",
+  });
   return normalizeMoviePayload(await parseResponse(response));
 };
 
 export const getMovieShowtimes = async (movieId) => {
   const response = await fetch(
-    `${API_BASE_URL}/api/v1/movies/${movieId}/showtimes`
+    `${API_BASE_URL}/api/v1/movies/${movieId}/showtimes`,
+    { cache: "no-store" }
   );
   return parseResponse(response);
 };
 
 export const getGenres = async () => {
-  const response = await fetch(`${API_BASE_URL}/api/v1/genres`);
+  const response = await fetch(`${API_BASE_URL}/api/v1/genres`, {
+    cache: "no-store",
+  });
   return parseResponse(response);
 };
 
@@ -185,6 +191,7 @@ export const removeMyFavorite = async (movieId) => {
 const requestAdmin = async (path, params = {}) => {
   const response = await fetch(`${API_BASE_URL}/api/v1/admin/${path}${buildQueryString(params)}`, {
     headers: getAuthHeaders(),
+    cache: "no-store",
   });
 
   return parseResponse(response);
@@ -258,6 +265,7 @@ const requestAdminMovie = async (path, method, payload) => {
     headers: getAuthHeaders({
       "Content-Type": "application/json",
     }),
+    cache: "no-store",
     body: JSON.stringify(payload),
   });
 

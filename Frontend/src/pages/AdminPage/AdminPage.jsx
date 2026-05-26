@@ -341,6 +341,7 @@ export default function AdminPage() {
                 name: item.name,
                 status: item.status,
                 time: formatAdminDateTime(item.time),
+                createdAt: item.time,
                 value: [item.value, item.adminName ? `by ${item.adminName}` : ""].filter(Boolean).join(" - "),
                 entityType: item.entityType,
                 entityId: item.entityId,
@@ -436,11 +437,15 @@ export default function AdminPage() {
 
         return matchesSearch && matchesStatus && matchesRating && matchesDate;
       })
-      .sort((first, second) =>
-        sortDir === "asc"
+      .sort((first, second) => {
+        if (activeModule === "activity") {
+          return new Date(second.createdAt || second.time).getTime() - new Date(first.createdAt || first.time).getTime();
+        }
+
+        return sortDir === "asc"
           ? first.name.localeCompare(second.name, "vi")
-          : second.name.localeCompare(first.name, "vi")
-      );
+          : second.name.localeCompare(first.name, "vi");
+      });
   }, [activeModule, activeRecords, feedbackDateFilter, feedbackRatingFilter, search, sortDir, statusFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredRecords.length / 5));
@@ -686,6 +691,7 @@ export default function AdminPage() {
             name: nextRecord.name,
             status: editingId ? "UPDATE" : "CREATE",
             time: formatAdminDateTime(new Date().toISOString()),
+            createdAt: new Date().toISOString(),
             value: `ID ${nextRecord.id}`,
             undo: editingId
               ? { type: "update", movieId: nextRecord.id, before: previousMovie, after: savedMovie }
