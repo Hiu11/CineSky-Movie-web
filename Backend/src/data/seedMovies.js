@@ -1,5 +1,3 @@
-import adminSeedMovies from "./adminSeedMovies.js";
-
 const movieDisplayConfigBySlug = {
   "mua-do-2025": { catalogOrder: 1 },
   "khe-uoc-ban-dau": { catalogOrder: 2 },
@@ -479,7 +477,7 @@ const baseSeedMovies = [
   },
 ];
 
-const rawSeedMovies = [...baseSeedMovies, ...adminSeedMovies];
+const rawSeedMovies = [...baseSeedMovies];
 
 const seedMovies = rawSeedMovies.map((movie, index) => {
   const displayConfig = movieDisplayConfigBySlug[movie.slug] || {};
