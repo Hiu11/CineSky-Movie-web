@@ -73,7 +73,7 @@ const technologies = [
   "React 19",
   "React Router 6",
   "JavaScript",
-  "React Scripts",
+  "Vite",
   "Express 4",
   "MongoDB",
   "Mongoose 8",
@@ -148,7 +148,7 @@ const projectPros = [
 const projectCons = [
   "Thanh toán vẫn là mô phỏng, chưa tích hợp cổng thanh toán thật hoặc quy trình hoàn/hủy vé đầy đủ.",
   "Một số module admin như showtimes, cinemas, payments, activity hiện thiên về hiển thị hơn là CRUD hoàn chỉnh.",
-  "Dự án hiện chạy local, chưa deploy production; cần thêm kiểm thử, bảo mật nâng cao và tối ưu hiệu năng khi dữ liệu lớn hơn.",
+  "Dự án đã có cấu hình deploy demo trên Vercel; vẫn cần thêm kiểm thử, bảo mật nâng cao và tối ưu hiệu năng khi dữ liệu lớn hơn.",
 ];
 
 const roadmapItems = [
@@ -173,9 +173,9 @@ const roadmapItems = [
       "Dựa trên lịch sử đặt vé, favorite, review và thể loại yêu thích để gợi ý phim phù hợp hơn cho từng người dùng.",
   },
   {
-    phase: "Deploy & kiểm thử",
+    phase: "Kiểm thử & vận hành",
     description:
-      "Chuẩn hóa biến môi trường khi deploy, thêm test cho auth/booking/admin và kiểm tra responsive để project sẵn sàng demo ổn định trên hosting.",
+      "Duy trì cấu hình môi trường deploy, thêm test cho auth/booking/admin và kiểm tra responsive để project demo ổn định hơn trên hosting.",
   },
 ];
 
@@ -481,11 +481,11 @@ const AboutPage = () => {
       <section className="about-creator">
         <div className="about-section-heading">
           <span className="about-kicker">Về dự án cá nhân</span>
-          <h2>CineSky hiện là project full-stack chạy local, tập trung vào trải nghiệm đặt vé, tài khoản người dùng và quản trị dữ liệu.</h2>
+          <h2>CineSky hiện là project full-stack đã có bản demo deploy, tập trung vào trải nghiệm đặt vé, tài khoản người dùng và quản trị dữ liệu.</h2>
           <p>
             Project được phát triển để rèn cả tư duy frontend lẫn backend: routing, UI state, form, API, auth, database,
-            protected route, booking flow và dashboard admin. Phiên bản hiện tại chưa deploy production nên các OAuth key,
-            database URI và secret cần được cấu hình riêng trong môi trường local.
+            protected route, booking flow và dashboard admin. Phiên bản hiện tại đã có cấu hình deploy Vercel, còn các OAuth key,
+            database URI và secret được tách riêng theo môi trường local/deploy.
           </p>
         </div>
 
@@ -585,7 +585,7 @@ const AboutPage = () => {
       <section className="about-completed">
         <div className="about-section-heading">
           <span className="about-kicker">Phiên bản hoàn thiện</span>
-          <h2>CineSky hiện đã có nền full-stack đủ rõ để demo local như một movie booking app học tập.</h2>
+          <h2>CineSky hiện đã có nền full-stack đủ rõ để demo như một movie booking app học tập.</h2>
         </div>
 
         <div className="about-roadmap__grid">
@@ -628,10 +628,10 @@ const AboutPage = () => {
       <section className="about-roadmap">
         <div className="about-section-heading">
           <span className="about-kicker">Lộ trình phát triển</span>
-          <h2>Các bước tiếp theo nên tập trung vào vận hành thật, bảo mật và deploy ổn định.</h2>
+          <h2>Các bước tiếp theo nên tập trung vào vận hành thật, bảo mật và độ ổn định sau deploy.</h2>
           <p>
             Vì auth, booking, history, feedback và admin đã có nền tảng, giai đoạn tiếp theo nên làm sâu hơn phần thanh toán,
-            quản trị showtime/cinema, kiểm thử và triển khai production với biến môi trường riêng cho hosting.
+            quản trị showtime/cinema, kiểm thử và chuẩn hóa vận hành production với biến môi trường riêng cho hosting.
           </p>
         </div>
 

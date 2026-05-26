@@ -1,46 +1,63 @@
 # CineSky Frontend
 
-Frontend cua CineSky Movie Web, xay bang React 19, React Router 6 va Vite.
+Frontend của CineSky Movie Web, xây bằng React 19, React Router 6 và Vite.
 
-## Cai dat
+## Cài đặt
 
 ```bash
 npm install
 copy .env.example .env
 ```
 
-Neu dung macOS/Linux:
+Nếu dùng macOS/Linux:
 
 ```bash
 cp .env.example .env
 ```
 
-`Frontend/.env` can tro toi backend:
+`Frontend/.env` khi chạy local:
 
 ```env
 VITE_API_BASE_URL=http://localhost:5000
 ```
 
-## Chay local
+Khi deploy trên Vercel, thêm Environment Variable:
+
+```env
+VITE_API_BASE_URL=https://your-backend-vercel-domain.vercel.app
+```
+
+## Chạy local
 
 ```bash
 npm run dev
 ```
 
-Ung dung chay tai `http://localhost:3000`.
+Ứng dụng chạy tại `http://localhost:3000`.
 
-## Script chinh
+## Build và preview
 
-- `npm start`: chay frontend o che do development.
-- `npm run dev`: chay frontend o che do development.
-- `npm run build`: build production vao thu muc `dist`.
-- `npm run preview`: xem thu ban production build.
+```bash
+npm run build
+npm run preview
+```
 
-## Ghi chu
+## Deploy hiện tại
 
-- Can dung Node `^20.19.0` hoac `>=22.12.0` de chay Vite 7.
-- Backend can chay truoc o `http://localhost:5000` neu dung cau hinh mac dinh.
-- Sau khi doi `VITE_API_BASE_URL`, can tat va chay lai frontend.
-- OAuth, JWT, database va seed data duoc cau hinh o thu muc  `Backend`.
+- Frontend dùng `vercel.json` để rewrite tất cả route về `index.html`, giúp reload trực tiếp các route như `/about`, `/booking-history`, `/admin` không bị 404.
+- API base URL được đọc từ `VITE_API_BASE_URL` trong `src/config/api.js`.
+- Backend cần bật CORS cho domain frontend deploy.
 
+## Script chính
 
+- `npm start`: chạy frontend ở chế độ development.
+- `npm run dev`: chạy frontend ở chế độ development.
+- `npm run build`: build production vào thư mục `dist`.
+- `npm run preview`: xem thử bản production build.
+
+## Ghi chú
+
+- Cần dùng Node `^20.19.0` hoặc `>=22.12.0` để chạy Vite 7.
+- Backend cần chạy trước ở `http://localhost:5000` nếu dùng cấu hình local mặc định.
+- Sau khi đổi `VITE_API_BASE_URL`, cần tắt và chạy lại frontend hoặc redeploy trên Vercel.
+- OAuth, JWT, database và seed data được cấu hình ở thư mục `Backend`.
