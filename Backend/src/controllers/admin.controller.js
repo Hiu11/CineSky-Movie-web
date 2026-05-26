@@ -958,7 +958,7 @@ const adminController = {
 
       const movie = await MovieModel.create(payload);
       await syncAdminSeedMovie(movie);
-      createAdminActivity(req, {
+      await createAdminActivity(req, {
         action: "CREATE",
         name: movie.title,
         value: `ID ${formatMovieId(movie.legacyId)}`,
@@ -1027,7 +1027,7 @@ const adminController = {
       }
 
       await syncAdminSeedMovie(movie);
-      createAdminActivity(req, {
+      await createAdminActivity(req, {
         action: "UPDATE",
         name: movie.title,
         value: `ID ${formatMovieId(movie.legacyId)}`,
@@ -1076,7 +1076,7 @@ const adminController = {
       }
 
       await syncAdminSeedMovie(movie);
-      createAdminActivity(req, {
+      await createAdminActivity(req, {
         action: "DELETE",
         name: movie.title,
         value: `ID ${formatMovieId(movie.legacyId)}`,
@@ -1125,7 +1125,7 @@ const adminController = {
       }
 
       await syncAdminSeedMovie(movie);
-      createAdminActivity(req, {
+      await createAdminActivity(req, {
         action: "RESTORE",
         name: movie.title,
         value: `ID ${formatMovieId(movie.legacyId)}`,
@@ -1258,7 +1258,7 @@ const adminController = {
 
       user.role = nextRole;
       await user.save();
-      createAdminActivity(req, {
+      await createAdminActivity(req, {
         action: "ROLE",
         name: user.fullName || user.email,
         value: `Role: ${user.role}`,
@@ -1410,7 +1410,7 @@ const adminController = {
       if (typeof response === "string" && feedback.response && feedback.response !== previousResponse) {
         await notifyFeedbackResponse(feedback);
       }
-      createAdminActivity(req, {
+      await createAdminActivity(req, {
         action: "FEEDBACK",
         name: feedback.headline || feedback.fullName,
         value: `${feedbackStatusLabels[feedback.status] || feedback.status} - ${feedback.email}`,
@@ -1539,7 +1539,7 @@ const adminController = {
       booking.status = "used";
       booking.checkedInAt = new Date();
       await booking.save();
-      createAdminActivity(req, {
+      await createAdminActivity(req, {
         action: "CHECK_IN",
         name: booking.ticketCode,
         value: `${movie?.title || "Ticket"} - ${booking.seatNumbers.join(", ")}`,
