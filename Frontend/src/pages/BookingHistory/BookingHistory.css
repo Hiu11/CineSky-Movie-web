@@ -3505,3 +3505,149 @@ body:has(.history-page) .nav-direct.active {
     inset -2px -2px 4px rgba(255, 255, 255, 0.82),
     0 1px 0 rgba(255, 255, 255, 0.42) !important;
 }
+
+/* Mobile cleanup: make tickets feel like compact passes, not oversized paper receipts */
+@media (max-width: 760px) {
+  .history-page {
+    padding: 18px 22px 72px !important;
+    gap: 14px !important;
+  }
+
+  .history-hero {
+    display: none !important;
+  }
+
+  .history-list {
+    gap: 12px !important;
+    background: transparent !important;
+  }
+
+  .history-ticket {
+    min-height: 0 !important;
+    border-radius: 18px !important;
+    overflow: hidden !important;
+    box-shadow: 0 14px 34px rgba(29, 24, 12, 0.12) !important;
+  }
+
+  .history-ticket__main {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    padding: 14px !important;
+  }
+
+  .history-ticket__pass-head {
+    gap: 6px !important;
+    margin-bottom: 0 !important;
+  }
+
+  .history-ticket__pass-head span {
+    padding: 5px 10px !important;
+    font-size: 10px !important;
+  }
+
+  .history-ticket__header strong {
+    font-size: clamp(21px, 6vw, 28px) !important;
+    line-height: 1.06 !important;
+  }
+
+  .history-ticket__header span,
+  .history-ticket__header small {
+    font-size: 12px !important;
+  }
+
+  .history-ticket__meta {
+    grid-column: 1 !important;
+    grid-row: auto !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .history-ticket__meta-item {
+    min-height: 58px !important;
+    padding: 10px !important;
+    border-radius: 14px !important;
+  }
+
+  .history-ticket__meta-item small {
+    font-size: 10px !important;
+  }
+
+  .history-ticket__meta-item span {
+    font-size: 13px !important;
+    line-height: 1.3 !important;
+  }
+
+  .history-ticket__stub {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 58px minmax(110px, 1fr) auto !important;
+    align-items: center !important;
+    gap: 10px !important;
+    padding: 10px 14px 14px !important;
+    border-left: 0 !important;
+    border-top: 1px dashed rgba(31, 34, 45, 0.18) !important;
+  }
+
+  .history-ticket__stub-label {
+    grid-column: 1 / -1 !important;
+    margin: 0 !important;
+    font-size: 10px !important;
+  }
+
+  .history-ticket__qr {
+    width: 58px !important;
+    height: 58px !important;
+  }
+
+  .history-ticket__qr canvas,
+  .history-ticket__qr img {
+    width: 58px !important;
+    height: 58px !important;
+  }
+
+  .history-ticket__barcode {
+    min-height: 48px !important;
+    padding: 7px 9px !important;
+  }
+
+  .history-ticket__barcode svg,
+  .history-ticket__barcode canvas {
+    width: 100% !important;
+    max-width: 132px !important;
+    height: 28px !important;
+  }
+
+  .history-ticket__barcode span {
+    font-size: 9px !important;
+    letter-spacing: 0.12em !important;
+  }
+
+  .history-ticket__status {
+    width: auto !important;
+    min-height: 32px !important;
+    padding: 0 10px !important;
+    border-radius: 999px !important;
+    font-size: 11px !important;
+    white-space: nowrap !important;
+    justify-self: end !important;
+  }
+
+  .history-ticket__actions {
+    grid-column: 1 / -1 !important;
+    margin-top: 0 !important;
+  }
+
+  .history-cancel-button {
+    min-height: 36px !important;
+    padding: 0 12px !important;
+    border-radius: 12px !important;
+    font-size: 12px !important;
+  }
+
+  .history-ticket__cutout,
+  .history-ticket__stub-punch,
+  .history-ticket__route {
+    display: none !important;
+  }
+}

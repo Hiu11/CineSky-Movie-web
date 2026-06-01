@@ -10,10 +10,9 @@ body:has(.admin-page) {
 }
 
 .admin-sidebar {
-  background:
-    linear-gradient(180deg, rgba(255, 251, 242, 0.98), rgba(248, 239, 221, 0.96));
-  border-right-color: rgba(214, 199, 170, 0.82);
-  box-shadow: 16px 0 38px rgba(49, 38, 21, 0.08);
+  background: transparent;
+  border-right-color: transparent;
+  box-shadow: none;
 }
 
 .admin-brand,
@@ -795,6 +794,7 @@ body:has(.admin-page) .nav-direct.active {
   .admin-stat-card,
   .admin-panel {
     border-radius: 12px !important;
+    padding: 14px !important;
   }
 
   .admin-overview-ops {
@@ -820,6 +820,53 @@ body:has(.admin-page) .nav-direct.active {
   .admin-toolbar button {
     width: 100%;
     flex-basis: 100%;
+    min-height: 40px;
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1180px) {
+  .admin-sidebar {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    box-shadow: none !important;
+  }
+
+  .admin-nav {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start !important;
+    gap: 12px !important;
+  }
+
+  .admin-nav__column {
+    display: grid;
+    gap: 12px;
+    align-content: start;
+  }
+
+  .admin-nav-group {
+    width: 100%;
+    display: block;
+    align-self: start !important;
+    margin: 0;
+  }
+
+  .admin-nav-group summary {
+    min-height: 48px !important;
+    padding: 0 16px !important;
+  }
+
+  .admin-nav-group__items {
+    gap: 7px !important;
+    padding: 0 10px 10px !important;
+  }
+
+  .admin-nav button {
+    min-height: 38px !important;
+    font-size: 13px !important;
   }
 }
 

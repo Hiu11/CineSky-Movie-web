@@ -1438,3 +1438,75 @@
     padding: 24px !important;
   }
 }
+
+@media (max-width: 760px) {
+  .md-page {
+    padding: 18px 22px 28px !important;
+  }
+
+  .md-shell {
+    gap: 14px !important;
+  }
+
+  .md-poster-panel {
+    max-width: 260px !important;
+    margin: 0 auto;
+  }
+
+  .md-poster {
+    min-height: 320px !important;
+  }
+
+  .md-detail-copy,
+  .md-content-panel {
+    gap: 12px !important;
+  }
+
+  .md-title {
+    font-size: clamp(24px, 7vw, 32px) !important;
+    letter-spacing: 0 !important;
+  }
+
+  .md-status-chip,
+  .md-rating-chip,
+  .md-genre,
+  .md-highlight-card__times span {
+    min-height: 30px !important;
+    padding: 0 10px !important;
+    font-size: 11px !important;
+  }
+
+  .md-quick-card,
+  .md-highlight-card,
+  .md-trailer-sideCard,
+  .md-trailer-fact,
+  .md-review-form,
+  .md-review-list,
+  .md-review-card {
+    padding: 14px !important;
+    border-radius: 16px !important;
+  }
+
+  .md-quick-card strong,
+  .md-highlight-card strong,
+  .md-trailer-sideCard h3 {
+    font-size: 17px !important;
+  }
+
+  .md-primary-btn,
+  .md-secondary-btn {
+    min-height: 42px !important;
+    padding: 0 14px !important;
+    border-radius: 12px !important;
+    font-size: 13px !important;
+  }
+
+  .md-trailer {
+    height: auto !important;
+  }
+
+  .md-review-section {
+    gap: 16px !important;
+    padding: 16px !important;
+  }
+}

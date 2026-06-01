@@ -95,14 +95,11 @@ export const adminModuleKeys = new Set(moduleConfig.map((module) => module.key))
 
 export const getInitialAdminModule = () => {
   if (typeof window === "undefined") {
-    return "movies";
+    return "dashboard";
   }
 
   const urlModule = new URLSearchParams(window.location.search).get("module");
-  const storedModule = window.localStorage.getItem(ADMIN_MODULE_STORAGE_KEY);
-  const preferredModule = urlModule || storedModule;
-
-  return adminModuleKeys.has(preferredModule) ? preferredModule : "movies";
+  return adminModuleKeys.has(urlModule) ? urlModule : "dashboard";
 };
 
 export const initialData = {

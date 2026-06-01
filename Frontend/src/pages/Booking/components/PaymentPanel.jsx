@@ -75,7 +75,15 @@ export default function PaymentPanel({
                   className={"booking-page__provider-tile" + (selectedProvider === provider ? " is-active" : "")}
                   style={{ "--provider-color": color }}
                 >
-                  <img className="booking-page__provider-logo" src={logo} alt={`${provider} logo`} />
+                  <img 
+                    className="booking-page__provider-logo" 
+                    src={logo} 
+                    alt={`${provider} logo`} 
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(provider)}&background=${color.replace('#', '')}&color=fff&rounded=true&bold=true`;
+                    }}
+                  />
                   <span>{provider}</span>
                 </button>
               );

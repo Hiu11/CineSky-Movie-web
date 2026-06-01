@@ -286,6 +286,23 @@
 @media (max-width: 700px) {
   .admin-checkin-meta {
     grid-template-columns: 1fr;
+    gap: 10px;
+    margin: 14px 0;
+  }
+
+  .admin-checkin-meta div {
+    min-height: 64px;
+    padding: 12px 14px;
+    border-radius: 14px;
+  }
+
+  .admin-checkin-result h2 {
+    font-size: clamp(20px, 6vw, 26px);
+  }
+
+  .admin-checkin-status {
+    padding: 9px 12px;
+    font-size: 13px;
   }
 }
 

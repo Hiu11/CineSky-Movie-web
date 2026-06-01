@@ -503,3 +503,53 @@
     font-size: clamp(38px, 4vw, 58px);
   }
 }
+
+@media (max-width: 760px) {
+  .booking-success-page {
+    padding: 18px 22px 42px !important;
+  }
+
+  .booking-success-layout {
+    gap: 14px !important;
+  }
+
+  .booking-success-card,
+  .booking-success-ticket,
+  .booking-success-ticket__body,
+  .booking-success-summary,
+  .booking-success-actions {
+    border-radius: 16px !important;
+  }
+
+  .booking-success-card,
+  .booking-success-ticket__body,
+  .booking-success-summary {
+    padding: 16px !important;
+  }
+
+  .booking-success-layout .booking-success-ticket__header h1,
+  .booking-success-ticket__header h1 {
+    font-size: clamp(24px, 7vw, 32px) !important;
+    line-height: 1.12 !important;
+    letter-spacing: 0 !important;
+  }
+
+  .booking-success-ticket__header p,
+  .booking-success-summary p,
+  .booking-success-card p {
+    font-size: 14px !important;
+    line-height: 1.55 !important;
+  }
+
+  .booking-success-actions {
+    gap: 8px !important;
+    margin-top: 14px !important;
+  }
+
+  .booking-success-actions a,
+  .booking-success-actions button {
+    min-height: 40px !important;
+    padding: 0 14px !important;
+    font-size: 13px !important;
+  }
+}

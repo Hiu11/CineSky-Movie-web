@@ -340,7 +340,7 @@ export function useBookingFlow({ showToast } = {}) {
   const ticketSubtotal = selectedShowtime ? Number(selectedShowtime.price || 0) * selectedSeats.length : 0;
   const serviceFee = selectedSeats.length > 0 ? selectedSeats.length * serviceFeePerTicket : 0;
   const finalTotal = ticketSubtotal + serviceFee;
-  const seatBaseSize = isDesktopViewport ? 30 : 11;
+  const seatBaseSize = isDesktopViewport ? 30 : 20;
   const isPaymentExpired = Boolean(selectedShowtime) && paymentSecondsLeft <= 0;
   const paymentCountdownLabel = isPaymentExpired ? "Hết giờ" : formatCountdown(paymentSecondsLeft);
   const isComingSoon = showtimes.length === 0;

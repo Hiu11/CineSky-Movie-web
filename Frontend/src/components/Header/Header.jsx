@@ -130,6 +130,7 @@ export default function Header({
   const [recentSearches, setRecentSearches] = useState(() => readRecentSearches());
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isMobileProfileOpen, setIsMobileProfileOpen] = useState(false);
   const [transitionTarget, setTransitionTarget] = useState(null);
   const [notificationCount, setNotificationCount] = useState(0);
   const searchParams = new URLSearchParams(location.search);
@@ -139,7 +140,7 @@ export default function Header({
   const isAdminPage = location.pathname === "/admin" || location.pathname.startsWith("/admin/");
   const isAdminUser = user?.role === "admin";
   const visibleNavItems = isAdminUser
-    ? [...navItems, { to: "/admin", label: "Quản trị", id: "admin" }]
+    ? [...navItems, { to: "/admin?module=dashboard", label: "Quản trị", id: "admin" }]
     : navItems;
   const visibleNavGroups = isAdminUser
     ? [
@@ -150,7 +151,7 @@ export default function Header({
           title: "Khu quản trị",
           description: "Theo dõi và vận hành dữ liệu CineSky.",
           spotlight: "Dashboard, phim, booking và users",
-          items: [{ to: "/admin", label: "Quản trị", id: "admin" }],
+          items: [{ to: "/admin?module=dashboard", label: "Quản trị", id: "admin" }],
         },
       ]
     : navGroups;
@@ -228,6 +229,7 @@ export default function Header({
     setIsSearchOpen(false);
     setIsUserMenuOpen(false);
     setIsMobileMenuOpen(false);
+    setIsMobileProfileOpen(false);
     setActiveSuggestionIndex(-1);
     setTransitionTarget(null);
     document.body.classList.remove("is-page-transitioning");
@@ -296,6 +298,7 @@ export default function Header({
         setIsSearchOpen(false);
         setIsUserMenuOpen(false);
         setIsMobileMenuOpen(false);
+        setIsMobileProfileOpen(false);
         setActiveSuggestionIndex(-1);
       }
     };
@@ -424,6 +427,7 @@ export default function Header({
     setActiveSuggestionIndex(-1);
     setIsUserMenuOpen(false);
     setIsMobileMenuOpen(false);
+    setIsMobileProfileOpen(false);
     onLogout?.();
     window.location.replace("/");
   };
@@ -440,6 +444,7 @@ export default function Header({
     setIsSearchOpen(false);
     setIsUserMenuOpen(false);
     setIsMobileMenuOpen(false);
+    setIsMobileProfileOpen(false);
     setTransitionTarget(to);
   };
 
@@ -767,7 +772,10 @@ export default function Header({
             type="button"
             className="mobile-backdrop"
             aria-label="Đóng menu"
-            onClick={() => setIsMobileMenuOpen(false)}
+            onClick={() => {
+              setIsMobileMenuOpen(false);
+              setIsMobileProfileOpen(false);
+            }}
           />
           <aside className="mobile-drawer">
             <div className="mobile-drawer__header">
@@ -775,7 +783,10 @@ export default function Header({
               <button
                 type="button"
                 className="mobile-drawer__close"
-                onClick={() => setIsMobileMenuOpen(false)}
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setIsMobileProfileOpen(false);
+                }}
                 aria-label="Đóng menu"
               >
                 ×
@@ -783,24 +794,73 @@ export default function Header({
             </div>
 
             <nav className="mobile-nav">
-              {visibleNavItems.map((item) => (
-                <Link
-                  key={item.id}
-                  to={item.to}
-                  className={"mobile-nav__link" + (item.id === "admin" ? " mobile-nav__link--admin" : "")}
-                  onClick={(event) => handleNavTransition(event, item.to)}
-                >
-                  <span className="mobile-link-icon" aria-hidden="true">
-                    <NavIcon id={item.id} />
-                  </span>
-                  <span>{item.label}</span>
-                </Link>
-              ))}
+              {visibleNavGroups.map((group) => {
+                const singleItem = group.items[0];
+
+                return group.items.length === 1 ? (
+                  <Link
+                    key={group.id}
+                    to={singleItem.to}
+                    className={"mobile-nav__link" + (singleItem.id === "admin" ? " mobile-nav__link--admin" : "")}
+                    onClick={(event) => handleNavTransition(event, singleItem.to)}
+                  >
+                    <span className="mobile-link-icon" aria-hidden="true">
+                      <NavIcon id={singleItem.id} />
+                    </span>
+                    <span>{group.label}</span>
+                  </Link>
+                ) : (
+                  <details key={group.id} className="mobile-nav__group">
+                    <summary className="mobile-nav__link mobile-nav__summary">
+                      <span className="mobile-link-icon" aria-hidden="true">
+                        <NavIcon id={singleItem.id} />
+                      </span>
+                      <span>{group.label}</span>
+                      <span className="mobile-nav__chevron" aria-hidden="true"></span>
+                    </summary>
+                    <div className="mobile-nav__subitems">
+                      {group.items.map((item) => (
+                        <Link
+                          key={item.id}
+                          to={item.to}
+                          className="mobile-nav__subitem"
+                          onClick={(event) => handleNavTransition(event, item.to)}
+                        >
+                          {item.label}
+                        </Link>
+                      ))}
+                    </div>
+                  </details>
+                );
+              })}
             </nav>
 
-            <div className="mobile-drawer__footer">
+            <div
+              className={
+                "mobile-drawer__footer" +
+                (isLoggedIn ? " mobile-drawer__footer--profile" : "") +
+                (isMobileProfileOpen ? " is-profile-open" : "")
+              }
+            >
               {isLoggedIn ? (
                 <>
+                  <button
+                    type="button"
+                    className="mobile-profile-trigger"
+                    onClick={() => setIsMobileProfileOpen((current) => !current)}
+                    aria-expanded={isMobileProfileOpen}
+                  >
+                    {!avatarFailed && user?.avatar ? (
+                      <img src={user.avatar} alt={displayName} />
+                    ) : (
+                      <span className="mobile-profile-trigger__avatar">{userInitial}</span>
+                    )}
+                    <span className="mobile-profile-trigger__text">
+                      <strong>{displayName}</strong>
+                      <small>{membershipLabel}</small>
+                    </span>
+                    <span className="mobile-profile-trigger__chevron" aria-hidden="true"></span>
+                  </button>
                   <Link to="/profile" className="mobile-auth-link">
                     Hồ sơ
                   </Link>
@@ -810,7 +870,7 @@ export default function Header({
                   <Link to="/favorites" className="mobile-auth-link">
                     Phim yêu thích
                   </Link>
-                  {isAdminUser ? <Link to="/admin" className="mobile-auth-link">Quản trị</Link> : null}
+                  {isAdminUser ? <Link to="/admin?module=dashboard" className="mobile-auth-link">Quản trị</Link> : null}
                   <button
                     type="button"
                     className="mobile-auth-link mobile-auth-link--danger"
@@ -849,6 +909,44 @@ export default function Header({
           <span>Loading CineSky</span>
         </div>
       ) : null}
+      {/* MOBILE BOTTOM TAB BAR */}
+      <nav className="mobile-tab-bar">
+        <Link to="/" className={`mobile-tab-item ${location.pathname === '/' && !hasMovieTab ? 'active' : ''}`} onClick={(e) => handleNavTransition(e, "/")}>
+          <div className="mobile-tab-icon"><NavIcon id="home" /></div>
+          <span>Trang chủ</span>
+        </Link>
+        <Link to="/?tab=now" className={`mobile-tab-item ${(location.pathname === '/' && hasMovieTab) || isMovieDetail ? 'active' : ''}`} onClick={(e) => handleNavTransition(e, "/?tab=now")}>
+          <div className="mobile-tab-icon"><NavIcon id="now" /></div>
+          <span>Phim</span>
+        </Link>
+        <Link to="/?tab=now" className="mobile-tab-item mobile-tab-item--center" onClick={(e) => handleNavTransition(e, "/?tab=now")}>
+          <div className="mobile-tab-icon-center">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="2" y="7" width="20" height="15" rx="2" ry="2"></rect>
+              <polyline points="17 2 12 7 7 2"></polyline>
+            </svg>
+          </div>
+          <span>Đặt vé</span>
+        </Link>
+        <Link to="/promotions" className={`mobile-tab-item ${location.pathname === '/promotions' ? 'active' : ''}`} onClick={(e) => handleNavTransition(e, "/promotions")}>
+          <div className="mobile-tab-icon"><NavIcon id="promotions" /></div>
+          <span>Ưu đãi</span>
+        </Link>
+        <button type="button" className={`mobile-tab-item ${isMobileMenuOpen ? 'active' : ''}`} onClick={() => setIsMobileMenuOpen(true)}>
+          <div className="mobile-tab-icon">
+             {isLoggedIn && !avatarFailed && user?.avatar ? (
+                <img src={user.avatar} alt={displayName} className="mobile-tab-avatar" onError={() => setAvatarFailed(true)} />
+             ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+             )}
+          </div>
+          <span>Menu</span>
+        </button>
+      </nav>
     </header>
   );
 }

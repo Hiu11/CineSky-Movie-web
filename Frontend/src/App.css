@@ -49,7 +49,7 @@ button {
 }
 
 .App--admin {
-    padding-top: 190px;
+    padding-top: 250px;
     background: #fffaf0;
 }
 
@@ -197,6 +197,10 @@ button {
 @media (min-width: 901px) and (max-width: 1024px) {
     .App--site {
         padding-top: 250px;
+    }
+
+    .App--admin {
+        padding-top: 290px;
     }
 
     .App--immersive {
@@ -677,4 +681,306 @@ body .feedback-textarea {
 @keyframes reelPulse {
   from { transform: scale(0.8); opacity: 0.5; box-shadow: 0 0 20px var(--primary-gold); }
   to { transform: scale(1.2); opacity: 1; box-shadow: 0 0 40px var(--primary-gold); }
+}
+
+/* Mobile comfort pass: smaller type, calmer cards, and consistent breathing room. */
+@media (max-width: 760px) {
+  :root {
+    --mobile-page-x: 22px;
+    --mobile-section-gap: 16px;
+    --mobile-card-pad: 16px;
+    --mobile-card-radius: 16px;
+  }
+
+  body {
+    font-size: 14px;
+  }
+
+  .App--site,
+  .App--admin {
+    padding-top: 90px; /* Reduced since mobile header is smaller */
+    padding-bottom: 90px; /* For the new tab bar */
+  }
+
+  body .homepage-shell,
+  body .filter-view-container,
+  body .md-page,
+  body .booking-page,
+  body .booking-success-page,
+  body .history-page,
+  body .profile-page,
+  body .notifications-page,
+  body .promotions-page,
+  body .cinema-news-page,
+  body .favorites-page,
+  body .about-page,
+  body .feedback-page,
+  body .not-found-page,
+  body .admin-page {
+    padding-left: var(--mobile-page-x) !important;
+    padding-right: var(--mobile-page-x) !important;
+  }
+
+  body .homepage-shell,
+  body .filter-view-container,
+  body .md-page,
+  body .booking-page,
+  body .history-page,
+  body .profile-page,
+  body .notifications-page,
+  body .promotions-page,
+  body .cinema-news-page,
+  body .favorites-page,
+  body .about-page,
+  body .feedback-page,
+  body .admin-page {
+    gap: var(--mobile-section-gap) !important;
+  }
+
+  body .home-hero,
+  body .home-catalog-hero,
+  body .md-shell,
+  body .md-trailer,
+  body .md-extra-section,
+  body .md-empty-state,
+  body .booking-page__hero,
+  body .booking-page__panel,
+  body .booking-page__empty-card,
+  body .booking-success-card,
+  body .history-card,
+  body .history-empty-card,
+  body .profile-hero,
+  body .profile-card,
+  body .profile-empty-card,
+  body .notifications-shell,
+  body .promotion-card,
+  body .cinema-news-card,
+  body .favorites-hero,
+  body .about-hero,
+  body .about-mission-card,
+  body .about-highlight-card,
+  body .feedback-card,
+  body .not-found-card,
+  body .filter-state-message {
+    border-radius: var(--mobile-card-radius) !important;
+    padding: var(--mobile-card-pad) !important;
+  }
+
+  body .home-hero__title,
+  body .home-catalog-hero__content h1,
+  body .md-title,
+  body .booking-page__title,
+  body .booking-success-card h1,
+  body .history-hero h1,
+  body .profile-hero h1,
+  body .promotions-hero h1,
+  body .cinema-news-hero h1,
+  body .favorites-hero__title,
+  body .about-hero h1,
+  body .feedback-hero h1,
+  body .feedback-header h2,
+  body .not-found-card h1,
+  body .filter-toolbar__intro h1 {
+    font-size: clamp(24px, 7vw, 32px) !important;
+    line-height: 1.12 !important;
+    letter-spacing: 0 !important;
+  }
+
+  body .md-section-header h2,
+  body .md-empty-state h2,
+  body .profile-card__header h2,
+  body .history-card h2,
+  body .cinema-news-card h2,
+  body .promotion-card h2,
+  body .about-page h2,
+  body .feedback-card h2 {
+    font-size: clamp(20px, 5.6vw, 26px) !important;
+    line-height: 1.18 !important;
+    letter-spacing: 0 !important;
+  }
+
+  body .home-hero__description,
+  body .home-catalog-hero__content p,
+  body .md-description,
+  body .md-trailer-sideCard p,
+  body .md-review-card p,
+  body .booking-page__subtitle,
+  body .booking-page__hint,
+  body .booking-success-card p,
+  body .history-card p,
+  body .profile-page p,
+  body .notifications-page p,
+  body .promotions-page p,
+  body .cinema-news-page p,
+  body .favorites-page p,
+  body .about-page p,
+  body .feedback-page p,
+  body .filter-toolbar__intro p,
+  body .filter-state-message span {
+    font-size: 14px !important;
+    line-height: 1.58 !important;
+  }
+
+  body .movie-pagination {
+    gap: 6px;
+    margin-bottom: 12px;
+  }
+
+  body .movie-pagination button {
+    min-width: 34px;
+    height: 34px;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 420px) {
+  :root {
+    --mobile-page-x: 20px;
+  }
+}
+
+/* ---------------------------------------------------- */
+/* CINESKY PROMAX MOBILE REDESIGN OVERRIDES */
+/* ---------------------------------------------------- */
+@media (max-width: 760px) {
+  /* 1. Mobile Drawer -> Glassmorphism Bottom Sheet */
+  .mobile-drawer {
+    position: fixed !important;
+    top: auto !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    max-height: 85vh !important;
+    border-radius: 32px 32px 0 0 !important;
+    background:
+      radial-gradient(circle at 50% 0%, rgba(247, 180, 0, 0.15), transparent 60%),
+      linear-gradient(180deg, rgba(30, 32, 44, 0.95), rgba(10, 12, 20, 0.98)) !important;
+    -webkit-backdrop-filter: blur(32px) saturate(200%) !important;
+    backdrop-filter: blur(32px) saturate(200%) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-bottom: none !important;
+    box-shadow: 0 -20px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+    animation: mobileDrawerSlideUp 0.45s cubic-bezier(0.2, 1, 0.3, 1) forwards !important;
+    padding-top: 36px !important;
+  }
+  
+  .mobile-drawer::before {
+    content: '';
+    position: absolute;
+    top: 14px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 48px;
+    height: 5px;
+    border-radius: 5px;
+    background: rgba(255, 255, 255, 0.2);
+  }
+
+  /* 2. Push Toasts above Tab Bar */
+  .toast-viewport {
+    bottom: 90px !important;
+  }
+
+  /* 3. Enhance Movie Cards for Mobile */
+  .movie-card-container {
+    background: linear-gradient(145deg, rgba(24, 28, 49, 0.8), rgba(58, 63, 90, 0.6)) !important;
+    -webkit-backdrop-filter: blur(12px) !important;
+    backdrop-filter: blur(12px) !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.6) !important;
+    border-radius: 20px !important;
+  }
+
+  /* 4. Fix grid layout for mobile */
+  .movie-grid-container {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+    padding: 20px 5% !important;
+  }
+  
+  .movie-card-box {
+    flex-direction: row !important;
+  }
+
+  .movie-poster {
+    width: 40% !important;
+  }
+  
+  .movie-info {
+    width: 60% !important;
+    padding: 16px !important;
+  }
+
+  /* 5. Hide large footer on mobile since we have tab bar (or pad it) */
+  .complex-footer {
+    padding-bottom: 100px !important;
+  }
+
+  /* 6. Fix Mobile Tab Bar Center Button Alignment */
+  .mobile-tab-item--center {
+    align-self: flex-start !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    margin-top: -12px !important;
+  }
+
+  /* 7. Fix Seat Map Squishing on Mobile -> Make the screening area scrollable */
+  .booking-page__main,
+  .booking-page__panel {
+    min-width: 0 !important;
+    max-width: 100vw !important;
+  }
+
+  .booking-page__screening {
+    overflow-x: auto !important;
+    padding-bottom: 24px !important;
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: minmax(max-content, 100%) !important;
+    justify-items: stretch !important;
+  }
+  
+  .booking-page__seat-row {
+    width: 100% !important;
+    min-width: max-content !important;
+    padding: 0 16px !important;
+    /* Revert to desktop grid */
+    grid-template-columns: 58px minmax(0, 1fr) 58px !important;
+    align-items: center !important;
+    gap: 14px !important;
+  }
+
+  .booking-page__seat-label,
+  .booking-page__seat-label--right {
+    display: inline-flex !important;
+    width: 58px !important;
+  }
+
+  .booking-page__seat-cluster {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+  }
+
+  .booking-page__seat-block {
+    display: grid !important;
+    gap: var(--booking-seat-gap) !important;
+    align-items: center !important;
+    justify-items: center !important;
+  }
+
+  .booking-page__screen-shell {
+    width: 100% !important;
+    min-width: 100% !important;
+    max-width: none !important;
+    padding: 0 32px !important;
+  }
+}
+
+@keyframes mobileDrawerSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }

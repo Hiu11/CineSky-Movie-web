@@ -590,7 +590,7 @@ export default function AdminPage() {
   };
 
   const switchModule = (moduleKey) => {
-    const nextModule = adminModuleKeys.has(moduleKey) ? moduleKey : "movies";
+    const nextModule = adminModuleKeys.has(moduleKey) ? moduleKey : "dashboard";
 
     if (typeof window !== "undefined") {
       window.localStorage.setItem(ADMIN_MODULE_STORAGE_KEY, nextModule);

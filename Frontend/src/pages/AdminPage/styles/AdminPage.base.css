@@ -30,10 +30,19 @@
 
 .admin-nav {
   display: grid;
+  grid-template-columns: 1fr;
   gap: 12px;
+  align-items: start;
+}
+
+.admin-nav__column {
+  display: grid;
+  gap: 12px;
+  align-content: start;
 }
 
 .admin-nav-group {
+  align-self: start;
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   background: rgba(255, 255, 255, 0.035);

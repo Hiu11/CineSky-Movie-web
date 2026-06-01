@@ -760,3 +760,80 @@
   border-radius: 20px;
   box-shadow: 0 12px 24px rgba(0,0,0,0.2);
 }
+
+@media (max-width: 760px) {
+  .filter-view-container {
+    padding-top: 16px !important;
+  }
+
+  .filter-options-panel {
+    padding: 0 !important;
+    margin-bottom: 14px !important;
+  }
+
+  .filter-toolbar {
+    gap: 12px !important;
+  }
+
+  .filter-toolbar__intro {
+    gap: 6px !important;
+  }
+
+  .filter-toolbar__intro h1 {
+    font-size: clamp(24px, 7vw, 32px) !important;
+    letter-spacing: 0 !important;
+  }
+
+  .filter-toolbar__intro p,
+  .filter-results-copy,
+  .filter-state-message span {
+    font-size: 14px !important;
+    line-height: 1.58 !important;
+  }
+
+  .filter-tags-section {
+    gap: 8px !important;
+  }
+
+  .filter-tag-chip {
+    padding: 8px 14px !important;
+    font-size: 13px !important;
+  }
+
+  .filter-dropdown__trigger,
+  .custom-select,
+  .filter-dropdown__option {
+    font-size: 14px !important;
+  }
+
+  .filter-dropdown__trigger {
+    min-height: 42px !important;
+    padding-left: 14px !important;
+  }
+
+  .filter-control,
+  .custom-select,
+  .filter-dropdown__menu {
+    border-radius: 16px !important;
+  }
+
+  .filter-results-copy strong {
+    font-size: 22px !important;
+  }
+
+  .filter-view-container .movie-grid-container {
+    padding: 16px 0 72px !important;
+    gap: 14px !important;
+  }
+
+  .filter-empty,
+  .filter-empty-premium,
+  .filter-state-message {
+    padding: 28px 16px !important;
+    border-radius: 16px !important;
+  }
+
+  .filter-empty p {
+    font-size: 14px !important;
+  }
+}
