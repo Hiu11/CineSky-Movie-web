@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   addMyFavorite,
@@ -62,6 +62,15 @@ export default function MovieDetail() {
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
   const [isTrailerExpanded, setIsTrailerExpanded] = useState(false);
+
+  const handleHorizontalScroll = (e, direction) => {
+    const container = e.currentTarget.parentElement.querySelector('.md-carousel-track');
+    if (container) {
+      const scrollAmount = container.clientWidth * 0.8;
+      container.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' });
+    }
+  };
+
   const [isDetailIntroDone, setIsDetailIntroDone] = useState(false);
   const [hasTrailerIntroStarted, setHasTrailerIntroStarted] = useState(false);
   const [isTrailerIntroDone, setIsTrailerIntroDone] = useState(false);
@@ -313,7 +322,7 @@ export default function MovieDetail() {
         return (item.genres || []).some((genre) => (movie.genres || []).includes(genre));
       })
       .sort(() => Math.random() - 0.5)
-      .slice(0, 3);
+      .slice(0, 10);
   }, [catalogMovies, movie]);
 
   const handleScrollToTrailer = () => {
@@ -586,12 +595,16 @@ export default function MovieDetail() {
             </div>
           </div>
 
-          <div className="md-gallery-grid">
-            {galleryItems.map((item, index) => (
-              <article key={item + index} className="md-gallery-card">
-                <img src={item} alt={`${movie.title} still ${index + 1}`} />
-              </article>
-            ))}
+          <div className="md-carousel-wrapper">
+            <button className="md-carousel-btn md-carousel-prev" onClick={(e) => handleHorizontalScroll(e, 'left')}>❮</button>
+            <div className="md-gallery-grid md-carousel-track">
+              {galleryItems.map((item, index) => (
+                <article key={item + index} className="md-gallery-card">
+                  <img src={item} alt={`${movie.title} still ${index + 1}`} />
+                </article>
+              ))}
+            </div>
+            <button className="md-carousel-btn md-carousel-next" onClick={(e) => handleHorizontalScroll(e, 'right')}>❯</button>
           </div>
         </section>
       ) : null}
@@ -605,14 +618,18 @@ export default function MovieDetail() {
             </div>
           </div>
 
-          <div className="md-cast-grid">
-            {castMembers.map((member) => (
-              <article key={member.name + member.role} className="md-cast-card">
-                <div className="md-cast-card__avatar">{member.name.charAt(0)}</div>
-                <strong>{member.name}</strong>
-                <span>{member.role}</span>
-              </article>
-            ))}
+          <div className="md-carousel-wrapper">
+            <button className="md-carousel-btn md-carousel-prev" onClick={(e) => handleHorizontalScroll(e, 'left')}>❮</button>
+            <div className="md-cast-grid md-carousel-track">
+              {castMembers.map((member) => (
+                <article key={member.name + member.role} className="md-cast-card">
+                  <div className="md-cast-card__avatar">{member.name.charAt(0)}</div>
+                  <strong>{member.name}</strong>
+                  <span>{member.role}</span>
+                </article>
+              ))}
+            </div>
+            <button className="md-carousel-btn md-carousel-next" onClick={(e) => handleHorizontalScroll(e, 'right')}>❯</button>
           </div>
         </section>
       ) : null}
@@ -734,22 +751,26 @@ export default function MovieDetail() {
             </div>
           </div>
 
-          <div className="md-related-grid">
-            {relatedMovies.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className="md-related-card"
-                onClick={() => handleOpenRelatedMovie(item)}
-              >
-                <img src={item.poster} alt={item.title} />
-                <div className="md-related-card__body">
-                  <strong>{item.title}</strong>
-                  <span className="md-related-card__cta">Xem thêm</span>
-                  <span>{[item.genre, `${item.duration} phút`].filter(Boolean).join(" • ")}</span>
-                </div>
-              </button>
-            ))}
+          <div className="md-carousel-wrapper">
+            <button className="md-carousel-btn md-carousel-prev" onClick={(e) => handleHorizontalScroll(e, 'left')}>❮</button>
+            <div className="md-related-grid md-carousel-track">
+              {relatedMovies.map((item, index) => (
+                <button
+                  key={item.id + "-" + index}
+                  type="button"
+                  className="md-related-card"
+                  onClick={() => handleOpenRelatedMovie(item)}
+                >
+                  <img src={item.poster} alt={item.title} />
+                  <div className="md-related-card__body">
+                    <strong>{item.title}</strong>
+                    <span className="md-related-card__cta">Xem thêm</span>
+                    <span>{[item.genre, `${item.duration} phút`].filter(Boolean).join(" • ")}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+            <button className="md-carousel-btn md-carousel-next" onClick={(e) => handleHorizontalScroll(e, 'right')}>❯</button>
           </div>
         </section>
       ) : null}

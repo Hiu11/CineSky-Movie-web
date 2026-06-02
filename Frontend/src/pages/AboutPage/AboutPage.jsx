@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import "../HomePage/HomePage.css";
 import "./AboutPage.css";
@@ -63,6 +63,24 @@ const cinemaMission = [
     number: "03",
     title: "Ưu đãi theo hạng thành viên",
     description: "Silver, Gold và Diamond có voucher riêng, ưu đãi sinh nhật và combo tiết kiệm cho các buổi xem phim thường xuyên.",
+  },
+];
+
+const cinemaTech = [
+  {
+    name: "IMAX Laser",
+    desc: "Độ phân giải 4K sắc nét gấp đôi máy chiếu thường, kết hợp độ tương phản sâu thẳm.",
+    icon: "✨",
+  },
+  {
+    name: "Dolby Atmos",
+    desc: "Hệ thống âm thanh vòm 360 độ siêu thực, cảm nhận tiếng động đa chiều quanh bạn.",
+    icon: "🔊",
+  },
+  {
+    name: "Ghế Bọc Da Cao Cấp",
+    desc: "Êm ái, ôm sát cơ thể với không gian rộng rãi để bạn thoải mái suốt 3 giờ đồng hồ.",
+    icon: "💺",
   },
 ];
 
@@ -136,13 +154,25 @@ const AboutPage = () => {
     );
 
     revealItems.forEach((item) => observer.observe(item));
-    return () => observer.disconnect();
+
+    const handleScroll = () => {
+      if (page) {
+        page.style.setProperty("--scroll", window.scrollY);
+        page.style.setProperty("--scroll-vh", window.scrollY / window.innerHeight);
+      }
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("scroll", handleScroll);
+    };
   }, []);
 
 
   return (
     <main className="about-page" ref={pageRef}>
-      <div className="home-cinematic-backdrop" aria-hidden="true">
+      <div className="home-cinematic-backdrop about-parallax-bg" aria-hidden="true">
         <div className="home-cinematic-backdrop__grain"></div>
         <div className="home-cinematic-backdrop__light home-cinematic-backdrop__light--gold"></div>
         <div className="home-cinematic-backdrop__light home-cinematic-backdrop__light--blue"></div>
@@ -233,6 +263,24 @@ const AboutPage = () => {
               <strong>{item.number}</strong>
               <h3>{item.title}</h3>
               <p>{item.description}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+
+      <section className="about-cinema-block about-cinema-block--tech" style={{ marginTop: '24px' }}>
+        <div className="about-section-heading about-section-heading--center">
+          <span className="about-kicker">Công nghệ rạp chiếu</span>
+          <h2>Trải nghiệm âm thanh và hình ảnh đạt chuẩn quốc tế tại mọi phòng chiếu CineSky.</h2>
+        </div>
+
+        <div className="about-tech-grid">
+          {cinemaTech.map((item) => (
+            <article key={item.name} className="about-tech-card">
+              <div className="about-tech-card__glow"></div>
+              <span className="about-tech-icon">{item.icon}</span>
+              <h3>{item.name}</h3>
+              <p>{item.desc}</p>
             </article>
           ))}
         </div>

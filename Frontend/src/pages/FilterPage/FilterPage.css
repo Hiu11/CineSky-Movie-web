@@ -150,7 +150,6 @@
   gap: 10px;
   overflow-x: auto;
   padding: 4px 4px 10px;
-  scrollbar-width: none; /* Firefox */
 }
 
 .filter-tags-scroll::-webkit-scrollbar {
@@ -707,16 +706,28 @@
 
   .filter-dropdowns-grid {
     width: 100%;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
   }
 
   .filter-dropdown-container {
     width: 100%;
+    gap: 4px;
+  }
+  
+  .filter-dropdown-container label {
+    font-size: 11px;
+    margin-bottom: 2px;
+  }
+
+  .filter-control {
+    border-radius: 12px;
   }
 
   .custom-select {
-    border-radius: 20px;
-    padding: 14px 42px 14px 16px;
+    border-radius: 12px;
+    padding: 10px 32px 10px 12px;
+    font-size: 12px;
   }
 
   .filter-view-container .movie-grid-container {

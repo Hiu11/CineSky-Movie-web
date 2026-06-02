@@ -87,6 +87,12 @@ export default function BookingSuccess() {
                 <small>Ghế ngồi</small>
                 <strong>{receipt.seatNumbers?.join(", ") || "Đang cập nhật"}</strong>
               </div>
+              {receipt.fnbItems?.length > 0 && (
+                <div className="booking-success-ticket__item">
+                  <small>Bắp nước</small>
+                  <strong>{receipt.fnbItems.map(i => `${i.quantity}x ${i.name}`).join(", ")}</strong>
+                </div>
+              )}
               <div className="booking-success-ticket__item">
                 <small>Phương thức</small>
                 <strong>{receipt.paymentLabel || "Card / bank"}</strong>

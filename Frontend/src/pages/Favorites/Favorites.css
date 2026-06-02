@@ -1,10 +1,8 @@
 .favorites-page {
   min-height: 100vh;
   padding-bottom: 80px;
-  background:
-    radial-gradient(circle at 15% 15%, rgba(124, 58, 237, 0.15), transparent 25%),
-    radial-gradient(circle at 85% 10%, rgba(247, 180, 0, 0.12), transparent 25%),
-    linear-gradient(180deg, rgba(8, 10, 20, 0.98), rgba(4, 5, 10, 1));
+  position: relative;
+  z-index: 1;
   color: #fff;
   font-family: "Outfit", "Inter", sans-serif;
   overflow: hidden;

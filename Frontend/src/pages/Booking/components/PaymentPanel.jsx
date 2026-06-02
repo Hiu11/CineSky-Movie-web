@@ -24,7 +24,7 @@ export default function PaymentPanel({
     <section className="booking-page__panel booking-page__panel--payment">
       <div className="booking-page__panel-header booking-page__panel-header--split">
         <div>
-          <span className="booking-page__eyebrow">Bước 4</span>
+          <span className="booking-page__eyebrow">Bước 5</span>
           <h2>Chọn thanh toán</h2>
         </div>
         <p>Giao diện thử nghiệm mô phỏng luồng chọn cổng thanh toán và thông tin xác nhận.</p>

@@ -1,4 +1,4 @@
-﻿import mongoose from "mongoose";
+import mongoose from "mongoose";
 
 const bookingSchema = new mongoose.Schema(
   {
@@ -47,6 +47,17 @@ const bookingSchema = new mongoose.Schema(
     },
     seatNumbers: {
       type: [String],
+      default: [],
+    },
+    fnbItems: {
+      type: [
+        {
+          id: String,
+          name: String,
+          price: Number,
+          quantity: Number,
+        }
+      ],
       default: [],
     },
     totalPrice: {

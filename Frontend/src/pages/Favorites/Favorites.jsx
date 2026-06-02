@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import EmptyState from "../../components/EmptyState/EmptyState";
 import { getMyFavorites, removeMyFavorite } from "../../services/movieService";
+import CinematicBackdrop from "../../components/CinematicBackdrop/CinematicBackdrop";
 import "./Favorites.css";
 
 const SKELETON_COUNT = 8;
@@ -67,6 +68,8 @@ export default function Favorites({ showToast }) {
   };
 
   return (
+    <>
+    <CinematicBackdrop />
     <main className="favorites-page">
       {/* Hero */}
       <section className="favorites-hero">
@@ -142,5 +145,6 @@ export default function Favorites({ showToast }) {
         )}
       </section>
     </main>
+    </>
   );
 }

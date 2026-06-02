@@ -45,21 +45,23 @@
 .promotion-card,
 .promotions-combos {
   position: relative;
-  border: 1px solid rgba(247, 180, 0, 0.26);
-  border-radius: 8px;
-  background: rgba(16, 19, 31, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.05);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
   box-shadow:
-    0 24px 64px rgba(0, 0, 0, 0.42),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+    0 24px 64px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  transition: all 0.3s ease;
 }
 
 .promotions-hero > div:first-child {
   padding: 34px;
   overflow: hidden;
   background:
-    radial-gradient(circle at 12% 18%, rgba(250, 204, 21, 0.18), transparent 28%),
-    linear-gradient(135deg, rgba(18, 24, 38, 0.96), rgba(8, 11, 23, 0.98) 52%, rgba(15, 23, 42, 0.96)),
-    #080b16;
+    radial-gradient(circle at 12% 18%, rgba(250, 204, 21, 0.15), transparent 40%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
 }
 
 .promotions-lottie {
@@ -128,9 +130,9 @@
   padding: 32px 34px;
   overflow: hidden;
   background:
-    radial-gradient(circle at 0 50%, transparent 0 22px, rgba(255, 255, 255, 0.08) 23px 24px, transparent 25px),
-    radial-gradient(circle at 100% 50%, transparent 0 22px, rgba(255, 255, 255, 0.08) 23px 24px, transparent 25px),
-    linear-gradient(135deg, #f7b400 0 36%, #c2410c 36% 38%, #1f2937 38% 100%);
+    radial-gradient(circle at 0 50%, transparent 0 22px, rgba(255, 255, 255, 0.15) 23px 24px, transparent 25px),
+    radial-gradient(circle at 100% 50%, transparent 0 22px, rgba(255, 255, 255, 0.15) 23px 24px, transparent 25px),
+    linear-gradient(135deg, #f7b400 0 36%, #c2410c 36% 38%, rgba(255, 255, 255, 0.08) 38% 100%);
   color: #111827;
   transform-origin: 50% 55%;
   animation:
@@ -204,18 +206,17 @@
   gap: 8px;
   padding: 24px 24px 28px;
   overflow: hidden;
-  background-color: var(--voucher-bg, #111827);
-  background-image:
-    linear-gradient(135deg, var(--voucher-glow, rgba(250, 204, 21, 0.14)), transparent 34%),
-    radial-gradient(circle, rgba(255, 255, 255, 0.18) 0 1px, transparent 1px),
-    repeating-linear-gradient(0deg, transparent 0 20px, rgba(255, 255, 255, 0.045) 20px 21px);
-  background-size: auto, 18px 18px, 100% 42px;
+  background: var(--voucher-bg, rgba(255, 255, 255, 0.05));
   border-color: var(--voucher-border, rgba(247, 180, 0, 0.26));
   box-shadow:
-    0 24px 64px rgba(0, 0, 0, 0.42),
+    0 16px 40px rgba(0, 0, 0, 0.2),
     0 0 42px var(--voucher-shadow, rgba(250, 204, 21, 0.08)),
-    inset 0 0 0 7px var(--voucher-rail, rgba(255, 255, 255, 0.05)),
-    inset 0 -84px 0 rgba(2, 6, 23, 0.32);
+    inset 0 0 0 7px var(--voucher-rail, rgba(255, 255, 255, 0.1));
+}
+.promotion-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.4), 0 0 60px var(--voucher-shadow);
+  border-color: rgba(255, 255, 255, 0.4);
 }
 
 .promotion-card::before,
@@ -249,7 +250,7 @@
 }
 
 .promotion-card--silver {
-  --voucher-bg: #142033;
+  --voucher-bg: linear-gradient(135deg, rgba(203, 213, 225, 0.15), rgba(203, 213, 225, 0.05));
   --voucher-border: rgba(203, 213, 225, 0.62);
   --voucher-dash: rgba(203, 213, 225, 0.48);
   --voucher-rail: rgba(226, 232, 240, 0.1);
@@ -258,7 +259,7 @@
 }
 
 .promotion-card--gold {
-  --voucher-bg: #19120a;
+  --voucher-bg: linear-gradient(135deg, rgba(250, 204, 21, 0.15), rgba(250, 204, 21, 0.05));
   --voucher-border: rgba(250, 204, 21, 0.72);
   --voucher-dash: rgba(250, 204, 21, 0.54);
   --voucher-rail: rgba(250, 204, 21, 0.13);
@@ -267,7 +268,7 @@
 }
 
 .promotion-card--diamond {
-  --voucher-bg: #071827;
+  --voucher-bg: linear-gradient(135deg, rgba(56, 189, 248, 0.15), rgba(56, 189, 248, 0.05));
   --voucher-border: rgba(56, 189, 248, 0.74);
   --voucher-dash: rgba(56, 189, 248, 0.52);
   --voucher-rail: rgba(56, 189, 248, 0.13);

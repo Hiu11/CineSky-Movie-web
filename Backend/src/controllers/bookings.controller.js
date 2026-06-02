@@ -1,4 +1,4 @@
-﻿import mongoose from "mongoose";
+import mongoose from "mongoose";
 import crypto from "crypto";
 import BookingModel from "../models/booking.model.js";
 import MovieModel from "../models/movie.model.js";
@@ -154,6 +154,7 @@ const serializeBooking = (booking, showtime, movie) => ({
   displayDate: booking.screeningDateLabel || showtime?.displayDate || "",
   displayTime: showtime?.displayTime || "",
   seatNumbers: booking.seatNumbers,
+  fnbItems: booking.fnbItems || [],
   totalPrice: booking.totalPrice,
   paymentMethod: booking.paymentMethod || "bank",
   paymentProvider: booking.paymentProvider || "",
@@ -267,6 +268,7 @@ const bookingsController = {
         screeningDate = "",
         screeningDateLabel = "",
         seatNumbers = [],
+        fnbItems = [],
         paymentMethod = "bank",
         paymentProvider = "",
         paymentReference = "",
@@ -391,7 +393,8 @@ const bookingsController = {
           screeningDate: String(screeningDate).trim(),
           screeningDateLabel: String(screeningDateLabel).trim(),
           seatNumbers,
-          totalPrice: reservedShowtime.price * seatNumbers.length,
+          fnbItems,
+          totalPrice: reservedShowtime.price * seatNumbers.length + fnbItems.reduce((acc, i) => acc + i.price * i.quantity, 0),
           paymentMethod,
           paymentProvider: String(paymentProvider).trim(),
           paymentReference: String(paymentReference).trim(),

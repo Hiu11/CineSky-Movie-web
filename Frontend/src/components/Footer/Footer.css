@@ -4,7 +4,7 @@
   border-top: 1px solid rgba(247, 180, 0, 0.15);
   box-shadow: 0 -15px 45px rgba(0, 0, 0, 0.35);
   padding: 60px 5% 30px;
-  margin-top: 50px;
+  margin-top: auto;
   overflow: hidden;
 }
 
@@ -232,7 +232,7 @@
 
 @media (max-width: 540px) {
   .complex-footer {
-    margin-top: 28px;
+    margin-top: auto !important;
     padding: 22px 18px 18px !important;
     background: linear-gradient(180deg, #121520 0%, #07080e 100%);
   }

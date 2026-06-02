@@ -80,6 +80,8 @@
   display: grid;
   gap: 24px;
   color: #fff;
+  position: relative;
+  z-index: 1;
 }
 
 .history-hero,
@@ -696,7 +698,7 @@
 
 /* Final ticket pastel palette */
 .history-list {
-  background: #fffaf0 !important;
+  background: transparent !important;
 }
 
 .history-ticket.history-ticket--active,
@@ -827,7 +829,7 @@
 .history-ticket__cutout,
 .history-ticket__cutout--top,
 .history-ticket__cutout--bottom {
-  background: #fffaf0 !important;
+  background: transparent !important;
   border-color: rgba(213, 194, 158, 0.9) !important;
   box-shadow: none !important;
 }
@@ -920,7 +922,7 @@
 
 /* Ticket light color final override */
 .history-list {
-  background: #fffaf0 !important;
+  background: transparent !important;
 }
 
 .history-ticket.history-ticket--active,
@@ -968,7 +970,7 @@
 .history-ticket__cutout,
 .history-ticket__cutout--top,
 .history-ticket__cutout--bottom {
-  background: #fffaf0 !important;
+  background: transparent !important;
   border-color: rgba(213, 194, 158, 0.9) !important;
   box-shadow: none !important;
 }
@@ -991,62 +993,15 @@
   opacity: 1 !important;
 }
 
-body:has(.history-page) {
-  background: #fffaf0;
-}
-
-body:has(.history-page) .main-header::before {
-  background: rgba(9, 10, 24, 0.86);
-  -webkit-backdrop-filter: blur(12px) saturate(120%);
-  backdrop-filter: blur(12px) saturate(120%);
-}
-
-body:has(.history-page) .movie-tabs-navigation {
-  background: transparent;
-  -webkit-backdrop-filter: blur(16px) saturate(120%);
-  backdrop-filter: blur(16px) saturate(120%);
-}
-
-body:has(.history-page) .tab-btn {
-  background: rgba(255, 251, 242, 0.9);
-  border-color: rgba(214, 199, 170, 0.78);
-  color: #2b2e3a;
-  box-shadow: 0 12px 28px rgba(49, 38, 21, 0.1);
-}
-
-body:has(.history-page) .tab-btn.active,
-body:has(.history-page) .nav-dropdown.active .nav-dropdown__trigger,
-body:has(.history-page) .nav-direct.active {
-  background: rgba(255, 255, 255, 0.96);
-  border-color: rgba(20, 22, 32, 0.48);
-  color: #171923;
-}
+/* Removed header and body background overrides */
 
 .history-page {
-  background: #fffaf0;
-  color: #181b25;
+  position: relative;
+  z-index: 1;
+  color: #fff;
 }
 
-.history-hero,
-.history-empty-card {
-  background: rgba(255, 251, 242, 0.96) !important;
-  border-color: rgba(229, 216, 190, 0.9) !important;
-  box-shadow: 0 24px 54px rgba(49, 38, 21, 0.14) !important;
-}
-
-.history-hero h1,
-.history-empty-card h1,
-.history-empty-card h2,
-.history-stats strong {
-  color: #171923 !important;
-}
-
-.history-hero p,
-.history-empty-card p,
-.history-loading,
-.history-inline-message {
-  color: rgba(35, 38, 50, 0.68) !important;
-}
+/* Removed light mode text and hero overrides */
 
 .history-stats > div:not(.history-membership),
 .history-ticket {
@@ -1076,7 +1031,7 @@ body:has(.history-page) .nav-direct.active {
 }
 
 .history-ticket__cutout {
-  background: #fffaf0 !important;
+  background: transparent !important;
 }
 
 .history-ticket__divider {
@@ -1183,7 +1138,7 @@ body:has(.history-page) .nav-direct.active {
 }
 
 .history-list {
-  background: #fffaf0 !important;
+  background: transparent !important;
 }
 
 .history-ticket.history-ticket--active,
@@ -1256,7 +1211,7 @@ body:has(.history-page) .nav-direct.active {
 .history-ticket__cutout,
 .history-ticket__cutout--top,
 .history-ticket__cutout--bottom {
-  background: #fffaf0 !important;
+  background: transparent !important;
   border-color: rgba(213, 194, 158, 0.9) !important;
   box-shadow: none !important;
 }
@@ -2551,7 +2506,7 @@ body:has(.history-page) .nav-direct.active {
 
 /* Final ticket pastel palette */
 .history-list {
-  background: #fffaf0 !important;
+  background: transparent !important;
 }
 
 .history-ticket.history-ticket--active,
@@ -2676,7 +2631,7 @@ body:has(.history-page) .nav-direct.active {
 .history-ticket__cutout,
 .history-ticket__cutout--top,
 .history-ticket__cutout--bottom {
-  background: #fffaf0 !important;
+  background: transparent !important;
   border-color: rgba(213, 194, 158, 0.9) !important;
   box-shadow: none !important;
 }
@@ -2717,13 +2672,13 @@ body:has(.history-page) .nav-direct.active {
 .history-ticket__cutout,
 .history-ticket__cutout--top,
 .history-ticket__cutout--bottom {
-  background: #fffaf0 !important;
+  background: transparent !important;
   border: 1px solid rgba(213, 194, 158, 0.8) !important;
   box-shadow: none !important;
 }
 
 .history-ticket__divider {
-  background: #fffaf0 !important;
+  background: transparent !important;
   box-shadow: none !important;
 }
 
@@ -2798,7 +2753,7 @@ body:has(.history-page) .nav-direct.active {
 .history-ticket__cutout--bottom {
   width: 22px !important;
   height: 22px !important;
-  background: #fffaf0 !important;
+  background: transparent !important;
   border: 1px solid rgba(213, 194, 158, 0.86) !important;
   box-shadow: none !important;
 }
@@ -3186,7 +3141,6 @@ body:has(.history-page) .nav-direct.active {
 
 .history-stats > div:not(.history-membership) span {
   margin-top: 10px !important;
-  color: rgba(24, 28, 39, 0.68) !important;
   font-weight: 800 !important;
 }
 

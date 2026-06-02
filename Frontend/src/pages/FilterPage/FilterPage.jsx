@@ -30,6 +30,8 @@ const FilterPage = ({ searchQuery = "" }) => {
   const [selectedGenre, setSelectedGenre] = useState(() => searchParams.get("genre") || "");
   const [selectedCountry, setSelectedCountry] = useState(() => searchParams.get("country") || "");
   const [selectedRating, setSelectedRating] = useState(() => searchParams.get("rating") || "");
+  const [selectedDirector, setSelectedDirector] = useState(() => searchParams.get("director") || "");
+  const [selectedSort, setSelectedSort] = useState(() => searchParams.get("sort") || "latest");
   
   const [movies, setMovies] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -41,6 +43,8 @@ const FilterPage = ({ searchQuery = "" }) => {
     setSelectedGenre(searchParams.get("genre") || "");
     setSelectedCountry(searchParams.get("country") || "");
     setSelectedRating(searchParams.get("rating") || "");
+    setSelectedDirector(searchParams.get("director") || "");
+    setSelectedSort(searchParams.get("sort") || "latest");
   }, [searchParams]);
 
   // Cập nhật URL search parameters mỗi khi bộ lọc thay đổi
@@ -49,13 +53,15 @@ const FilterPage = ({ searchQuery = "" }) => {
     if (selectedGenre) params.genre = selectedGenre;
     if (selectedCountry) params.country = selectedCountry;
     if (selectedRating) params.rating = selectedRating;
+    if (selectedDirector) params.director = selectedDirector;
+    if (selectedSort && selectedSort !== "latest") params.sort = selectedSort;
     
     // Giữ lại các param khác như q/search nếu có
     const currentQ = searchParams.get("q") || searchParams.get("search");
     if (currentQ) params.q = currentQ;
 
     setSearchParams(params, { replace: true });
-  }, [selectedGenre, selectedCountry, selectedRating, setSearchParams, searchParams]);
+  }, [selectedGenre, selectedCountry, selectedRating, selectedDirector, selectedSort, setSearchParams, searchParams]);
 
   useEffect(() => {
     let isMounted = true;
@@ -110,6 +116,14 @@ const FilterPage = ({ searchQuery = "" }) => {
     return Array.from(set);
   }, [movies]);
 
+  const directorOptions = useMemo(() => {
+    const set = new Set();
+    movies.forEach((movie) => {
+      if (movie.director) set.add(movie.director);
+    });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "vi"));
+  }, [movies]);
+
   const normalizedQuery = normalizeText(searchQuery.trim());
 
   const filteredMovies = movies.filter((movie) => {
@@ -117,20 +131,34 @@ const FilterPage = ({ searchQuery = "" }) => {
     const matchesGenre = !selectedGenre || movie.genres.includes(selectedGenre);
     const matchesCountry = !selectedCountry || movie.country === selectedCountry;
     const matchesRating = !selectedRating || movie.rating === selectedRating;
+    const matchesDirector = !selectedDirector || movie.director === selectedDirector;
 
-    return matchesQuery && matchesGenre && matchesCountry && matchesRating;
+    return matchesQuery && matchesGenre && matchesCountry && matchesRating && matchesDirector;
   });
 
-  const pageCount = Math.max(1, Math.ceil(filteredMovies.length / MOVIES_PER_PAGE));
+  const finalMovies = useMemo(() => {
+    const arr = [...filteredMovies];
+    switch (selectedSort) {
+      case "rating_desc":
+        return arr.sort((a, b) => (b.averageRating || 0) - (a.averageRating || 0));
+      case "hot_desc":
+        return arr.sort((a, b) => (b.popularityScore || 0) - (a.popularityScore || 0));
+      case "latest":
+      default:
+        return arr;
+    }
+  }, [filteredMovies, selectedSort]);
+
+  const pageCount = Math.max(1, Math.ceil(finalMovies.length / MOVIES_PER_PAGE));
   const safeCurrentPage = Math.min(currentPage, pageCount);
-  const paginatedMovies = filteredMovies.slice(
+  const paginatedMovies = finalMovies.slice(
     (safeCurrentPage - 1) * MOVIES_PER_PAGE,
     safeCurrentPage * MOVIES_PER_PAGE
   );
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [normalizedQuery, selectedGenre, selectedCountry, selectedRating]);
+  }, [normalizedQuery, selectedGenre, selectedCountry, selectedRating, selectedDirector, selectedSort]);
 
   const handlePageChange = (nextPage) => {
     setCurrentPage(nextPage);
@@ -142,13 +170,15 @@ const FilterPage = ({ searchQuery = "" }) => {
     selectedGenre ? { key: "genre", label: `Thể loại: ${selectedGenre}` } : null,
     selectedCountry ? { key: "country", label: `Quốc gia: ${selectedCountry}` } : null,
     selectedRating ? { key: "rating", label: `Độ tuổi: ${selectedRating}` } : null,
+    selectedDirector ? { key: "director", label: `Đạo diễn: ${selectedDirector}` } : null,
   ].filter(Boolean);
-  const canClearSelectedFilters = Boolean(selectedGenre || selectedCountry || selectedRating);
+  const canClearSelectedFilters = Boolean(selectedGenre || selectedCountry || selectedRating || selectedDirector);
 
   const handleClearAll = () => {
     setSelectedGenre("");
     setSelectedCountry("");
     setSelectedRating("");
+    setSelectedDirector("");
   };
 
   const handleRemoveFilter = (filterKey) => {
@@ -162,6 +192,10 @@ const FilterPage = ({ searchQuery = "" }) => {
 
     if (filterKey === "rating") {
       setSelectedRating("");
+    }
+
+    if (filterKey === "director") {
+      setSelectedDirector("");
     }
   };
 
@@ -236,6 +270,31 @@ const FilterPage = ({ searchQuery = "" }) => {
                       {rating}
                     </option>
                   ))}
+                </select>
+              </div>
+            </div>
+            
+            <div className="filter-dropdown-container">
+              <label>Đạo diễn</label>
+              <div className="filter-control">
+                <select value={selectedDirector} onChange={(event) => setSelectedDirector(event.target.value)} className="custom-select">
+                  <option value="">Tất cả đạo diễn</option>
+                  {directorOptions.map((director) => (
+                    <option key={director} value={director}>
+                      {director}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="filter-dropdown-container">
+              <label>Sắp xếp theo</label>
+              <div className="filter-control">
+                <select value={selectedSort} onChange={(event) => setSelectedSort(event.target.value)} className="custom-select">
+                  <option value="latest">Mới nhất</option>
+                  <option value="hot_desc">Độ hot cao nhất</option>
+                  <option value="rating_desc">Đánh giá cao nhất</option>
                 </select>
               </div>
             </div>

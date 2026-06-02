@@ -3,7 +3,7 @@ import { LOCALIZED_PAYMENT_METHODS } from "../hooks/useBookingFlow";
 export default function BookingSummary({
   movie, selectedShowtime, selectedScreeningDateLabel, selectedSeats,
   selectedPaymentMethod, selectedProvider,
-  ticketSubtotal, serviceFee, finalTotal,
+  ticketSubtotal, serviceFee, fnbTotal, selectedFnB, finalTotal,
   isAuthenticated, isSubmitting, isPaymentExpired, isPaymentFormReady, isComingSoon,
   submitMessage, isDesktopViewport, isSummaryCollapsed, setIsSummaryCollapsed,
   onConfirm, formatCurrency,
@@ -59,10 +59,24 @@ export default function BookingSummary({
               <span>Thanh toán</span>
               <strong>{[paymentMethodLabel, selectedProvider].filter(Boolean).join(" • ")}</strong>
             </div>
+            {selectedFnB?.length > 0 && (
+              <div className="booking-page__summary-row booking-page__summary-row--wide">
+                <span>Bắp nước</span>
+                <strong>
+                  {selectedFnB.map(i => `${i.quantity}x ${i.name}`).join(", ")}
+                </strong>
+              </div>
+            )}
             <div className="booking-page__summary-row">
               <span>Tiền vé</span>
               <strong>{formatCurrency(ticketSubtotal)} VND</strong>
             </div>
+            {selectedFnB?.length > 0 && (
+              <div className="booking-page__summary-row">
+                <span>Tiền bắp nước</span>
+                <strong>{formatCurrency(fnbTotal)} VND</strong>
+              </div>
+            )}
             <div className="booking-page__summary-row">
               <span>Phí dịch vụ</span>
               <strong>{formatCurrency(serviceFee)} VND</strong>

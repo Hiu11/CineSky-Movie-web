@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useLocation } from "react-router-dom";
 import { normalizeAuthUser } from "../../services/authService";
 import {
@@ -322,6 +322,7 @@ const FeedbackPage = ({ showToast }) => {
 
       <div className="feedback-shell">
         <section className={"feedback-card" + (isAdmin ? " feedback-card--admin" : "")}>
+          <div className="feedback-shimmer" aria-hidden="true" />
           <div className="feedback-hero">
             <div className="feedback-header">
               <h2>{isAdmin ? "Phản hồi góp ý" : "Góp ý với CineSky"}</h2>

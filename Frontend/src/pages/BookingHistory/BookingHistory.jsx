@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { cancelBooking, getBookingHistory } from "../../services/movieService";
 import { normalizeAuthUser, updateStoredUser } from "../../services/authService";
+import CinematicBackdrop from "../../components/CinematicBackdrop/CinematicBackdrop";
 import "./BookingHistory.css";
 
 const getSessionUser = () => {
@@ -216,7 +217,9 @@ export default function BookingHistory() {
 
   if (!user) {
     return (
-      <main className="history-page">
+      <>
+        <CinematicBackdrop />
+        <main className="history-page">
         <section className="history-empty-card">
           <span className="history-kicker">Lịch sử vé</span>
           <h1>Đăng nhập để xem lịch sử đặt vé.</h1>
@@ -228,11 +231,14 @@ export default function BookingHistory() {
           </div>
         </section>
       </main>
+      </>
     );
   }
 
   return (
-    <main className="history-page">
+    <>
+      <CinematicBackdrop />
+      <main className="history-page">
       <section className="history-hero">
         <div>
           <span className="history-kicker">Lịch sử vé</span>
@@ -336,6 +342,12 @@ export default function BookingHistory() {
                       <small>Ghế ngồi</small>
                       <span>{(booking.seatNumbers || []).join(", ") || "Chưa có ghế"}</span>
                     </div>
+                    {booking.fnbItems?.length > 0 && (
+                      <div className="history-ticket__meta-item">
+                        <small>Bắp nước</small>
+                        <span>{booking.fnbItems.map(i => `${i.quantity}x ${i.name}`).join(", ")}</span>
+                      </div>
+                    )}
                     <div className="history-ticket__meta-item">
                       <small>Thanh toán</small>
                       <span className="history-ticket__price">{Number(booking.totalPrice || 0).toLocaleString("vi-VN")} VND</span>
@@ -403,5 +415,6 @@ export default function BookingHistory() {
         </div>
       ) : null}
     </main>
+    </>
   );
 }

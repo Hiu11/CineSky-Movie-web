@@ -5,6 +5,7 @@ import BookingProgress from "./components/BookingProgress";
 import CinemaSelector from "./components/CinemaSelector";
 import ShowtimeSelector from "./components/ShowtimeSelector";
 import SeatMap from "./components/SeatMap";
+import FnBSelector from "./components/FnBSelector";
 import PaymentPanel from "./components/PaymentPanel";
 import BookingHistoryPanel from "./components/BookingHistoryPanel";
 import BookingSummary from "./components/BookingSummary";
@@ -79,6 +80,15 @@ export default function Booking({ showToast }) {
             isDesktopViewport={flow.isDesktopViewport}
           />
 
+          {flow.selectedSeats.length > 0 && (
+            <FnBSelector
+              selectedFnB={flow.selectedFnB}
+              onUpdateFnB={flow.handleUpdateFnB}
+              formatCurrency={flow.formatCurrency}
+              isDesktopViewport={flow.isDesktopViewport}
+            />
+          )}
+
           <PaymentPanel
             selectedPaymentMethod={flow.selectedPaymentMethod}
             setSelectedPaymentMethod={flow.setSelectedPaymentMethod}
@@ -117,6 +127,8 @@ export default function Booking({ showToast }) {
           selectedProvider={flow.selectedProvider}
           ticketSubtotal={flow.ticketSubtotal}
           serviceFee={flow.serviceFee}
+          fnbTotal={flow.fnbTotal}
+          selectedFnB={flow.selectedFnB}
           finalTotal={flow.finalTotal}
           isAuthenticated={flow.isAuthenticated}
           isSubmitting={flow.isSubmitting}

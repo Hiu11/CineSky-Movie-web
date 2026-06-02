@@ -13,7 +13,7 @@ export default function BookingHistoryPanel({ sessionUser, isHistoryLoading, boo
     <section className="booking-page__panel booking-page__panel--history">
       <div className="booking-page__panel-header booking-page__panel-header--split">
         <div>
-          <span className="booking-page__eyebrow">Bước 5</span>
+          <span className="booking-page__eyebrow">Bước 6</span>
           <h2>Vé đã đặt gần đây</h2>
         </div>
         <p>Xem lại những giao dịch gần nhất trên tài khoản hiện tại để kiểm tra lịch sử đặt vé.</p>

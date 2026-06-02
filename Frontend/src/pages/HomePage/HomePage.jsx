@@ -965,34 +965,40 @@ const HomePage = ({ searchQuery = "" }) => {
       </section>
 
       {posterShowcaseMovies.length > 0 ? (
-        <section className="home-poster-feature" data-reveal>
-          <div className="home-poster-feature__art" aria-label="Poster phim nổi bật">
-            {posterShowcaseMovies.map((movie, index) => (
-              <Link
-                key={movie.id}
-                to={`/movie/${movie.id}?tab=now`}
-                className="home-poster-feature__slice"
-                style={{ "--slice-index": index }}
-              >
-                <img src={toBackgroundUrl(movie.poster)} alt={movie.title} />
-              </Link>
-            ))}
+        <section className="home-section" data-reveal>
+          <div className="home-section__header">
+            <div>
+              <h2>Phim nổi bật</h2>
+            </div>
           </div>
+          <div className="home-poster-feature">
+            <div className="home-poster-feature__art" aria-label="Poster phim nổi bật">
+              {posterShowcaseMovies.map((movie, index) => (
+                <Link
+                  key={movie.id}
+                  to={`/movie/${movie.id}?tab=now`}
+                  className="home-poster-feature__slice"
+                  style={{ "--slice-index": index }}
+                >
+                  <img src={toBackgroundUrl(movie.poster)} alt={movie.title} />
+                </Link>
+              ))}
+            </div>
 
-          <div className="home-poster-feature__content">
-            <span className="home-kicker">Phim nổi bật</span>
-            <h2>Những bộ phim đáng chú ý đang chờ bạn chọn suất.</h2>
-            <p>
-              Khám phá nhanh các tựa phim nổi bật tại CineSky, từ poster, trailer đến thông tin cơ bản. Khi đã tìm được bộ phim hợp mood hôm nay, bạn có thể chuyển tiếp đến chi tiết phim hoặc đặt vé trong vài thao tác.
-            </p>
+            <div className="home-poster-feature__content">
+              <h2>Những bộ phim đáng chú ý đang chờ bạn chọn suất.</h2>
+              <p>
+                Khám phá nhanh các tựa phim nổi bật tại CineSky, từ poster, trailer đến thông tin cơ bản. Khi đã tìm được bộ phim hợp mood hôm nay, bạn có thể chuyển tiếp đến chi tiết phim hoặc đặt vé trong vài thao tác.
+              </p>
 
-            <div className="home-poster-feature__actions">
-              <Link to="/?tab=now" className="home-solid-link">
-                Xem phim đang chiếu
-              </Link>
-              <Link to="/filter" className="home-ghost-link">
-                Khám phá tất cả phim
-              </Link>
+              <div className="home-poster-feature__actions">
+                <Link to="/?tab=now" className="home-solid-link">
+                  Xem phim đang chiếu
+                </Link>
+                <Link to="/filter" className="home-ghost-link">
+                  Khám phá tất cả phim
+                </Link>
+              </div>
             </div>
           </div>
         </section>

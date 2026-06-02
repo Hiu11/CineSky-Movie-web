@@ -5,6 +5,7 @@ import {
   markAllNotificationsAsRead,
   markNotificationAsRead,
 } from "../../services/notificationService";
+import CinematicBackdrop from "../../components/CinematicBackdrop/CinematicBackdrop";
 import "./Notifications.css";
 
 const formatDateTime = (value) => {
@@ -89,6 +90,8 @@ export default function Notifications() {
   };
 
   return (
+    <>
+    <CinematicBackdrop />
     <main className="notifications-page">
       <section className="notifications-shell">
         <div className="notifications-head">
@@ -129,5 +132,6 @@ export default function Notifications() {
         </div>
       </section>
     </main>
+    </>
   );
 }

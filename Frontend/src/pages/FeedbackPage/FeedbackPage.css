@@ -33,23 +33,43 @@
   padding: 300px 30px 72px;
   border-radius: 26px;
   background:
-    radial-gradient(circle at 50% 0%, rgba(247, 180, 0, 0.14), transparent 24%),
-    radial-gradient(circle at 12% 18%, rgba(255, 255, 255, 0.16), transparent 22%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(165, 172, 196, 0.06)),
-    linear-gradient(180deg, rgba(28, 27, 42, 0.66), rgba(12, 11, 18, 0.46));
-  border: 1px solid rgba(255, 255, 255, 0.24);
+    radial-gradient(circle at top right, rgba(247, 180, 0, 0.15), transparent 40%),
+    linear-gradient(145deg, rgba(20, 24, 40, 0.85), rgba(10, 12, 20, 0.95));
+  border: 1px solid rgba(255, 255, 255, 0.15);
   box-shadow:
-    0 28px 62px rgba(0, 0, 0, 0.38),
-    0 0 42px rgba(124, 58, 237, 0.18),
-    0 0 24px rgba(247, 180, 0, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.34),
-    inset 0 -1px 0 rgba(255, 255, 255, 0.08);
-  -webkit-backdrop-filter: blur(38px) saturate(190%);
-  backdrop-filter: blur(38px) saturate(190%);
+    0 24px 60px rgba(0, 0, 0, 0.4),
+    0 0 40px rgba(247, 180, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(180%);
   overflow: hidden;
   transform-origin: top center;
   will-change: transform, filter, max-height;
   animation: feedback-scroll-unroll 4.2s cubic-bezier(0.18, 0.78, 0.18, 1) both;
+}
+
+.feedback-card::after {
+  content: "";
+  /* ... this was replaced above, wait I don't want to break it... actually let's just append an overlay for the shimmer */
+}
+
+/* Shimmer overlay */
+.feedback-card > .feedback-shimmer {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent, rgba(247, 180, 0, 0.1), transparent);
+  background-size: 100% 200%;
+  animation: feedback-shimmer-scan 4.2s ease-in-out forwards;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 1;
+}
+
+@keyframes feedback-shimmer-scan {
+  0% { background-position: 50% -100%; opacity: 1; }
+  80% { background-position: 50% 200%; opacity: 1; }
+  100% { background-position: 50% 200%; opacity: 0; }
+}
 }
 
 .feedback-mascot {
@@ -114,16 +134,13 @@
   right: 0;
   top: 0;
   height: 42px;
-  border-radius: 999px;
+  border-radius: 26px 26px 0 0;
   background:
-    linear-gradient(90deg, #a77c55, #f2ddb4 18%, #b68b60 50%, #f5e4bd 82%, #a77c55),
-    #d7b075;
+    linear-gradient(90deg, #0f172a, #1e293b 20%, #334155 50%, #1e293b 80%, #0f172a);
+  border-bottom: 2px solid #f7b400;
   box-shadow:
-    -10px 0 0 #9b704d,
-    10px 0 0 #9b704d,
-    inset 0 1px 0 rgba(255, 255, 255, 0.42),
-    0 12px 22px rgba(30, 18, 10, 0.28),
-    0 0 26px rgba(247, 180, 0, 0.16);
+    inset 0 2px 4px rgba(255, 255, 255, 0.15),
+    0 8px 24px rgba(247, 180, 0, 0.25);
   pointer-events: none;
   z-index: 2;
 }
@@ -135,16 +152,13 @@
   right: 0;
   bottom: 0;
   height: 42px;
-  border-radius: 999px;
+  border-radius: 0 0 26px 26px;
   background:
-    linear-gradient(90deg, #a77c55, #f2ddb4 18%, #b68b60 50%, #f5e4bd 82%, #a77c55),
-    #d7b075;
+    linear-gradient(90deg, #0f172a, #1e293b 20%, #334155 50%, #1e293b 80%, #0f172a);
+  border-top: 2px solid #f7b400;
   box-shadow:
-    -10px 0 0 #9b704d,
-    10px 0 0 #9b704d,
-    inset 0 1px 0 rgba(255, 255, 255, 0.38),
-    0 -10px 20px rgba(30, 18, 10, 0.2),
-    0 0 24px rgba(247, 180, 0, 0.12);
+    inset 0 -2px 4px rgba(255, 255, 255, 0.15),
+    0 -8px 24px rgba(247, 180, 0, 0.25);
   pointer-events: none;
   z-index: 2;
 }
@@ -200,7 +214,23 @@
 }
 
 .feedback-card .feedback-submit {
-  animation-delay: 3.38s;
+  justify-self: center;
+  margin-top: 10px;
+  margin-bottom: 28px;
+  width: min(260px, 100%);
+  min-height: 48px;
+  border: none;
+  border-radius: 12px;
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #f7b400, #f2c14e);
+  color: #111;
+  font-weight: 800;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgba(247, 180, 0, 0.25);
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 .feedback-header {
@@ -428,11 +458,9 @@
 }
 
 .feedback-card .feedback-submit:hover {
-  transform: translateY(-1px);
-  filter: brightness(1.05);
-  box-shadow:
-    0 20px 38px rgba(124, 58, 237, 0.3),
-    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  transform: translateY(-2px);
+  filter: brightness(1.1);
+  box-shadow: 0 12px 30px rgba(247, 180, 0, 0.35);
 }
 
 .feedback-card .feedback-submit:disabled {
