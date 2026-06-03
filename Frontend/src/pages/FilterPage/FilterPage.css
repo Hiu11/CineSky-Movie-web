@@ -188,14 +188,13 @@
 
 .filter-dropdowns-grid {
   display: grid;
-  grid-template-columns: repeat(2, 260px);
+  grid-template-columns: repeat(4, minmax(180px, 1fr));
   gap: 16px;
-  width: fit-content;
-  max-width: 100%;
+  width: 100%;
 }
 
 .filter-dropdown-container {
-  width: 260px;
+  min-width: 0;
   display: grid;
   gap: 8px;
 }
