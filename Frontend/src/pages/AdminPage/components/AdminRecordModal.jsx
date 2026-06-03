@@ -159,7 +159,7 @@ export default function AdminRecordModal({
                           <button type="button" onClick={() => setForm({ ...form, poster: "" })}>
                             Xóa ảnh
                           </button>
-                          <small>{form.poster}</small>
+                          <small>{String(form.poster).length > 120 ? `${String(form.poster).slice(0, 120)}...` : form.poster}</small>
                         </div>
                       ) : (
                         <small>{isPosterUploading ? "Đang lưu ảnh vào database..." : "Chưa chọn poster. Ảnh sẽ được lưu vào MongoDB."}</small>
@@ -231,8 +231,8 @@ export default function AdminRecordModal({
                       <div className="admin-list-editor__grid">
                         {galleryItems.length > 0 ? galleryItems.map((item, index) => (
                           <span key={`${item}-${index}`} className="admin-list-card admin-gallery-card">
-                            <strong>{item.split('/').pop() || item}</strong>
-                            <small>{item}</small>
+                            <strong>{String(item).startsWith("data:image/") ? "Ảnh đã lưu" : item.split('/').pop() || item}</strong>
+                            <small>{String(item).length > 120 ? `${String(item).slice(0, 120)}...` : item}</small>
                             <button type="button" onClick={() => handleRemoveGallery(index)} aria-label={`Remove image ${index + 1}`}>Remove</button>
                           </span>
                         )) : <small>No gallery images yet.</small>}

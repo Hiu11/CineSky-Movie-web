@@ -823,15 +823,22 @@ export const movieFormToPayload = (form) => ({
 });
 
 export const formatDetailValue = (value) => {
+  const shorten = (item = "") => {
+    const text = String(item);
+    return text.length > 140 ? `${text.slice(0, 140)}...` : text;
+  };
+
   if (Array.isArray(value)) {
-    return value
+    const text = value
       .map((item) => (typeof item === "object" ? Object.values(item).filter(Boolean).join(": ") : item))
       .join(", ");
+
+    return shorten(text);
   }
 
   if (value && typeof value === "object") {
-    return Object.values(value).filter(Boolean).join(" • ");
+    return shorten(Object.values(value).filter(Boolean).join(" • "));
   }
 
-  return value ?? "";
+  return shorten(value ?? "");
 };

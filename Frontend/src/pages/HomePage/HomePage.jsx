@@ -270,7 +270,7 @@ const preloadImage = (src) =>
   });
 
 const resolveHeroArtwork = async (movie) => {
-  if (String(movie?.poster || "").startsWith("/assets/")) {
+  if (movie?.poster) {
     return movie.poster;
   }
 

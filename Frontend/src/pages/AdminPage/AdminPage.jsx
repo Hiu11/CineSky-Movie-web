@@ -619,14 +619,38 @@ export default function AdminPage() {
     setSelectedDetail(adminFeedbackAlerts[0] || null);
   };
 
-  const openCreateForm = () => {
+  const getDraftKey = (moduleKey = activeModule) => `cinesky-admin-draft-${moduleKey}`;
+
+  const openCreateForm = async () => {
     if (readOnlyModules.has(activeModule)) {
       setFormError("Module này hiện chỉ đọc, chưa có API lưu dữ liệu.");
       return;
     }
 
-    setForm(activeModule === "movies" ? createMovieForm() : createEmptyForm());
-    setEditingId("");
+    let nextForm = activeModule === "movies" ? createMovieForm() : createEmptyForm();
+    let nextEditingId = "";
+    const draftRaw = localStorage.getItem(getDraftKey());
+
+    if (draftRaw) {
+      try {
+        const draft = JSON.parse(draftRaw);
+        const shouldRestore = await askConfirm({
+          title: "Khôi phục bản nháp",
+          message: "Bạn có bản nháp đã lưu trên trình duyệt. Khôi phục để tiếp tục nhập?",
+          confirmText: "Khôi phục",
+        });
+
+        if (shouldRestore && draft?.form) {
+          nextForm = draft.form;
+          nextEditingId = draft.editingId || "";
+        }
+      } catch {
+        localStorage.removeItem(getDraftKey());
+      }
+    }
+
+    setForm(nextForm);
+    setEditingId(nextEditingId);
     setSelectedDetail(null);
     setIsCrudMode(true);
     setFormError("");
@@ -641,7 +665,7 @@ export default function AdminPage() {
 
   const handleSaveDraft = () => {
     localStorage.setItem(
-      `cinesky-admin-draft-${activeModule}`,
+      getDraftKey(),
       JSON.stringify({ form, editingId, savedAt: new Date().toISOString() })
     );
     setFormError("Đã lưu nháp trên trình duyệt.");
@@ -684,6 +708,7 @@ export default function AdminPage() {
         }
 
         const nextRecord = mapMovieToRecord(savedMovie);
+        localStorage.removeItem(getDraftKey("movies"));
 
         setRecords((current) => {
           const nextActivity = {

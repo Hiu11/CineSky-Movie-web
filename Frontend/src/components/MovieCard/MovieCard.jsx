@@ -43,7 +43,6 @@ const MovieCard = ({ movie }) => {
           <div className="poster-overlay" />
           <div className="overlay-tags">
             <span className="tag-2d">2D</span>
-            <span className={`tag-rating ${movie.ratingClass}`}>{movie.rating}</span>
           </div>
         </div>
 
