@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+﻿import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { getBookingHistory, getMyFavorites } from "../../services/movieService";
 import {
@@ -26,10 +26,10 @@ const getSessionUser = () => {
 
 
 const TIERS = [
-  { name: "Member", min: 0, max: 2000, label: "Thành Viên" },
-  { name: "Silver", min: 2000, max: 10000, label: "Bạc" },
-  { name: "Gold", min: 10000, max: 30000, label: "Vàng" },
-  { name: "Diamond", min: 30000, max: Infinity, label: "Kim Cương" }
+  { name: "Member", min: 0, max: 500, label: "Thành viên" },
+  { name: "Silver", min: 500, max: 1500, label: "Bạc" },
+  { name: "Gold", min: 1500, max: 3000, label: "Vàng" },
+  { name: "Diamond", min: 3000, max: Infinity, label: "Kim cương" }
 ];
 
 const getTierProgress = (points, actualTierStr) => {
@@ -67,6 +67,7 @@ export default function Profile() {
   const [user, setUser] = useState(() => getSessionUser());
   const [recentBookings, setRecentBookings] = useState([]);
   const [favoriteMovies, setFavoriteMovies] = useState([]);
+  const [savedPromotions, setSavedPromotions] = useState([]);
   const [activeTab, setActiveTab] = useState("dashboard"); // dashboard, settings, history
   const [formData, setFormData] = useState({
     fullName: "",
@@ -100,6 +101,7 @@ export default function Profile() {
         if (isMounted) {
           const normalizedUser = updateStoredUser(profile);
           setUser(normalizedUser);
+          setSavedPromotions(profile.savedPromotions || []);
         }
       } catch {}
     };
@@ -156,7 +158,7 @@ export default function Profile() {
     const file = event.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
-      setSaveError("Vui lòng chọn file ảnh.");
+      setSaveError("Vui lĂ²ng chá»n file áº£nh.");
       return;
     }
     const reader = new FileReader();
@@ -172,9 +174,9 @@ export default function Profile() {
         const normalizedUser = updateStoredUser(updatedUser);
         setUser(normalizedUser);
         setFormData((current) => ({ ...current, avatar: normalizedUser.avatar }));
-        setSaveMessage("Tải ảnh đại diện thành công.");
+        setSaveMessage("Táº£i áº£nh Ä‘áº¡i diá»‡n thĂ nh cĂ´ng.");
       } catch (error) {
-        setSaveError(error.message || "Không thể tải ảnh đại diện.");
+        setSaveError(error.message || "KhĂ´ng thá»ƒ táº£i áº£nh Ä‘áº¡i diá»‡n.");
       } finally {
         setIsSaving(false);
         event.target.value = "";
@@ -200,9 +202,9 @@ export default function Profile() {
       const normalizedUser = updateStoredUser(updatedUser);
       setUser(normalizedUser);
       setFormData((current) => ({ ...current, password: "" }));
-      setSaveMessage("Cập nhật hồ sơ thành công.");
+      setSaveMessage("Cáº­p nháº­t há»“ sÆ¡ thĂ nh cĂ´ng.");
     } catch (error) {
-      setSaveError(error.message || "Không thể cập nhật hồ sơ.");
+      setSaveError(error.message || "KhĂ´ng thá»ƒ cáº­p nháº­t há»“ sÆ¡.");
     } finally {
       setIsSaving(false);
     }
@@ -212,12 +214,12 @@ export default function Profile() {
     return (
       <main className="profile-page-empty">
         <section className="profile-empty-card">
-          <span className="profile-kicker">Hồ sơ</span>
-          <h1>Đăng nhập để mở không gian cá nhân.</h1>
-          <p>Bảng điều khiển 3D, tiến trình hạng thẻ và lịch sử giao dịch sẽ hiển thị tại đây.</p>
+          <span className="profile-kicker">Há»“ sÆ¡</span>
+          <h1>ÄÄƒng nháº­p Ä‘á»ƒ má»Ÿ khĂ´ng gian cĂ¡ nhĂ¢n.</h1>
+          <p>Báº£ng Ä‘iá»u khiá»ƒn 3D, tiáº¿n trĂ¬nh háº¡ng tháº» vĂ  lá»‹ch sá»­ giao dá»‹ch sáº½ hiá»ƒn thá»‹ táº¡i Ä‘Ă¢y.</p>
           <div className="profile-actions">
             <Link to="/login" className="glass-submit-btn">
-              Đến trang đăng nhập
+              Äáº¿n trang Ä‘Äƒng nháº­p
             </Link>
           </div>
         </section>
@@ -228,7 +230,7 @@ export default function Profile() {
   const points = Number(user?.membership?.points || 0);
   const totalSpent = recentBookings.reduce((sum, booking) => sum + Number(booking.totalPrice || 0), 0);
   
-  // Giả lập thời lượng xem phim (2h / phim) nếu API chưa trả về duration
+  // Giáº£ láº­p thá»i lÆ°á»£ng xem phim (2h / phim) náº¿u API chÆ°a tráº£ vá» duration
   const totalWatchHours = recentBookings.reduce((sum, booking) => {
     return sum + (booking.movie?.duration ? Math.round(booking.movie.duration / 60) : 2);
   }, 0);
@@ -238,7 +240,7 @@ export default function Profile() {
   const pointHistory = recentBookings.map(booking => ({
     id: booking.id,
     date: booking.displayDate || booking.createdAt,
-    movie: booking.movieTitle || "Vé xem phim",
+    movie: booking.movieTitle || "VĂ© xem phim",
     pointsEarned: Math.floor(Number(booking.totalPrice || 0) / 1000), // 1 point per 1000 VND
     type: "earn"
   }));
@@ -280,28 +282,28 @@ export default function Profile() {
             onClick={() => setActiveTab('dashboard')}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-            Tổng quan (Dashboard)
+            Tá»•ng quan (Dashboard)
           </button>
           <button 
             className={`nav-btn ${activeTab === 'history' ? 'active' : ''}`}
             onClick={() => setActiveTab('history')}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-            Lịch sử & Điểm thưởng
+            Lá»‹ch sá»­ & Äiá»ƒm thÆ°á»Ÿng
           </button>
           <button 
             className={`nav-btn ${activeTab === 'settings' ? 'active' : ''}`}
             onClick={() => setActiveTab('settings')}
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-            Cài đặt tài khoản
+            CĂ i Ä‘áº·t tĂ i khoáº£n
           </button>
         </nav>
 
         <div className="sidebar-logout">
            <Link to="/login" className="logout-btn">
              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-             Đăng xuất
+             ÄÄƒng xuáº¥t
            </Link>
         </div>
       </aside>
@@ -314,8 +316,8 @@ export default function Profile() {
           <div className="tab-fade-in">
             <header className="dashboard-header">
                <div>
-                 <h1>Không gian cá nhân</h1>
-                 <p>Theo dõi tiến trình thành viên và khám phá các đặc quyền riêng.</p>
+                 <h1>KhĂ´ng gian cĂ¡ nhĂ¢n</h1>
+                 <p>Theo dĂµi tiáº¿n trĂ¬nh thĂ nh viĂªn vĂ  khĂ¡m phĂ¡ cĂ¡c Ä‘áº·c quyá»n riĂªng.</p>
                </div>
             </header>
 
@@ -326,8 +328,8 @@ export default function Profile() {
               
               <div className="hero-tier-progress">
                  <div className="tier-header">
-                    <h3>Hạng {tierInfo.current}</h3>
-                    <span className="tier-badge">{tierInfo.next !== "MAX" ? `Hướng tới ${tierInfo.next}` : "Hạng Cao Nhất"}</span>
+                    <h3>Háº¡ng {tierInfo.current}</h3>
+                    <span className="tier-badge">{tierInfo.next !== "MAX" ? `HÆ°á»›ng tá»›i ${tierInfo.next}` : "Háº¡ng Cao Nháº¥t"}</span>
                  </div>
                  <div className="progress-bar-container">
                     <div className="progress-bar-fill" style={{ width: `${tierInfo.percent}%` }}>
@@ -335,8 +337,8 @@ export default function Profile() {
                     </div>
                  </div>
                  <div className="tier-footer">
-                    <span>{points.toLocaleString("vi-VN")} điểm</span>
-                    <span>{tierInfo.next !== "MAX" ? `Cần ${tierInfo.needed.toLocaleString("vi-VN")} điểm nữa` : "Đã đạt tối đa"}</span>
+                    <span>{points.toLocaleString("vi-VN")} Ä‘iá»ƒm</span>
+                    <span>{tierInfo.next !== "MAX" ? `Cáº§n ${tierInfo.needed.toLocaleString("vi-VN")} Ä‘iá»ƒm ná»¯a` : "ÄĂ£ Ä‘áº¡t tá»‘i Ä‘a"}</span>
                  </div>
               </div>
             </div>
@@ -347,7 +349,7 @@ export default function Profile() {
                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
                   </div>
                   <div className="stat-info">
-                     <span>Tổng phim đã xem</span>
+                     <span>Tá»•ng phim Ä‘Ă£ xem</span>
                      <strong>{recentBookings.length}</strong>
                   </div>
                </div>
@@ -356,8 +358,8 @@ export default function Profile() {
                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 8v8M8 12h8"></path></svg>
                   </div>
                   <div className="stat-info">
-                     <span>Tổng chi tiêu</span>
-                     <strong>{totalSpent.toLocaleString("vi-VN")} đ</strong>
+                     <span>Tá»•ng chi tiĂªu</span>
+                     <strong>{totalSpent.toLocaleString("vi-VN")} Ä‘</strong>
                   </div>
                </div>
                <div className="stat-glass-panel">
@@ -365,7 +367,7 @@ export default function Profile() {
                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
                   </div>
                   <div className="stat-info">
-                     <span>Phim yêu thích</span>
+                     <span>Phim yĂªu thĂ­ch</span>
                      <strong>{favoriteMovies.length}</strong>
                   </div>
                </div>
@@ -374,16 +376,16 @@ export default function Profile() {
                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                   </div>
                   <div className="stat-info">
-                     <span>Số giờ xem phim</span>
-                     <strong>{totalWatchHours} giờ</strong>
+                     <span>Sá»‘ giá» xem phim</span>
+                     <strong>{totalWatchHours} giá»</strong>
                   </div>
                </div>
             </div>
             
             <div className="dashboard-favorites-section">
                <div className="section-header">
-                 <h2>Phim yêu thích</h2>
-                 <Link to="/filter" className="link-more">Khám phá thêm</Link>
+                 <h2>Phim yĂªu thĂ­ch</h2>
+                 <Link to="/filter" className="link-more">KhĂ¡m phĂ¡ thĂªm</Link>
                </div>
                {favoriteMovies.length > 0 ? (
                  <div className="favorites-glass-grid">
@@ -399,14 +401,45 @@ export default function Profile() {
                             )}
                             <div className="fav-info">
                                <h4>{title}</h4>
-                               <span>Xem chi tiết</span>
+                               <span>Xem chi tiáº¿t</span>
                             </div>
                          </Link>
                        )
                     })}
                  </div>
                ) : (
-                 <div className="empty-glass-state">Bạn chưa lưu phim yêu thích nào.</div>
+                 <div className="empty-glass-state">Báº¡n chÆ°a lÆ°u phim yĂªu thĂ­ch nĂ o.</div>
+               )}
+            </div>
+
+            <div className="dashboard-favorites-section">
+               <div className="section-header">
+                 <h2>MĂ£ Æ°u Ä‘Ă£i Ä‘Ă£ lÆ°u</h2>
+                 <Link to="/promotions" className="link-more">Xem Æ°u Ä‘Ă£i</Link>
+               </div>
+               {savedPromotions.length > 0 ? (
+                 <div className="profile-voucher-grid">
+                    {savedPromotions.map((promotion) => {
+                      const requiredPoints = Number(promotion.requiredPoints || 0);
+                      const progress = requiredPoints ? Math.min(100, Math.round((points / requiredPoints) * 100)) : 100;
+                      return (
+                        <article key={promotion.id} className="profile-voucher-card">
+                          <span>{promotion.tier || promotion.kind}</span>
+                          <h4>{promotion.title}</h4>
+                          {promotion.code ? <code>{promotion.code}</code> : null}
+                          <p>{promotion.description}</p>
+                          {requiredPoints ? (
+                            <div className="profile-voucher-progress">
+                              <div><strong>{progress}%</strong><small>{points.toLocaleString("vi-VN")} / {requiredPoints.toLocaleString("vi-VN")} Ä‘iá»ƒm</small></div>
+                              <i><b style={{ width: `${progress}%` }}></b></i>
+                            </div>
+                          ) : null}
+                        </article>
+                      );
+                    })}
+                 </div>
+               ) : (
+                 <div className="empty-glass-state">Báº¡n chÆ°a lÆ°u mĂ£ Æ°u Ä‘Ă£i nĂ o.</div>
                )}
             </div>
           </div>
@@ -417,56 +450,56 @@ export default function Profile() {
           <div className="tab-fade-in">
              <header className="dashboard-header">
                <div>
-                 <h1>Lịch sử & Điểm thưởng</h1>
-                 <p>Theo dõi mọi giao dịch và điểm tích lũy của bạn.</p>
+                 <h1>Lá»‹ch sá»­ & Äiá»ƒm thÆ°á»Ÿng</h1>
+                 <p>Theo dĂµi má»i giao dá»‹ch vĂ  Ä‘iá»ƒm tĂ­ch lÅ©y cá»§a báº¡n.</p>
                </div>
             </header>
             
             <div className="history-split-grid">
                {/* PAYMENT HISTORY */}
                <div className="glass-panel-section">
-                  <h2>Lịch sử thanh toán</h2>
+                  <h2>Lá»‹ch sá»­ thanh toĂ¡n</h2>
                   <div className="glass-table-wrapper">
                      {recentBookings.length > 0 ? (
                         <table className="glass-table">
                            <thead>
                               <tr>
-                                 <th>Mã vé</th>
-                                 <th>Phim & Thời gian</th>
-                                 <th>Tổng tiền</th>
-                                 <th>Trạng thái</th>
+                                 <th>MĂ£ vĂ©</th>
+                                 <th>Phim & Thá»i gian</th>
+                                 <th>Tá»•ng tiá»n</th>
+                                 <th>Tráº¡ng thĂ¡i</th>
                               </tr>
                            </thead>
                             <tbody>
                               {recentBookings.map(booking => (
                                  <tr key={booking.id}>
-                                    <td data-label="Mã vé"><span className="mono-badge">#{booking.id?.slice(0,6).toUpperCase() || "TKT"}</span></td>
-                                    <td data-label="Phim & Thời gian">
+                                    <td data-label="MĂ£ vĂ©"><span className="mono-badge">#{booking.id?.slice(0,6).toUpperCase() || "TKT"}</span></td>
+                                    <td data-label="Phim & Thá»i gian">
                                        <strong>{booking.movieTitle}</strong>
                                        <br/>
-                                       <small>{[booking.displayDate, booking.displayTime].filter(Boolean).join(" • ")}</small>
+                                       <small>{[booking.displayDate, booking.displayTime].filter(Boolean).join(" â€¢ ")}</small>
                                        <div className="booking-details-mini">
-                                         Ghế: {booking.seats?.join(", ") || "N/A"}
+                                         Gháº¿: {booking.seats?.join(", ") || "N/A"}
                                          {booking.fnbItems?.length > 0 && (
-                                           <> | Bắp nước: {booking.fnbItems.map(i => `${i.quantity}x ${i.name}`).join(", ")}</>
+                                           <> | Báº¯p nÆ°á»›c: {booking.fnbItems.map(i => `${i.quantity}x ${i.name}`).join(", ")}</>
                                          )}
                                        </div>
                                     </td>
-                                    <td data-label="Tổng tiền"><strong>{Number(booking.totalPrice || 0).toLocaleString("vi-VN")} đ</strong></td>
-                                    <td data-label="Trạng thái"><span className="status-badge success">Thành công</span></td>
+                                    <td data-label="Tá»•ng tiá»n"><strong>{Number(booking.totalPrice || 0).toLocaleString("vi-VN")} Ä‘</strong></td>
+                                    <td data-label="Tráº¡ng thĂ¡i"><span className="status-badge success">ThĂ nh cĂ´ng</span></td>
                                  </tr>
                               ))}
                            </tbody>
                         </table>
                      ) : (
-                        <div className="empty-glass-state">Chưa có giao dịch nào.</div>
+                        <div className="empty-glass-state">ChÆ°a cĂ³ giao dá»‹ch nĂ o.</div>
                      )}
                   </div>
                </div>
 
                {/* POINTS HISTORY */}
                <div className="glass-panel-section">
-                  <h2>Lịch sử điểm thưởng</h2>
+                  <h2>Lá»‹ch sá»­ Ä‘iá»ƒm thÆ°á»Ÿng</h2>
                   <div className="points-timeline">
                      {pointHistory.length > 0 ? (
                         pointHistory.map((pt, idx) => (
@@ -474,16 +507,16 @@ export default function Profile() {
                               <div className="timeline-dot plus"></div>
                               <div className="timeline-content">
                                  <div className="timeline-head">
-                                    <h4>Tích điểm vé: {pt.movie}</h4>
+                                    <h4>TĂ­ch Ä‘iá»ƒm vĂ©: {pt.movie}</h4>
                                     <span className="points-plus">+{pt.pointsEarned} pt</span>
                                  </div>
-                                 <p>Giao dịch thành công, điểm được tự động cộng vào ví.</p>
+                                 <p>Giao dá»‹ch thĂ nh cĂ´ng, Ä‘iá»ƒm Ä‘Æ°á»£c tá»± Ä‘á»™ng cá»™ng vĂ o vĂ­.</p>
                                  <small>{pt.date}</small>
                               </div>
                            </div>
                         ))
                      ) : (
-                        <div className="empty-glass-state">Chưa có lịch sử điểm thưởng.</div>
+                        <div className="empty-glass-state">ChÆ°a cĂ³ lá»‹ch sá»­ Ä‘iá»ƒm thÆ°á»Ÿng.</div>
                      )}
                   </div>
                </div>
@@ -496,52 +529,52 @@ export default function Profile() {
           <div className="tab-fade-in">
              <header className="dashboard-header">
                <div>
-                 <h1>Cài đặt tài khoản</h1>
-                 <p>Quản lý thông tin cá nhân và bảo mật.</p>
+                 <h1>CĂ i Ä‘áº·t tĂ i khoáº£n</h1>
+                 <p>Quáº£n lĂ½ thĂ´ng tin cĂ¡ nhĂ¢n vĂ  báº£o máº­t.</p>
                </div>
             </header>
 
             <form className="glass-form-panel" onSubmit={handleProfileSubmit}>
                <div className="form-grid">
                   <div className="form-group">
-                     <label>Họ và tên</label>
-                     <input className="glass-input" name="fullName" value={formData.fullName} onChange={handleFieldChange} placeholder="Nhập họ và tên" />
+                     <label>Há» vĂ  tĂªn</label>
+                     <input className="glass-input" name="fullName" value={formData.fullName} onChange={handleFieldChange} placeholder="Nháº­p há» vĂ  tĂªn" />
                   </div>
                   <div className="form-group">
-                     <label>Email (Không thể đổi)</label>
+                     <label>Email (KhĂ´ng thá»ƒ Ä‘á»•i)</label>
                      <input className="glass-input disabled" value={user.email || ""} disabled />
                   </div>
                   <div className="form-group">
-                     <label>Số điện thoại</label>
-                     <input className="glass-input" name="phone" value={formData.phone} onChange={handleFieldChange} placeholder="Nhập số điện thoại" />
+                     <label>Sá»‘ Ä‘iá»‡n thoáº¡i</label>
+                     <input className="glass-input" name="phone" value={formData.phone} onChange={handleFieldChange} placeholder="Nháº­p sá»‘ Ä‘iá»‡n thoáº¡i" />
                   </div>
                   <div className="form-group">
-                     <label>Giới tính</label>
+                     <label>Giá»›i tĂ­nh</label>
                      <select className="glass-input select" name="gender" value={formData.gender} onChange={handleFieldChange}>
-                        <option value="">Chọn giới tính</option>
+                        <option value="">Chá»n giá»›i tĂ­nh</option>
                         <option value="Nam">Nam</option>
-                        <option value="Nữ">Nữ</option>
-                        <option value="Khác">Khác</option>
+                        <option value="Ná»¯">Ná»¯</option>
+                        <option value="KhĂ¡c">KhĂ¡c</option>
                      </select>
                   </div>
                   <div className="form-group">
-                     <label>Ngày sinh</label>
+                     <label>NgĂ y sinh</label>
                      <input className="glass-input" type="date" name="birthday" value={formData.birthday} onChange={handleFieldChange} />
                   </div>
                   <div className="form-group">
-                     <label>Link ảnh đại diện</label>
+                     <label>Link áº£nh Ä‘áº¡i diá»‡n</label>
                      <input className="glass-input" name="avatar" value={formData.avatar} onChange={handleFieldChange} placeholder="https://..." />
                   </div>
                   <div className="form-group full-width">
-                     <label>Tải ảnh lên (Max 2MB)</label>
+                     <label>Táº£i áº£nh lĂªn (Max 2MB)</label>
                      <div className="glass-file-upload">
                         <input type="file" accept="image/*" onChange={handleAvatarUpload} disabled={isSaving} />
-                        <span className="upload-btn">Chọn ảnh từ máy</span>
+                        <span className="upload-btn">Chá»n áº£nh tá»« mĂ¡y</span>
                      </div>
                   </div>
                   <div className="form-group full-width">
-                     <label>Đổi mật khẩu</label>
-                     <input className="glass-input" type="password" name="password" value={formData.password} onChange={handleFieldChange} placeholder="Nhập mật khẩu mới (để trống nếu không đổi)" />
+                     <label>Äá»•i máº­t kháº©u</label>
+                     <input className="glass-input" type="password" name="password" value={formData.password} onChange={handleFieldChange} placeholder="Nháº­p máº­t kháº©u má»›i (Ä‘á»ƒ trá»‘ng náº¿u khĂ´ng Ä‘á»•i)" />
                   </div>
                </div>
 
@@ -551,7 +584,7 @@ export default function Profile() {
                      {saveMessage && <span className="msg success">{saveMessage}</span>}
                   </div>
                   <button type="submit" className="glass-submit-btn" disabled={isSaving}>
-                     {isSaving ? "Đang lưu..." : "Lưu thay đổi"}
+                     {isSaving ? "Äang lÆ°u..." : "LÆ°u thay Ä‘á»•i"}
                   </button>
                </div>
             </form>
@@ -563,3 +596,4 @@ export default function Profile() {
     </>
   );
 }
+

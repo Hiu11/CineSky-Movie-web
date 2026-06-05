@@ -31,6 +31,8 @@ authRouter.post("/refresh", refreshRateLimiter, authController.refreshToken);
 // Protected routes
 authRouter.get("/me", requireAuth, authController.getProfile);
 authRouter.get("/admin/me", requireAuth, requireRole("admin"), authController.getProfile);
+authRouter.post("/promotions/:promotionId/save", requireAuth, authController.savePromotion);
+authRouter.delete("/promotions/:promotionId/save", requireAuth, authController.unsavePromotion);
 authRouter.patch("/profile", requireAuth, validateBody(updateProfileSchema), authController.updateProfile);
 authRouter.post("/profile/avatar", requireAuth, authController.uploadAvatar);
 authRouter.post("/logout", requireAuth, authController.logout);

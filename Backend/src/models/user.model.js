@@ -34,7 +34,7 @@ const userSchema = new mongoose.Schema(
       type: String,
       default: "",
       trim: true,
-      // Phải là YYYY-MM-DD hoặc chuỗi rỗng
+      // Phải là YYYY-MM-DD hoặc chuỗi rỗng.
       validate: {
         validator: (value) => value === "" || /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/.test(value),
         message: "Ngày sinh phải có định dạng YYYY-MM-DD (ví dụ: 1999-12-31)",
@@ -66,6 +66,11 @@ const userSchema = new mongoose.Schema(
         enum: ["Member", "Silver", "Gold", "Diamond"],
         default: "Member",
       },
+    },
+    savedPromotionIds: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: "promotions",
+      default: [],
     },
     refreshToken: {
       type: String,

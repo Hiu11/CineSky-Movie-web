@@ -6,6 +6,8 @@ import {
   getBookingFees,
   getBookingHistory,
   getMovieShowtimes,
+  lockBookingSeats,
+  validateBookingVoucher,
 } from "../../../services/movieService";
 import { updateStoredUser } from "../../../services/authService";
 
@@ -135,6 +137,8 @@ export function useBookingFlow({ showToast } = {}) {
   const [paymentQrDataUrl, setPaymentQrDataUrl] = useState("");
 
   const [paymentForm, setPaymentForm] = useState({ ownerName: "", reference: "", expiry: "", secureCode: "", promoCode: "" });
+  const [voucherState, setVoucherState] = useState({ code: "", discountAmount: 0, message: "", error: "", isChecking: false });
+  const [seatLock, setSeatLock] = useState(null);
 
   const [selectedFnB, setSelectedFnB] = useState([]);
 
@@ -298,8 +302,14 @@ export function useBookingFlow({ showToast } = {}) {
     return () => window.clearInterval(id);
   }, [selectedShowtime, paymentSecondsLeft]);
 
+  const bookedSeats = selectedShowtime?.bookedSeats || [];
+  const ticketSubtotal = selectedShowtime ? Number(selectedShowtime.price || 0) * selectedSeats.length : 0;
+  const serviceFee = selectedSeats.length > 0 ? selectedSeats.length * serviceFeePerTicket : 0;
+  const fnbTotal = selectedFnB.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const discountAmount = Math.min(Number(voucherState.discountAmount || 0), ticketSubtotal + fnbTotal);
+  const finalTotal = Math.max(ticketSubtotal + serviceFee + fnbTotal - discountAmount, 0);
+
   const qrPaymentPayload = useMemo(() => {
-    const fnbTotal = selectedFnB.reduce((sum, item) => sum + item.price * item.quantity, 0);
     return JSON.stringify({
       type: "CINESKY_QR_PAYMENT",
       provider: selectedProvider,
@@ -308,10 +318,12 @@ export function useBookingFlow({ showToast } = {}) {
       showtimeId: selectedShowtime?.id || "",
       seats: selectedSeats,
       fnb: selectedFnB,
-      amount: (selectedShowtime ? Number(selectedShowtime.price || 0) * selectedSeats.length : 0) + selectedSeats.length * serviceFeePerTicket + fnbTotal,
+      discount: discountAmount,
+      promoCode: voucherState.code,
+      amount: finalTotal,
       currency: "VND",
     });
-  }, [movie, selectedProvider, selectedSeats, selectedShowtime, serviceFeePerTicket, selectedFnB]);
+  }, [discountAmount, finalTotal, movie, selectedProvider, selectedSeats, selectedShowtime, selectedFnB, voucherState.code]);
 
   useEffect(() => {
     if (!useQrPayment) {
@@ -342,11 +354,6 @@ export function useBookingFlow({ showToast } = {}) {
     }
   }, [useQrPayment, isQrPaymentConfirmed, selectedCinemaName, selectedShowtimeId, selectedSeats.length]);
 
-  const bookedSeats = selectedShowtime?.bookedSeats || [];
-  const ticketSubtotal = selectedShowtime ? Number(selectedShowtime.price || 0) * selectedSeats.length : 0;
-  const serviceFee = selectedSeats.length > 0 ? selectedSeats.length * serviceFeePerTicket : 0;
-  const fnbTotal = selectedFnB.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const finalTotal = ticketSubtotal + serviceFee + fnbTotal;
   const seatBaseSize = isDesktopViewport ? 30 : 20;
   const isPaymentExpired = Boolean(selectedShowtime) && paymentSecondsLeft <= 0;
   const paymentCountdownLabel = isPaymentExpired ? "Hết giờ" : formatCountdown(paymentSecondsLeft);
@@ -358,6 +365,91 @@ export function useBookingFlow({ showToast } = {}) {
     (paymentForm.reference.trim() && paymentForm.ownerName.trim() &&
       (selectedPaymentMethod === "wallet" || (paymentForm.expiry.trim() && paymentForm.secureCode.trim())))
   );
+
+  useEffect(() => {
+    if (!isAuthenticated || !movie?.id || !selectedShowtime?.id || selectedSeats.length === 0) {
+      setSeatLock(null);
+      return;
+    }
+
+    let cancelled = false;
+    const timer = window.setTimeout(() => {
+      lockBookingSeats({
+        movieId: movie.id,
+        showtimeId: selectedShowtime.id,
+        seatNumbers: selectedSeats,
+      })
+        .then((lock) => {
+          if (!cancelled) {
+            setSeatLock(lock);
+            setSubmitMessage({ type: "success", message: "Ghế đã được giữ tạm trong 10 phút." });
+          }
+        })
+        .catch((err) => {
+          if (!cancelled) {
+            setSeatLock(null);
+            setSelectedSeats([]);
+            setSubmitMessage({ type: "error", message: err.message || "Không thể giữ ghế. Vui lòng chọn lại." });
+          }
+        });
+    }, 350);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [isAuthenticated, movie?.id, selectedSeats, selectedShowtime?.id]);
+
+  useEffect(() => {
+    const promoCode = paymentForm.promoCode.trim();
+
+    if (!promoCode || ticketSubtotal + fnbTotal <= 0) {
+      setVoucherState({ code: "", discountAmount: 0, message: "", error: "", isChecking: false });
+      return;
+    }
+
+    let cancelled = false;
+    setVoucherState((current) => ({ ...current, isChecking: true, error: "" }));
+
+    const timer = window.setTimeout(() => {
+      validateBookingVoucher({
+        promoCode,
+        subtotal: ticketSubtotal,
+        fnbTotal,
+        ticketCount: selectedSeats.length,
+        movieId: movie?.id,
+        fnbItems: selectedFnB,
+        screeningDate: selectedScreeningDate,
+      })
+        .then((voucher) => {
+          if (!cancelled) {
+            setVoucherState({
+              code: voucher.code || promoCode.toUpperCase(),
+              discountAmount: Number(voucher.discountAmount || 0),
+              message: voucher.message || "Đã áp dụng mã khuyến mãi.",
+              error: "",
+              isChecking: false,
+            });
+          }
+        })
+        .catch((err) => {
+          if (!cancelled) {
+            setVoucherState({
+              code: "",
+              discountAmount: 0,
+              message: "",
+              error: err.message || "Mã khuyến mãi không hợp lệ.",
+              isChecking: false,
+            });
+          }
+        });
+    }, 450);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [fnbTotal, movie?.id, paymentForm.promoCode, selectedFnB, selectedScreeningDate, selectedSeats.length, ticketSubtotal]);
 
   const visibleProviders = useMemo(() => {
     const src = PAYMENT_PROVIDERS[selectedPaymentMethod] || [];
@@ -472,6 +564,7 @@ export function useBookingFlow({ showToast } = {}) {
         showtimeId: selectedShowtime.id,
         seatNumbers: selectedSeats,
         fnbItems: selectedFnB,
+        promoCode: voucherState.code || paymentForm.promoCode,
         paymentMethod: selectedPaymentMethod,
         paymentProvider: selectedProvider,
         paymentReference: useQrPayment ? `QR-${Date.now()}` : paymentForm.reference,
@@ -492,13 +585,19 @@ export function useBookingFlow({ showToast } = {}) {
         displayTime: selectedShowtime.displayTime,
         seatNumbers: booking.seatNumbers,
         fnbItems: selectedFnB,
+        subtotalPrice: booking.subtotalPrice || ticketSubtotal + fnbTotal,
+        serviceFee: booking.serviceFee || serviceFee,
+        discountAmount: booking.discountAmount || discountAmount,
+        promoCode: booking.promoCode || voucherState.code || "",
         paymentLabel: [LOCALIZED_PAYMENT_METHODS.find((m) => m.id === selectedPaymentMethod)?.label, useQrPayment ? `${selectedProvider} QR` : selectedProvider].filter(Boolean).join(" • "),
         totalPrice: booking.totalPrice ?? finalTotal,
         paymentStatus: booking.paymentStatus || "mock_paid",
+        emailDelivery: booking.emailDelivery || null,
       };
       sessionStorage.setItem("lastBookingReceipt", JSON.stringify(receipt));
       setSelectedSeats([]);
       setSelectedFnB([]);
+      setSeatLock(null);
       showToast?.({ type: "success", title: "Đặt vé thành công", message: `${movie.title} • ${booking.seatNumbers.join(", ")} • ${formatCurrency(booking.totalPrice ?? finalTotal)} VND` });
       navigate("/booking/success", { replace: true, state: { receipt } });
     } catch (err) {
@@ -510,7 +609,7 @@ export function useBookingFlow({ showToast } = {}) {
   }, [
     selectedShowtime, selectedSeats, isAuthenticated, isPaymentFormReady, isPaymentExpired,
     selectedScreeningDate, selectedScreeningDateLabel, movie, selectedPaymentMethod, selectedProvider,
-    useQrPayment, paymentForm.reference, sessionUser, currentTime, navigate, showToast, finalTotal,
+    useQrPayment, paymentForm.reference, paymentForm.promoCode, voucherState.code, discountAmount, ticketSubtotal, fnbTotal, serviceFee, sessionUser, currentTime, navigate, showToast, finalTotal,
   ]);
 
   return {
@@ -518,12 +617,12 @@ export function useBookingFlow({ showToast } = {}) {
     selectedShowtime, selectedScreeningDateOption, selectedScreeningDateLabel,
     selectedCinemaName, selectedShowtimeId, selectedScreeningDate,
     selectedSeats, selectedPaymentMethod, selectedProvider, providerSearch,
-    paymentForm, useQrPayment, setUseQrPayment, isQrPaymentConfirmed, setIsQrPaymentConfirmed,
+    paymentForm, voucherState, seatLock, useQrPayment, setUseQrPayment, isQrPaymentConfirmed, setIsQrPaymentConfirmed,
     paymentQrDataUrl, visibleProviders, selectedFnB,
     isLoading, isHistoryLoading, errorMessage, submitMessage,
     isSubmitting, isDesktopViewport, isSummaryCollapsed, setIsSummaryCollapsed,
     isDesktopSummaryCollapsed, seatScale, setSeatScale, currentTime,
-    bookedSeats, ticketSubtotal, serviceFee, fnbTotal, finalTotal, seatBaseSize,
+    bookedSeats, ticketSubtotal, serviceFee, fnbTotal, discountAmount, finalTotal, seatBaseSize,
     isPaymentExpired, paymentCountdownLabel, isComingSoon, isPaymentFormReady,
     movieMetaItems, bookingStepStates,
     toggleSeat, handleUpdateFnB, handleCinemaChange, handleScreeningDateChange, handleShowtimeChange,

@@ -8,6 +8,7 @@ import { buildMovieDetailSeed } from "../data/movieDetailSeed.js";
 import seedFeedbackEntries from "../data/seedFeedback.js";
 import seedMovies from "../data/seedMovies.js";
 import { createShowtimesFromMovies } from "../data/seedShowtimes.js";
+import { ensureDefaultPromotions } from "../controllers/promotions.controller.js";
 import AdminActivityModel from "../models/adminActivity.model.js";
 import BookingModel from "../models/booking.model.js";
 import FeedbackModel from "../models/feedback.model.js";
@@ -69,7 +70,7 @@ const sampleUsers = [
     fullName: "Trần Hà My",
     email: "hamy@cinesky.local",
     phone: "0901002002",
-    gender: "Ná»¯",
+    gender: "Nữ",
     birthday: "2002-07-24",
   },
   {
@@ -90,14 +91,14 @@ const sampleUsers = [
     fullName: "Võ Thanh Trúc",
     email: "thanhtruc@cinesky.local",
     phone: "0901002005",
-    gender: "Ná»¯",
+    gender: "Nữ",
     birthday: "2003-09-09",
   },
   {
     fullName: "Đặng Khánh Vy",
     email: "khanhvy@cinesky.local",
     phone: "0901002006",
-    gender: "Ná»¯",
+    gender: "Nữ",
     birthday: "2004-04-21",
   },
 ];
@@ -467,6 +468,7 @@ export const ensureMovieSeedData = async () => {
     console.log("Synced feedback seed data");
   }
 
+  await ensureDefaultPromotions();
   await ensureAdminSampleData();
 };
 

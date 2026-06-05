@@ -1,6 +1,7 @@
 ﻿import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import {
   getBackendPublicUrl,
   getFacebookClientId,
@@ -16,6 +17,8 @@ import {
   getJwtSecret,
 } from "../config/env.js";
 import UserModel from "../models/user.model.js";
+import PromotionModel from "../models/promotion.model.js";
+import { serializePromotion } from "./promotions.controller.js";
 
 const normalizeEmail = (email = "") => email.trim().toLowerCase();
 
@@ -26,12 +29,12 @@ const normalizeGender = (gender = "") => {
     return "Nam";
   }
 
-  if (["female", "nu", "ná»¯"].includes(normalizedValue)) {
-    return "Ná»¯";
+  if (["female", "nu", "nữ"].includes(normalizedValue)) {
+    return "Nữ";
   }
 
-  if (["other", "khac", "khĂ¡c"].includes(normalizedValue)) {
-    return "KhĂ¡c";
+  if (["other", "khac", "khác"].includes(normalizedValue)) {
+    return "Khác";
   }
 
   return "";
@@ -45,8 +48,8 @@ const normalizeGenderSafe = (gender = "") => {
     .replace(/[\u0300-\u036f]/g, "");
 
   if (["male", "nam"].includes(normalizedValue)) return "Nam";
-  if (["female", "nu"].includes(normalizedValue)) return "Ná»¯";
-  if (["other", "khac"].includes(normalizedValue)) return "KhĂ¡c";
+  if (["female", "nu", "nữ"].includes(normalizedValue)) return "Nữ";
+  if (["other", "khac", "khác"].includes(normalizedValue)) return "Khác";
   return "";
 };
 
@@ -95,6 +98,7 @@ const serializeUser = (user) => ({
     points: Number(user.membership?.points || 0),
     totalTickets: Number(user.membership?.totalTickets || 0),
   },
+  savedPromotionIds: (user.savedPromotionIds || []).map((id) => String(id)),
 });
 
 const createAccessToken = (user) =>
@@ -134,6 +138,21 @@ const encodeRedirectPayload = (payload) =>
     .replace(/\//g, "_")
     .replace(/=+$/, "");
 
+const createOAuthRedirectPayload = (session = {}) => {
+  const user = session.user || {};
+  const avatar = String(user.avatar || "");
+
+  return {
+    ...session,
+    user: {
+      ...user,
+      // OAuth callback passes the session through a redirect URL. Large data URL avatars
+      // can exceed browser/proxy header limits, so keep the handoff payload compact.
+      avatar: avatar.startsWith("data:") ? "" : avatar,
+    },
+  };
+};
+
 const getOAuthRedirectUri = (provider) => {
   if (provider === "google" && getGoogleRedirectUri()) {
     return getGoogleRedirectUri();
@@ -147,7 +166,7 @@ const getOAuthRedirectUri = (provider) => {
 };
 
 const redirectWithAuthSession = (res, session) =>
-  res.redirect(`${getFrontendUrl()}/login?authSession=${encodeRedirectPayload(session)}`);
+  res.redirect(`${getFrontendUrl()}/login?authSession=${encodeRedirectPayload(createOAuthRedirectPayload(session))}`);
 
 const redirectWithOAuthError = (res, message = "Social login failed") =>
   res.redirect(`${getFrontendUrl()}/login?authError=${encodeURIComponent(message)}`);
@@ -600,11 +619,78 @@ const authController = {
   },
 
   getProfile: async (req, res) => {
+    const savedPromotions = req.authUser?.savedPromotionIds?.length
+      ? await PromotionModel.find({ _id: { $in: req.authUser.savedPromotionIds }, isActive: true })
+      : [];
+
     return res.status(200).send({
       success: true,
       message: "Get profile successfully",
-      data: serializeUser(req.authUser),
+      data: {
+        ...serializeUser(req.authUser),
+        savedPromotions: savedPromotions.map(serializePromotion),
+      },
     });
+  },
+
+  savePromotion: async (req, res) => {
+    try {
+      const { promotionId } = req.params || {};
+
+      if (!mongoose.Types.ObjectId.isValid(promotionId)) {
+        return res.status(400).send({ success: false, message: "Promotion id is invalid", data: null });
+      }
+
+      const promotion = await PromotionModel.findOne({ _id: promotionId, isActive: true });
+
+      if (!promotion) {
+        return res.status(404).send({ success: false, message: "Promotion not found", data: null });
+      }
+
+      req.authUser.savedPromotionIds = [
+        ...new Set([...(req.authUser.savedPromotionIds || []).map(String), String(promotion._id)]),
+      ];
+      await req.authUser.save();
+
+      return res.status(200).send({
+        success: true,
+        message: "Lưu ưu đãi thành công",
+        data: serializeUser(req.authUser),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  unsavePromotion: async (req, res) => {
+    try {
+      const { promotionId } = req.params || {};
+
+      if (!mongoose.Types.ObjectId.isValid(promotionId)) {
+        return res.status(400).send({ success: false, message: "Promotion id is invalid", data: null });
+      }
+
+      req.authUser.savedPromotionIds = (req.authUser.savedPromotionIds || []).filter(
+        (id) => String(id) !== String(promotionId)
+      );
+      await req.authUser.save();
+
+      return res.status(200).send({
+        success: true,
+        message: "Bỏ lưu ưu đãi thành công",
+        data: serializeUser(req.authUser),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
   },
 
   updateProfile: async (req, res) => {

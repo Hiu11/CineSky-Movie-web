@@ -114,6 +114,50 @@ const TicketQrCode = ({ value }) => {
   );
 };
 
+const printHistoryTicketPdf = (booking) => {
+  const printWindow = window.open("", "_blank", "width=860,height=720");
+  if (!printWindow) return;
+
+  const html = `
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>CineSky Ticket ${booking.ticketCode || booking.id || ""}</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 32px; color: #111827; }
+    .ticket { max-width: 720px; margin: 0 auto; border: 2px solid #111827; border-radius: 18px; padding: 28px; }
+    .head { display: flex; justify-content: space-between; border-bottom: 1px dashed #9ca3af; padding-bottom: 16px; margin-bottom: 18px; }
+    h1 { margin: 0; font-size: 30px; } h2 { margin: 8px 0 0; font-size: 24px; }
+    .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+    .item { border: 1px solid #e5e7eb; border-radius: 12px; padding: 12px; }
+    .item small { display: block; color: #6b7280; text-transform: uppercase; font-weight: 700; margin-bottom: 6px; }
+    .total { grid-column: 1 / -1; background: #fff7ed; border-color: #f59e0b; }
+    @media print { body { padding: 0; } .ticket { border: 0; border-radius: 0; } }
+  </style>
+</head>
+<body>
+  <section class="ticket">
+    <div class="head"><div><h1>CineSky E-Ticket</h1><h2>${booking.movieTitle || "CineSky"}</h2></div><strong>${booking.ticketCode || booking.id || ""}</strong></div>
+    <div class="grid">
+      <div class="item"><small>Rạp</small><strong>${booking.cinemaName || ""}</strong></div>
+      <div class="item"><small>Phòng</small><strong>${booking.roomName || ""}</strong></div>
+      <div class="item"><small>Suất chiếu</small><strong>${[booking.displayDate, booking.displayTime].filter(Boolean).join(" - ")}</strong></div>
+      <div class="item"><small>Ghế</small><strong>${(booking.seatNumbers || []).join(", ")}</strong></div>
+      <div class="item"><small>Trạng thái</small><strong>${booking.status || "booked"}</strong></div>
+      <div class="item"><small>Voucher</small><strong>${booking.promoCode ? `${booking.promoCode} (-${Number(booking.discountAmount || 0).toLocaleString("vi-VN")} VND)` : "Không dùng"}</strong></div>
+      <div class="item total"><small>Tổng thanh toán</small><strong>${Number(booking.totalPrice || 0).toLocaleString("vi-VN")} VND</strong></div>
+    </div>
+  </section>
+  <script>window.onload = () => window.print();</script>
+</body>
+</html>`;
+
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
+};
+
 export default function BookingHistory() {
   const [user] = useState(() => getSessionUser());
   const [bookings, setBookings] = useState([]);
@@ -122,6 +166,7 @@ export default function BookingHistory() {
   const [cancellingId, setCancellingId] = useState("");
   const [pendingCancelBooking, setPendingCancelBooking] = useState(null);
   const [historyMessage, setHistoryMessage] = useState("");
+  const [selectedExportBookingId, setSelectedExportBookingId] = useState("");
 
   const loadHistory = useCallback(async ({ silent = false } = {}) => {
     if (!user?.id && !user?.email) {
@@ -152,6 +197,12 @@ export default function BookingHistory() {
   }, [loadHistory]);
 
   useEffect(() => {
+    if (!selectedExportBookingId && bookings.length > 0) {
+      setSelectedExportBookingId(String(bookings[0].id));
+    }
+  }, [bookings, selectedExportBookingId]);
+
+  useEffect(() => {
     const refreshWhenVisible = () => {
       if (document.visibilityState === "visible") {
         loadHistory({ silent: true });
@@ -170,6 +221,10 @@ export default function BookingHistory() {
   const totalSpent = useMemo(
     () => bookings.reduce((sum, booking) => sum + Number(booking.totalPrice || 0), 0),
     [bookings]
+  );
+  const selectedExportBooking = useMemo(
+    () => bookings.find((booking) => String(booking.id) === String(selectedExportBookingId)) || bookings[0] || null,
+    [bookings, selectedExportBookingId]
   );
   const currentMembership =
     membership || { tier: "Member", points: 0, totalTickets: 0, nextTierPoints: 500, pointsToNextTier: 500 };
@@ -276,6 +331,28 @@ export default function BookingHistory() {
 
       {isLoading ? <p className="history-loading">Đang tải lịch sử đặt vé...</p> : null}
       {historyMessage ? <p className="history-inline-message">{historyMessage}</p> : null}
+
+      {bookings.length > 0 ? (
+        <section className="history-export-panel" aria-label="Xuất vé PDF">
+          <div>
+            <span className="history-kicker">Xuất vé PDF</span>
+            <h2>Chọn vé cần xuất</h2>
+          </div>
+          <label>
+            <span>Vé</span>
+            <select value={selectedExportBookingId} onChange={(event) => setSelectedExportBookingId(event.target.value)}>
+              {bookings.map((booking) => (
+                <option key={booking.id} value={booking.id}>
+                  {(booking.ticketCode || booking.id)} - {booking.movieTitle || "Vé xem phim"} - {[booking.displayDate, booking.displayTime].filter(Boolean).join(" ")}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button type="button" onClick={() => selectedExportBooking && printHistoryTicketPdf(selectedExportBooking)}>
+            Xuất PDF
+          </button>
+        </section>
+      ) : null}
 
       {!isLoading && bookings.length === 0 ? (
         <section className="history-empty-card">

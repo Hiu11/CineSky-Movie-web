@@ -20,7 +20,7 @@ const notificationSchema = new mongoose.Schema(
     },
     type: {
       type: String,
-      enum: ["feedback_response", "system"],
+      enum: ["feedback_response", "booking_confirmation", "showtime_reminder", "system"],
       default: "system",
     },
     sourceId: {
@@ -35,6 +35,11 @@ const notificationSchema = new mongoose.Schema(
     readAt: {
       type: Date,
       default: null,
+    },
+    scheduledFor: {
+      type: Date,
+      default: null,
+      index: true,
     },
   },
   {

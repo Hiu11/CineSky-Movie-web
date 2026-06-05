@@ -197,6 +197,30 @@ const requestAdmin = async (path, params = {}) => {
   return parseResponse(response);
 };
 
+export const lockBookingSeats = async (payload) => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/bookings/seat-locks`, {
+    method: "POST",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    body: JSON.stringify(payload),
+  });
+
+  return parseResponse(response);
+};
+
+export const validateBookingVoucher = async (payload) => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/bookings/validate-voucher`, {
+    method: "POST",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    body: JSON.stringify(payload),
+  });
+
+  return parseResponse(response);
+};
+
 export const getAdminOverview = async () => requestAdmin("overview");
 
 export const getAdminAnalytics = async (params = {}) => requestAdmin("analytics", params);
@@ -206,6 +230,8 @@ export const getAdminActivity = async (params = {}) => requestAdmin("activity", 
 export const getAdminUsers = async (params = {}) => requestAdmin("users", params);
 
 export const getAdminBookings = async (params = {}) => requestAdmin("bookings", params);
+
+export const getAdminPromotions = async () => requestAdmin("promotions");
 
 export const getAdminFeedback = async (params = {}) => requestAdmin("feedback", params);
 
@@ -298,3 +324,22 @@ export const deleteAdminMovie = async (movieId) => {
 
   return parseResponse(response);
 };
+
+const requestAdminPromotion = async (path, method, payload) => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/admin/promotions${path}`, {
+    method,
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    cache: "no-store",
+    body: method === "DELETE" ? undefined : JSON.stringify(payload),
+  });
+
+  return parseResponse(response);
+};
+
+export const createAdminPromotion = async (payload) => requestAdminPromotion("", "POST", payload);
+
+export const updateAdminPromotion = async (promotionId, payload) => requestAdminPromotion(`/${promotionId}`, "PUT", payload);
+
+export const deleteAdminPromotion = async (promotionId) => requestAdminPromotion(`/${promotionId}`, "DELETE");

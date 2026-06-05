@@ -8,6 +8,61 @@
   z-index: 1;
 }
 
+.profile-voucher-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.profile-voucher-card {
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.06);
+  padding: 16px;
+  color: #f8fafc;
+}
+
+.profile-voucher-card span,
+.profile-voucher-card p,
+.profile-voucher-progress small {
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.profile-voucher-card code {
+  display: inline-flex;
+  margin: 8px 0;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px dashed rgba(247, 180, 0, 0.5);
+  color: #ffe08a;
+}
+
+.profile-voucher-progress {
+  display: grid;
+  gap: 8px;
+}
+
+.profile-voucher-progress div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.profile-voucher-progress i {
+  display: block;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.profile-voucher-progress b {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #f7b400, #38bdf8);
+}
+
 body:has(.profile-page) {
   background: #fffaf0;
 }

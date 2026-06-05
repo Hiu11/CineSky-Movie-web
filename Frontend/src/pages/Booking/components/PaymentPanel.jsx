@@ -18,7 +18,7 @@ export default function PaymentPanel({
   useQrPayment, setUseQrPayment,
   isQrPaymentConfirmed, setIsQrPaymentConfirmed,
   paymentQrDataUrl, isPaymentExpired, paymentCountdownLabel,
-  finalTotal, formatCurrency,
+  voucherState, finalTotal, formatCurrency,
 }) {
   return (
     <section className="booking-page__panel booking-page__panel--payment">
@@ -173,6 +173,13 @@ export default function PaymentPanel({
                 <span>Mã khuyến mãi</span>
                 <input type="text" value={paymentForm.promoCode} onChange={onPaymentFieldChange("promoCode")} placeholder="Nhập mã giảm giá nếu có" />
               </label>
+              {paymentForm.promoCode?.trim() ? (
+                <p className={"booking-page__voucher-message " + (voucherState?.error ? "is-error" : "is-success")}>
+                  {voucherState?.isChecking
+                    ? "Đang kiểm tra mã khuyến mãi..."
+                    : voucherState?.error || voucherState?.message || "Mã khuyến mãi đã sẵn sàng."}
+                </p>
+              ) : null}
             </div>
           )}
 

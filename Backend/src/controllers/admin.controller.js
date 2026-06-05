@@ -5,11 +5,13 @@ import FavoriteModel from "../models/favorite.model.js";
 import FeedbackModel from "../models/feedback.model.js";
 import MovieModel from "../models/movie.model.js";
 import NotificationModel from "../models/notification.model.js";
+import PromotionModel from "../models/promotion.model.js";
 import ReviewModel from "../models/review.model.js";
 import ShowtimeModel from "../models/showtime.model.js";
 import UserModel from "../models/user.model.js";
 import { buildAdminAnalyticsPayload } from "../services/adminAnalytics.service.js";
 import tmdbService from "../services/tmdb.service.js";
+import { ensureDefaultPromotions, serializePromotion } from "./promotions.controller.js";
 import {
   buildNonAdminBookingFilter,
   buildNonAdminFeedbackFilter,
@@ -182,6 +184,11 @@ const normalizeStringList = (value) => {
     .map((item) => item.trim())
     .filter(Boolean);
 };
+
+const normalizeWeekdayList = (value) =>
+  normalizeStringList(value)
+    .map((day) => Number(day))
+    .filter((day) => Number.isInteger(day) && day >= 0 && day <= 6);
 
 const normalizeKeyValueList = (value) => {
   if (Array.isArray(value)) {
@@ -380,6 +387,60 @@ const createAdminActivity = async (req, activity) => {
   }
 };
 
+const parseDateOrNull = (value, { endOfDay = false } = {}) => {
+  if (!value) {
+    return null;
+  }
+
+  const normalizedValue = String(value).trim();
+  const date = /^\d{4}-\d{2}-\d{2}$/.test(normalizedValue) && endOfDay
+    ? new Date(`${normalizedValue}T23:59:59.999Z`)
+    : new Date(normalizedValue);
+  return Number.isNaN(date.getTime()) ? null : date;
+};
+
+const buildPromotionPayload = (body = {}) => {
+  const title = String(body.title || body.name || "").trim();
+  const tag = String(body.tag || body.status || "").trim() || title;
+  const code = String(body.code || "").trim().toUpperCase().replace(/\s+/g, "");
+
+  return {
+    kind: ["hero", "member", "combo", "genre", "ticket"].includes(body.kind) ? body.kind : "member",
+    tier: ["Silver", "Gold", "Diamond", ""].includes(body.tier || "") ? body.tier || "" : "",
+    tag,
+    title,
+    value: String(body.value || "").trim(),
+    code,
+    discountType: ["fixed", "percent", "combo_price", "free_ticket"].includes(body.discountType) ? body.discountType : "fixed",
+    discountValue: Math.max(Number(body.discountValue || 0), 0),
+    minOrderValue: Math.max(Number(body.minOrderValue || 0), 0),
+    requiredPoints: Math.max(Number(body.requiredPoints || 0), 0),
+    eligibleTiers: normalizeStringList(body.eligibleTiers).filter((tier) => ["Member", "Silver", "Gold", "Diamond"].includes(tier)),
+    applicableGenres: normalizeStringList(body.applicableGenres),
+    applicableComboIds: normalizeStringList(body.applicableComboIds),
+    applicableWeekdays: normalizeWeekdayList(body.applicableWeekdays),
+    maxUsesPerUser: Math.max(Number(body.maxUsesPerUser || 1), 1),
+    totalUsageLimit: Math.max(Number(body.totalUsageLimit || 0), 0),
+    memberOnly: Boolean(body.memberOnly),
+    theme: ["slate", "silver", "gold", "diamond", "rose", "emerald", "sky", "violet"].includes(body.theme) ? body.theme : "slate",
+    startsAt: parseDateOrNull(body.startsAt),
+    endsAt: parseDateOrNull(body.endsAt, { endOfDay: true }),
+    description: String(body.description || body.time || "").trim(),
+    order: Number(body.order || 0),
+    isActive: body.isActive !== false,
+  };
+};
+
+const validatePromotionPayload = (payload, isUpdate = false) => {
+  if (!payload.title) return "Promotion title is required";
+  if (!payload.tag) return "Promotion tag is required";
+  if (!payload.description) return "Promotion description is required";
+  if (!isUpdate && !payload.code && payload.kind !== "combo") return "Promotion code is required";
+  if (payload.code && payload.discountValue <= 0 && payload.discountType !== "free_ticket") return "Discount value must be greater than 0";
+  if (payload.endsAt && payload.startsAt && payload.endsAt < payload.startsAt) return "End date must be after start date";
+  return "";
+};
+
 const serializeAdminMovie = (movie) => ({
   id: formatMovieId(movie.legacyId),
   slug: movie.slug,
@@ -505,6 +566,143 @@ const buildSearchFilter = (search = "") => {
 };
 
 const adminController = {
+  getPromotions: async (req, res) => {
+    try {
+      await ensureDefaultPromotions();
+      const promotions = await PromotionModel.find().sort({ order: 1, createdAt: 1 });
+
+      return res.status(200).send({
+        success: true,
+        message: "Get admin promotions successfully",
+        data: promotions.map(serializePromotion),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  createPromotion: async (req, res) => {
+    try {
+      const payload = buildPromotionPayload(req.body);
+      const validationMessage = validatePromotionPayload(payload);
+
+      if (validationMessage) {
+        return res.status(400).send({ success: false, message: validationMessage, data: null });
+      }
+
+      const promotion = await PromotionModel.create(payload);
+      await createAdminActivity(req, {
+        action: "PROMO_CREATE",
+        name: promotion.title,
+        value: promotion.code || promotion.kind,
+        entityType: "promotion",
+        entityId: promotion._id,
+      });
+
+      return res.status(201).send({
+        success: true,
+        message: "Create promotion successfully",
+        data: serializePromotion(promotion),
+      });
+    } catch (error) {
+      return res.status(error.code === 11000 ? 409 : 500).send({
+        success: false,
+        message: error.code === 11000 ? "Promotion code already exists" : error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  updatePromotion: async (req, res) => {
+    try {
+      const { promotionId } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(promotionId)) {
+        return res.status(400).send({ success: false, message: "Promotion id is invalid", data: null });
+      }
+
+      const payload = buildPromotionPayload(req.body);
+      const validationMessage = validatePromotionPayload(payload, true);
+
+      if (validationMessage) {
+        return res.status(400).send({ success: false, message: validationMessage, data: null });
+      }
+
+      const promotion = await PromotionModel.findByIdAndUpdate(promotionId, payload, {
+        new: true,
+        runValidators: true,
+      });
+
+      if (!promotion) {
+        return res.status(404).send({ success: false, message: "Promotion not found", data: null });
+      }
+
+      await createAdminActivity(req, {
+        action: "PROMO_UPDATE",
+        name: promotion.title,
+        value: promotion.code || promotion.kind,
+        entityType: "promotion",
+        entityId: promotion._id,
+      });
+
+      return res.status(200).send({
+        success: true,
+        message: "Update promotion successfully",
+        data: serializePromotion(promotion),
+      });
+    } catch (error) {
+      return res.status(error.code === 11000 ? 409 : 500).send({
+        success: false,
+        message: error.code === 11000 ? "Promotion code already exists" : error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  deletePromotion: async (req, res) => {
+    try {
+      const { promotionId } = req.params;
+
+      if (!mongoose.Types.ObjectId.isValid(promotionId)) {
+        return res.status(400).send({ success: false, message: "Promotion id is invalid", data: null });
+      }
+
+      const promotion = await PromotionModel.findByIdAndUpdate(
+        promotionId,
+        { isActive: false },
+        { new: true, runValidators: true }
+      );
+
+      if (!promotion) {
+        return res.status(404).send({ success: false, message: "Promotion not found", data: null });
+      }
+
+      await createAdminActivity(req, {
+        action: "PROMO_DISABLE",
+        name: promotion.title,
+        value: promotion.code || promotion.kind,
+        entityType: "promotion",
+        entityId: promotion._id,
+      });
+
+      return res.status(200).send({
+        success: true,
+        message: "Disable promotion successfully",
+        data: serializePromotion(promotion),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
   searchTmdbMovie: async (req, res) => {
     try {
       const metadata = await tmdbService.searchMovieMetadata(req.query.query);

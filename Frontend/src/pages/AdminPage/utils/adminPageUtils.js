@@ -368,6 +368,32 @@ export const getSliceOffset = (startAngle, endAngle) => {
 };
 
 export const createEmptyForm = () => ({ id: "", name: "", status: "", time: "", value: "" });
+export const createPromotionForm = () => ({
+  id: "",
+  kind: "member",
+  tier: "",
+  tag: "",
+  title: "",
+  value: "",
+  code: "",
+  discountType: "fixed",
+  discountValue: "",
+  minOrderValue: "0",
+  requiredPoints: "0",
+  eligibleTiers: "",
+  applicableGenres: "",
+  applicableComboIds: "",
+  applicableWeekdays: "",
+  maxUsesPerUser: "1",
+  totalUsageLimit: "0",
+  memberOnly: false,
+  theme: "slate",
+  startsAt: "",
+  endsAt: "",
+  description: "",
+  order: "0",
+  isActive: true,
+});
 export const createMovieForm = () => ({
   id: "",
   title: "",
@@ -705,6 +731,46 @@ export const mapMovieToRecord = (movie) => ({
   value: `${movie.rating || "P"} • ${movie.duration || 0} min • ${(movie.genres || []).join(", ")}`,
 });
 
+export const mapPromotionToRecord = (promotion) => ({
+  ...promotion,
+  id: String(promotion.id),
+  name: promotion.title,
+  status: promotion.tier || promotion.kind,
+  time: promotion.isActive ? "Đang bật" : "Đã tắt",
+  value: [
+    promotion.code || "No code",
+    promotion.value || `${promotion.discountValue || 0} ${promotion.discountType || ""}`.trim(),
+    promotion.maxUsesPerUser ? `${promotion.maxUsesPerUser}x/user` : "",
+  ].filter(Boolean).join(" - "),
+});
+
+export const mapPromotionToForm = (promotion) => ({
+  id: String(promotion.id || ""),
+  kind: promotion.kind || "member",
+  tier: promotion.tier || "",
+  tag: promotion.tag || "",
+  title: promotion.title || promotion.name || "",
+  value: promotion.value || "",
+  code: promotion.code || "",
+  discountType: promotion.discountType || "fixed",
+  discountValue: String(promotion.discountValue || ""),
+  minOrderValue: String(promotion.minOrderValue || 0),
+  requiredPoints: String(promotion.requiredPoints || 0),
+  eligibleTiers: joinList(promotion.eligibleTiers),
+  applicableGenres: joinList(promotion.applicableGenres),
+  applicableComboIds: joinList(promotion.applicableComboIds),
+  applicableWeekdays: joinList(promotion.applicableWeekdays),
+  maxUsesPerUser: String(promotion.maxUsesPerUser || 1),
+  totalUsageLimit: String(promotion.totalUsageLimit || 0),
+  memberOnly: Boolean(promotion.memberOnly),
+  theme: promotion.theme || "slate",
+  startsAt: promotion.startsAt ? String(promotion.startsAt).slice(0, 10) : "",
+  endsAt: promotion.endsAt ? String(promotion.endsAt).slice(0, 10) : "",
+  description: promotion.description || "",
+  order: String(promotion.order || 0),
+  isActive: promotion.isActive !== false,
+});
+
 export const mapDeletedMovieToRecord = (movie) => ({
   ...mapMovieToRecord(movie),
   status: "Deleted",
@@ -842,3 +908,46 @@ export const formatDetailValue = (value) => {
 
   return shorten(value ?? "");
 };
+
+export const validatePromotionForm = (form, promotions = [], editingId = "") => {
+  if (!String(form.title || "").trim()) return "Không được để trống tên ưu đãi.";
+  if (!String(form.tag || "").trim()) return "Không được để trống nhãn/hạng ưu đãi.";
+  if (!String(form.description || "").trim()) return "Không được để trống mô tả ưu đãi.";
+  if (String(form.code || "").trim() && Number(form.discountValue || 0) <= 0 && form.discountType !== "free_ticket") {
+    return "Giá trị giảm phải lớn hơn 0.";
+  }
+
+  const normalizedCode = String(form.code || "").trim().toUpperCase();
+  const duplicate = normalizedCode && promotions.find((promotion) =>
+    promotion.id !== editingId && String(promotion.code || "").trim().toUpperCase() === normalizedCode
+  );
+
+  if (duplicate) return `Mã ${normalizedCode} đã tồn tại.`;
+  return "";
+};
+
+export const promotionFormToPayload = (form) => ({
+  kind: form.kind,
+  tier: form.tier,
+  tag: form.tag,
+  title: form.title,
+  value: form.value,
+  code: String(form.code || "").trim().toUpperCase(),
+  discountType: form.discountType,
+  discountValue: Number(form.discountValue) || 0,
+  minOrderValue: Number(form.minOrderValue) || 0,
+  requiredPoints: Number(form.requiredPoints) || 0,
+  eligibleTiers: splitList(form.eligibleTiers),
+  applicableGenres: splitList(form.applicableGenres),
+  applicableComboIds: splitList(form.applicableComboIds),
+  applicableWeekdays: splitList(form.applicableWeekdays).map(Number).filter((day) => Number.isInteger(day) && day >= 0 && day <= 6),
+  maxUsesPerUser: Number(form.maxUsesPerUser) || 1,
+  totalUsageLimit: Number(form.totalUsageLimit) || 0,
+  memberOnly: Boolean(form.memberOnly),
+  theme: form.theme,
+  startsAt: form.startsAt || null,
+  endsAt: form.endsAt || null,
+  description: form.description,
+  order: Number(form.order) || 0,
+  isActive: form.isActive !== false,
+});

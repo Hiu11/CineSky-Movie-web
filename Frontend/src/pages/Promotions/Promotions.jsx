@@ -1,8 +1,14 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import Lottie from "lottie-react";
 import promoVoucherAnimation from "../../assets/animations/promoVoucher.json";
 import { getPromotions } from "../../services/promotionService";
+import {
+  getMyProfile,
+  saveMyPromotion,
+  unsaveMyPromotion,
+  updateStoredUser,
+} from "../../services/authService";
 import "../HomePage/HomePage.css";
 import "./Promotions.css";
 
@@ -10,34 +16,14 @@ const fallbackPromotions = {
   heroVoucher: {
     tag: "Hot voucher",
     title: "Giảm 30K",
-    description: "Cho hóa đơn từ 199K khi đặt vé online và mua combo tại CineSky.",
+    value: "Giảm 30K",
+    description: "Cho hóa đơn từ 199K khi đặt vé online tại CineSky.",
   },
-  vouchers: [
-  {
-    tag: "Silver",
-    title: "Silver Movie Night",
-    value: "Giảm 15%",
-    description: "Áp dụng cho vé 2D từ thứ Hai đến thứ Năm khi đăng nhập tài khoản thành viên Silver.",
-  },
-  {
-    tag: "Gold",
-    title: "Gold Combo Plus",
-    value: "Combo 69K",
-    description: "Bắp lớn + 2 nước ngọt cho hội viên Gold khi đặt vé online tại CineSky.",
-  },
-  {
-    tag: "Diamond",
-    title: "Diamond Premiere",
-    value: "1 vé miễn phí",
-    description: "Ưu đãi sinh nhật dành cho hội viên Diamond, dùng cho phim đang chiếu trong tháng.",
-  },
-  ],
-  combos: [
-    { id: "combo-couple", description: "Combo Couple: 2 vé + bắp caramel + 2 nước chỉ từ 219K." },
-    { id: "combo-family", description: "Combo Family: 4 vé + 2 bắp lớn + 4 nước, phù hợp suất cuối tuần." },
-    { id: "student-day", description: "Student Day: xuất trình thẻ học sinh/sinh viên để nhận giá vé ưu đãi mỗi thứ Tư." },
-  ],
+  vouchers: [],
+  combos: [],
 };
+
+const tierOrder = ["Silver", "Gold", "Diamond", "Member"];
 
 const cinematicParticles = Array.from({ length: 42 }, (_, index) => ({
   id: index,
@@ -48,8 +34,24 @@ const cinematicParticles = Array.from({ length: 42 }, (_, index) => ({
   duration: `${8 + (index % 6)}s`,
 }));
 
+const getTierGroups = (vouchers = []) => {
+  const groups = vouchers.reduce((map, voucher) => {
+    const tier = voucher.tier || voucher.tag || "Member";
+    return {
+      ...map,
+      [tier]: [...(map[tier] || []), voucher],
+    };
+  }, {});
+
+  return Object.entries(groups).sort(
+    ([left], [right]) => tierOrder.indexOf(left) - tierOrder.indexOf(right)
+  );
+};
+
 export default function Promotions() {
   const [promotions, setPromotions] = useState(fallbackPromotions);
+  const [savedIds, setSavedIds] = useState([]);
+  const [saveMessage, setSaveMessage] = useState("");
 
   useEffect(() => {
     let isMounted = true;
@@ -79,7 +81,41 @@ export default function Promotions() {
     };
   }, []);
 
+  useEffect(() => {
+    let isMounted = true;
+
+    getMyProfile()
+      .then((profile) => {
+        if (!isMounted) return;
+        const normalizedUser = updateStoredUser(profile);
+        setSavedIds(normalizedUser.savedPromotionIds || []);
+      })
+      .catch(() => {});
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleToggleSave = async (promotion) => {
+    if (!promotion?.id) return;
+
+    try {
+      const isSaved = savedIds.includes(String(promotion.id));
+      const updatedUser = isSaved
+        ? await unsaveMyPromotion(promotion.id)
+        : await saveMyPromotion(promotion.id);
+      const normalizedUser = updateStoredUser(updatedUser);
+
+      setSavedIds(normalizedUser.savedPromotionIds || []);
+      setSaveMessage(isSaved ? "Đã bỏ lưu mã ưu đãi." : "Đã lưu mã vào trang cá nhân.");
+    } catch (error) {
+      setSaveMessage(error.message || "Đăng nhập để lưu mã ưu đãi.");
+    }
+  };
+
   const { heroVoucher, vouchers, combos } = promotions;
+  const tierGroups = useMemo(() => getTierGroups(vouchers), [vouchers]);
 
   return (
     <main className="promotions-page">
@@ -89,8 +125,6 @@ export default function Promotions() {
         <div className="home-cinematic-backdrop__light home-cinematic-backdrop__light--blue"></div>
         <div className="home-cinematic-backdrop__beam home-cinematic-backdrop__beam--left"></div>
         <div className="home-cinematic-backdrop__beam home-cinematic-backdrop__beam--right"></div>
-        <div className="home-cinematic-backdrop__orb home-cinematic-backdrop__orb--one"></div>
-        <div className="home-cinematic-backdrop__orb home-cinematic-backdrop__orb--two"></div>
         <div className="home-cinematic-backdrop__film home-cinematic-backdrop__film--left"></div>
         <div className="home-cinematic-backdrop__film home-cinematic-backdrop__film--right"></div>
         <div className="home-cinematic-backdrop__particles">
@@ -112,10 +146,8 @@ export default function Promotions() {
       <section className="promotions-hero">
         <div>
           <span>Ưu đãi CineSky</span>
-          <h1>Voucher, combo giảm giá và quyền lợi theo hạng thành viên.</h1>
-          <p>
-            Chọn ưu đãi phù hợp trước khi đặt vé. Silver, Gold và Diamond đều có quyền lợi riêng để mỗi buổi xem phim nhẹ ví hơn.
-          </p>
+          <h1>Voucher, combo và quyền lợi theo hạng thành viên.</h1>
+          <p>Trang này hiển thị ưu đãi nổi bật. Muốn dùng về sau thì lưu mã vào trang cá nhân, lúc đặt vé nhập mã tại bước thanh toán.</p>
           <Link to="/?tab=now">Chọn phim ngay</Link>
         </div>
         <div className="promotions-ticket" aria-label="Voucher nổi bật">
@@ -124,18 +156,45 @@ export default function Promotions() {
           </div>
           <small>{heroVoucher.tag}</small>
           <strong>{heroVoucher.value || heroVoucher.title}</strong>
+          {heroVoucher.code ? <code className="promotion-code">{heroVoucher.code}</code> : null}
+          {heroVoucher.id ? (
+            <button type="button" className="promotion-save-btn" onClick={() => handleToggleSave(heroVoucher)}>
+              {savedIds.includes(String(heroVoucher.id)) ? "Đã lưu" : "Lưu mã"}
+            </button>
+          ) : null}
           <p>{heroVoucher.description}</p>
         </div>
       </section>
 
-      <section className="promotions-grid" aria-label="Ưu đãi theo hạng thành viên">
-        {vouchers.map((voucher) => (
-          <article key={voucher.title} className={`promotion-card promotion-card--${voucher.tag.toLowerCase()}`}>
-            <span>{voucher.tag}</span>
-            <h2>{voucher.title}</h2>
-            <strong>{voucher.value}</strong>
-            <p>{voucher.description}</p>
-          </article>
+      {saveMessage ? <p className="promotion-save-message">{saveMessage}</p> : null}
+
+      <section className="promotions-grid promotions-grid--tiered" aria-label="Ưu đãi theo hạng thành viên">
+        {tierGroups.map(([tier, tierVouchers]) => (
+          <div key={tier} className="promotion-tier-group">
+            <div className="promotion-tier-head">
+              <span>{tier}</span>
+              <strong>{tierVouchers.length} ưu đãi</strong>
+            </div>
+            <div className="promotion-tier-list">
+              {tierVouchers.map((voucher) => (
+                <article key={voucher.id || voucher.title} className={`promotion-card promotion-card--${String(voucher.theme || voucher.tag || "slate").toLowerCase()}`}>
+                  <span>{voucher.tag}</span>
+                  <h2>{voucher.title}</h2>
+                  <strong>{voucher.value}</strong>
+                  {voucher.code ? <code className="promotion-code">{voucher.code}</code> : null}
+                  <p>{voucher.description}</p>
+                  <div className="promotion-meta">
+                    {voucher.requiredPoints ? <small>{Number(voucher.requiredPoints).toLocaleString("vi-VN")} điểm</small> : null}
+                    {voucher.maxUsesPerUser ? <small>{voucher.maxUsesPerUser} lần/user</small> : null}
+                    {voucher.applicableGenres?.length ? <small>{voucher.applicableGenres.join(", ")}</small> : null}
+                  </div>
+                  <button type="button" className="promotion-save-btn" onClick={() => handleToggleSave(voucher)}>
+                    {savedIds.includes(String(voucher.id)) ? "Đã lưu" : "Lưu mã"}
+                  </button>
+                </article>
+              ))}
+            </div>
+          </div>
         ))}
       </section>
 
@@ -146,7 +205,10 @@ export default function Promotions() {
         </div>
         <div className="promotions-combo-list">
           {combos.map((deal) => (
-            <p key={deal.id || deal.title || deal.description}>{deal.description}</p>
+            <p key={deal.id || deal.title || deal.description}>
+              {deal.code ? <code className="promotion-code promotion-code--inline">{deal.code}</code> : null}
+              {deal.description}
+            </p>
           ))}
         </div>
       </section>

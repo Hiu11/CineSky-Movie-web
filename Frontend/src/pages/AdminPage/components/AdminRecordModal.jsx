@@ -289,6 +289,80 @@ export default function AdminRecordModal({
                       <input type="number" value={form.heroOrder} onChange={(event) => setForm({ ...form, heroOrder: event.target.value })} placeholder="Thứ tự hero" />
                     </div>
                   </>
+                ) : activeModule === "promotions" ? (
+                  <>
+                    <input value={form.id} onChange={(event) => setForm({ ...form, id: event.target.value })} placeholder="Promotion ID" disabled={Boolean(editingId)} />
+                    <div className="admin-form-grid">
+                      <select value={form.kind} onChange={(event) => setForm({ ...form, kind: event.target.value })}>
+                        <option value="hero">Hero voucher</option>
+                        <option value="member">Member</option>
+                        <option value="combo">Combo</option>
+                        <option value="genre">Genre</option>
+                        <option value="ticket">Ticket</option>
+                      </select>
+                      <select value={form.tier} onChange={(event) => setForm({ ...form, tier: event.target.value })}>
+                        <option value="">No tier</option>
+                        <option value="Silver">Silver</option>
+                        <option value="Gold">Gold</option>
+                        <option value="Diamond">Diamond</option>
+                      </select>
+                    </div>
+                    <input required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="Ten uu dai" />
+                    <div className="admin-form-grid">
+                      <input required value={form.tag} onChange={(event) => setForm({ ...form, tag: event.target.value })} placeholder="Nhan hien thi" />
+                      <input value={form.value} onChange={(event) => setForm({ ...form, value: event.target.value })} placeholder="Giá trị hiển thị, ví dụ Giảm 30K" />
+                    </div>
+                    <div className="admin-form-grid">
+                      <input value={form.code} onChange={(event) => setForm({ ...form, code: event.target.value.toUpperCase().replace(/\s+/g, "") })} placeholder="Mã voucher" />
+                      <select value={form.discountType} onChange={(event) => setForm({ ...form, discountType: event.target.value })}>
+                        <option value="fixed">Giảm tiền cố định</option>
+                        <option value="percent">Giảm phần trăm</option>
+                        <option value="combo_price">Giá combo mục tiêu</option>
+                        <option value="free_ticket">Miễn phí vé</option>
+                      </select>
+                    </div>
+                    <div className="admin-form-grid">
+                      <input type="number" min="0" value={form.discountValue} onChange={(event) => setForm({ ...form, discountValue: event.target.value })} placeholder="Giá trị giảm" />
+                      <input type="number" min="0" value={form.minOrderValue} onChange={(event) => setForm({ ...form, minOrderValue: event.target.value })} placeholder="Đơn tối thiểu" />
+                    </div>
+                    <div className="admin-form-grid">
+                      <input type="number" min="0" value={form.requiredPoints} onChange={(event) => setForm({ ...form, requiredPoints: event.target.value })} placeholder="Điểm tối thiểu" />
+                      <input type="number" min="1" value={form.maxUsesPerUser} onChange={(event) => setForm({ ...form, maxUsesPerUser: event.target.value })} placeholder="Số lần/user" />
+                    </div>
+                    <div className="admin-form-grid">
+                      <input type="number" min="0" value={form.totalUsageLimit} onChange={(event) => setForm({ ...form, totalUsageLimit: event.target.value })} placeholder="Tổng lượt tối đa, 0 = không giới hạn" />
+                      <input type="number" value={form.order} onChange={(event) => setForm({ ...form, order: event.target.value })} placeholder="Thứ tự hiển thị" />
+                    </div>
+                    <input value={form.eligibleTiers} onChange={(event) => setForm({ ...form, eligibleTiers: event.target.value })} placeholder="Hạng được dùng: Member, Silver, Gold, Diamond" />
+                    <input value={form.applicableGenres} onChange={(event) => setForm({ ...form, applicableGenres: event.target.value })} placeholder="Thể loại áp dụng, cách nhau bằng dấu phẩy" />
+                    <input value={form.applicableComboIds} onChange={(event) => setForm({ ...form, applicableComboIds: event.target.value })} placeholder="Combo ID áp dụng, cách nhau bằng dấu phẩy" />
+                    <input value={form.applicableWeekdays} onChange={(event) => setForm({ ...form, applicableWeekdays: event.target.value })} placeholder="Thứ áp dụng: 0 CN, 1 T2, 2 T3, 3 T4, 4 T5, 5 T6, 6 T7" />
+                    <div className="admin-form-grid">
+                      <input type="date" value={form.startsAt} onChange={(event) => setForm({ ...form, startsAt: event.target.value })} />
+                      <input type="date" value={form.endsAt} onChange={(event) => setForm({ ...form, endsAt: event.target.value })} />
+                    </div>
+                    <div className="admin-form-grid">
+                      <select value={form.theme} onChange={(event) => setForm({ ...form, theme: event.target.value })}>
+                        <option value="slate">Slate</option>
+                        <option value="silver">Silver</option>
+                        <option value="gold">Gold</option>
+                        <option value="diamond">Diamond</option>
+                        <option value="rose">Rose</option>
+                        <option value="emerald">Emerald</option>
+                        <option value="sky">Sky</option>
+                        <option value="violet">Violet</option>
+                      </select>
+                      <label className="admin-inline-check">
+                        <input type="checkbox" checked={Boolean(form.memberOnly)} onChange={(event) => setForm({ ...form, memberOnly: event.target.checked })} />
+                      Chỉ thành viên
+                      </label>
+                    </div>
+                    <label className="admin-inline-check">
+                      <input type="checkbox" checked={form.isActive !== false} onChange={(event) => setForm({ ...form, isActive: event.target.checked })} />
+                      Đang bật ưu đãi
+                    </label>
+                    <textarea className="admin-field--large" required value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Mô tả/điều kiện hiển thị" rows="4" />
+                  </>
                 ) : (
                   <>
                     <input value={form.id} onChange={(event) => setForm({ ...form, id: event.target.value })} placeholder="Tự tạo ID nếu để trống" />

@@ -3,7 +3,8 @@ import { LOCALIZED_PAYMENT_METHODS } from "../hooks/useBookingFlow";
 export default function BookingSummary({
   movie, selectedShowtime, selectedScreeningDateLabel, selectedSeats,
   selectedPaymentMethod, selectedProvider,
-  ticketSubtotal, serviceFee, fnbTotal, selectedFnB, finalTotal,
+  ticketSubtotal, serviceFee, fnbTotal, discountAmount, selectedFnB, finalTotal,
+  seatLock,
   isAuthenticated, isSubmitting, isPaymentExpired, isPaymentFormReady, isComingSoon,
   submitMessage, isDesktopViewport, isSummaryCollapsed, setIsSummaryCollapsed,
   onConfirm, formatCurrency,
@@ -81,6 +82,12 @@ export default function BookingSummary({
               <span>Phí dịch vụ</span>
               <strong>{formatCurrency(serviceFee)} VND</strong>
             </div>
+            {discountAmount > 0 ? (
+              <div className="booking-page__summary-row">
+                <span>Giảm giá</span>
+                <strong>-{formatCurrency(discountAmount)} VND</strong>
+              </div>
+            ) : null}
             <div className="booking-page__summary-row booking-page__summary-row--total booking-page__summary-row--wide">
               <span>Tổng thanh toán</span>
               <strong>{formatCurrency(finalTotal)} VND</strong>
@@ -106,6 +113,12 @@ export default function BookingSummary({
           {submitMessage.message ? (
             <p className={`booking-page__status booking-page__status--${submitMessage.type}`}>
               {submitMessage.message}
+            </p>
+          ) : null}
+
+          {seatLock?.expiresAt ? (
+            <p className="booking-page__status booking-page__status--success">
+              Ghế đang được giữ tạm đến {new Date(seatLock.expiresAt).toLocaleTimeString("vi-VN", { hour: "2-digit", minute: "2-digit" })}.
             </p>
           ) : null}
 

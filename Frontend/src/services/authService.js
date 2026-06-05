@@ -54,6 +54,8 @@ export const normalizeAuthUser = (user) => ({
     points: Number(user?.membership?.points || 0),
     totalTickets: Number(user?.membership?.totalTickets || 0),
   },
+  savedPromotionIds: Array.isArray(user?.savedPromotionIds) ? user.savedPromotionIds.map(String) : [],
+  savedPromotions: Array.isArray(user?.savedPromotions) ? user.savedPromotions : [],
 });
 
 const normalizeAuthSession = (payload = {}) => {
@@ -199,4 +201,14 @@ export const uploadMyAvatar = async (payload) =>
   requestPrivateAuth("profile/avatar", {
     method: "POST",
     body: JSON.stringify(payload),
+  });
+
+export const saveMyPromotion = async (promotionId) =>
+  requestPrivateAuth(`promotions/${promotionId}/save`, {
+    method: "POST",
+  });
+
+export const unsaveMyPromotion = async (promotionId) =>
+  requestPrivateAuth(`promotions/${promotionId}/save`, {
+    method: "DELETE",
   });

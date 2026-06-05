@@ -248,6 +248,7 @@
   gap: 16px;
   justify-content: center;
   margin-top: 36px;
+  flex-wrap: wrap;
 }
 
 .booking-success-primary,
@@ -261,7 +262,11 @@
   text-decoration: none;
   font-weight: 800;
   font-size: 15px;
+  font-family: inherit;
   transition: all 0.2s ease;
+  cursor: pointer;
+  white-space: nowrap;
+  flex: 0 0 auto;
 }
 
 .booking-success-primary {

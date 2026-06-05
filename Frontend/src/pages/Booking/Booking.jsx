@@ -106,6 +106,7 @@ export default function Booking({ showToast }) {
             paymentQrDataUrl={flow.paymentQrDataUrl}
             isPaymentExpired={flow.isPaymentExpired}
             paymentCountdownLabel={flow.paymentCountdownLabel}
+            voucherState={flow.voucherState}
             finalTotal={flow.finalTotal}
             formatCurrency={flow.formatCurrency}
           />
@@ -128,8 +129,10 @@ export default function Booking({ showToast }) {
           ticketSubtotal={flow.ticketSubtotal}
           serviceFee={flow.serviceFee}
           fnbTotal={flow.fnbTotal}
+          discountAmount={flow.discountAmount}
           selectedFnB={flow.selectedFnB}
           finalTotal={flow.finalTotal}
+          seatLock={flow.seatLock}
           isAuthenticated={flow.isAuthenticated}
           isSubmitting={flow.isSubmitting}
           isPaymentExpired={flow.isPaymentExpired}

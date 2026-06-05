@@ -1071,6 +1071,28 @@
   grid-column: 1 / -1;
 }
 
+.booking-page__voucher-message {
+  grid-column: 1 / -1;
+  margin: -4px 0 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.booking-page__voucher-message.is-success {
+  background: rgba(74, 222, 128, 0.14);
+  border: 1px solid rgba(134, 239, 172, 0.2);
+  color: #bbf7d0;
+}
+
+.booking-page__voucher-message.is-error {
+  background: rgba(248, 113, 113, 0.16);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  color: #fecaca;
+}
+
 .booking-page__payment-note {
   margin-top: 16px;
   padding: 14px 16px;

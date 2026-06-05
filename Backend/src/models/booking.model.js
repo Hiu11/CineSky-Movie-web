@@ -64,6 +64,24 @@ const bookingSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    subtotalPrice: {
+      type: Number,
+      default: 0,
+    },
+    serviceFee: {
+      type: Number,
+      default: 0,
+    },
+    discountAmount: {
+      type: Number,
+      default: 0,
+    },
+    promoCode: {
+      type: String,
+      default: "",
+      trim: true,
+      uppercase: true,
+    },
     paymentMethod: {
       type: String,
       enum: ["bank", "card", "wallet", "counter"],

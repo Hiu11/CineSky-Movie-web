@@ -9,19 +9,21 @@ const serializeNotification = (notification) => ({
   sourceType: notification.sourceType || "",
   readAt: notification.readAt,
   createdAt: notification.createdAt,
+  scheduledFor: notification.scheduledFor,
 });
 
 const notificationsController = {
   getMyNotifications: async (req, res) => {
     try {
       const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 100);
-      const notifications = await NotificationModel.find({ userId: req.authUser._id })
+      const dueFilter = {
+        userId: req.authUser._id,
+        $or: [{ scheduledFor: null }, { scheduledFor: { $lte: new Date() } }],
+      };
+      const notifications = await NotificationModel.find(dueFilter)
         .sort({ createdAt: -1 })
         .limit(limit);
-      const unreadCount = await NotificationModel.countDocuments({
-        userId: req.authUser._id,
-        readAt: null,
-      });
+      const unreadCount = await NotificationModel.countDocuments({ ...dueFilter, readAt: null });
 
       return res.status(200).send({
         success: true,
@@ -45,6 +47,7 @@ const notificationsController = {
       const unreadCount = await NotificationModel.countDocuments({
         userId: req.authUser._id,
         readAt: null,
+        $or: [{ scheduledFor: null }, { scheduledFor: { $lte: new Date() } }],
       });
 
       return res.status(200).send({

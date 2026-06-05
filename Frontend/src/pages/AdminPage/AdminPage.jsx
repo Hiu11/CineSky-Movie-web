@@ -1,14 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   createAdminMovie,
+  createAdminPromotion,
   checkInAdminTicket,
   deleteAdminMovie,
+  deleteAdminPromotion,
   getAdminActivity,
   getAdminAnalytics,
   getAdminBookings,
   getAdminDeletedMovies,
   getAdminFeedback,
   getAdminOverview,
+  getAdminPromotions,
   getAdminUsers,
   lookupAdminTicket,
   getMovieById,
@@ -18,6 +21,7 @@ import {
   updateAdminFeedback,
   updateAdminUserRole,
   updateAdminMovie,
+  updateAdminPromotion,
   uploadAdminPoster,
 } from "../../services/movieService";
 import AdminParticles from "../../components/AdminParticles/AdminParticles";
@@ -58,6 +62,7 @@ import {
   roomToCinemaName,
   normalizeCinemaName,
   createEmptyForm,
+  createPromotionForm,
   createMovieForm,
   formatAdminDateTime,
   buildDashboardCharts,
@@ -71,14 +76,18 @@ import {
   joinList,
   joinKeyValueLines,
   mapMovieToRecord,
+  mapPromotionToRecord,
   mapDeletedMovieToRecord,
   mapFeedbackToRecord,
   mapMovieToForm,
+  mapPromotionToForm,
   splitList,
   normalizeComparable,
   requiredMovieFields,
   validateMovieForm,
-  movieFormToPayload
+  validatePromotionForm,
+  movieFormToPayload,
+  promotionFormToPayload
 } from "./utils/adminPageUtils";
 export default function AdminPage() {
   const [activeModule, setActiveModule] = useState(getInitialAdminModule);
@@ -257,11 +266,12 @@ export default function AdminPage() {
 
     const loadAdminRecords = async () => {
       try {
-        const [users, bookings, activity, feedbackEntries] = await Promise.all([
+        const [users, bookings, activity, feedbackEntries, promotions] = await Promise.all([
           getAdminUsers({ limit: 20 }),
           getAdminBookings({ limit: 500 }),
           getAdminActivity({ limit: 50 }).catch(() => []),
           getAdminFeedback({ limit: 100 }).catch(() => []),
+          getAdminPromotions().catch(() => []),
         ]);
 
         if (!isMounted) {
@@ -335,6 +345,9 @@ export default function AdminPage() {
           feedback: feedbackRecords.length > 0
             ? feedbackRecords
             : current.feedback,
+          promotions: Array.isArray(promotions) && promotions.length > 0
+            ? promotions.map(mapPromotionToRecord)
+            : current.promotions,
           activity: Array.isArray(activity) && activity.length > 0
             ? activity.map((item) => ({
                 id: String(item.id),
@@ -468,6 +481,12 @@ export default function AdminPage() {
         ...current.activity,
       ],
     }));
+  };
+
+  const getEmptyFormForModule = (moduleKey = activeModule) => {
+    if (moduleKey === "movies") return createMovieForm();
+    if (moduleKey === "promotions") return createPromotionForm();
+    return createEmptyForm();
   };
 
   const appendMultiValue = (field, value) => {
@@ -605,7 +624,7 @@ export default function AdminPage() {
     setFeedbackRatingFilter("all");
     setFeedbackDateFilter("all");
     setPage(1);
-    setForm(nextModule === "movies" ? createMovieForm() : createEmptyForm());
+    setForm(getEmptyFormForModule(nextModule));
     setEditingId("");
     setIsCrudMode(false);
     setSelectedDetail(null);
@@ -627,7 +646,7 @@ export default function AdminPage() {
       return;
     }
 
-    let nextForm = activeModule === "movies" ? createMovieForm() : createEmptyForm();
+    let nextForm = getEmptyFormForModule(activeModule);
     let nextEditingId = "";
     const draftRaw = localStorage.getItem(getDraftKey());
 
@@ -658,7 +677,7 @@ export default function AdminPage() {
 
   const closeCrudMode = () => {
     setIsCrudMode(false);
-    setForm(activeModule === "movies" ? createMovieForm() : createEmptyForm());
+    setForm(getEmptyFormForModule(activeModule));
     setEditingId("");
     setFormError("");
   };
@@ -743,6 +762,60 @@ export default function AdminPage() {
       return;
     }
 
+    if (activeModule === "promotions") {
+      const validationMessage = validatePromotionForm(form, records.promotions, editingId);
+
+      if (validationMessage) {
+        setFormError(validationMessage);
+        return;
+      }
+
+      const confirmed = await askConfirm({
+        title: editingId ? "Luu thay doi uu dai" : "Them uu dai moi",
+        message: editingId ? "Xac nhan luu thay doi uu dai nay?" : "Xac nhan them uu dai moi?",
+        confirmText: editingId ? "Luu thay doi" : "Them uu dai",
+      });
+
+      if (!confirmed) {
+        return;
+      }
+
+      try {
+        const savedPromotion = editingId
+          ? await updateAdminPromotion(editingId, promotionFormToPayload(form))
+          : await createAdminPromotion(promotionFormToPayload(form));
+        const nextRecord = mapPromotionToRecord(savedPromotion);
+
+        localStorage.removeItem(getDraftKey("promotions"));
+        setRecords((current) => ({
+          ...current,
+          promotions: editingId
+            ? current.promotions.map((item) => (item.id === editingId ? nextRecord : item))
+            : [nextRecord, ...current.promotions],
+          activity: [
+            {
+              id: `LOG${Date.now()}`,
+              name: nextRecord.name,
+              status: editingId ? "PROMO_UPDATE" : "PROMO_CREATE",
+              time: formatAdminDateTime(new Date().toISOString()),
+              createdAt: new Date().toISOString(),
+              value: nextRecord.value,
+            },
+            ...current.activity,
+          ],
+        }));
+        setForm(createPromotionForm());
+        setEditingId("");
+        setIsCrudMode(false);
+        setSelectedDetail(nextRecord);
+        setFormError("");
+      } catch (error) {
+        setFormError(error.message || "Khong the luu uu dai.");
+      }
+
+      return;
+    }
+
     if (!form.name.trim() || !form.status.trim() || !form.time.trim()) {
       setFormError("Please enter name, status, and time.");
       return;
@@ -779,6 +852,15 @@ export default function AdminPage() {
       } catch {
         setForm(mapMovieToForm(record));
       }
+      setEditingId(record.id);
+      setIsCrudMode(true);
+      setSelectedDetail(record);
+      setFormError("");
+      return;
+    }
+
+    if (activeModule === "promotions") {
+      setForm(mapPromotionToForm(record));
       setEditingId(record.id);
       setIsCrudMode(true);
       setSelectedDetail(record);
@@ -830,6 +912,39 @@ export default function AdminPage() {
         });
       } catch (error) {
         setFormError(error.message || "Không thể xóa phim.");
+      }
+
+      return;
+    }
+
+    if (activeModule === "promotions") {
+      try {
+        const disabledPromotion = await deleteAdminPromotion(recordId);
+        const disabledRecord = mapPromotionToRecord(disabledPromotion);
+
+        setRecords((current) => ({
+          ...current,
+          promotions: current.promotions.map((item) => (item.id === recordId ? disabledRecord : item)),
+          activity: [
+            {
+              id: `LOG${Date.now()}`,
+              name: disabledRecord.name,
+              status: "PROMO_DISABLE",
+              time: formatAdminDateTime(new Date().toISOString()),
+              createdAt: new Date().toISOString(),
+              value: disabledRecord.value,
+            },
+            ...current.activity,
+          ],
+        }));
+        setSelectedDetail((current) => (current?.id === recordId ? disabledRecord : current));
+        if (editingId === recordId) {
+          setForm(createPromotionForm());
+          setEditingId("");
+        }
+        setFormError("");
+      } catch (error) {
+        setFormError(error.message || "Khong the tat uu dai.");
       }
 
       return;

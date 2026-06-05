@@ -2,8 +2,8 @@ import React from "react";
 import "./FnBSelector.css";
 
 const FNB_ITEMS = [
-  { id: "combo1", name: "Combo 1 Big Popcorn + 1 Coke", price: 75000, desc: "1 Bắp lớn + 1 Nước ngọt lớn", image: "/assets/images/fnb-combo1.jpg" },
-  { id: "combo2", name: "Combo 1 Big Popcorn + 2 Coke", price: 95000, desc: "1 Bắp lớn + 2 Nước ngọt lớn", image: "/assets/images/fnb-combo2.jpg" },
+  { id: "combo-couple", name: "Combo 1 Big Popcorn + 1 Coke", price: 75000, desc: "1 Bắp lớn + 1 Nước ngọt lớn", image: "/assets/images/fnb-combo1.jpg" },
+  { id: "combo-family", name: "Combo 1 Big Popcorn + 2 Coke", price: 95000, desc: "1 Bắp lớn + 2 Nước ngọt lớn", image: "/assets/images/fnb-combo2.jpg" },
   { id: "popcorn_sweet", name: "Bắp rang bơ ngọt", price: 55000, desc: "Bắp rang bơ caramel cỡ lớn", image: "/assets/images/fnb-popcorn.jpg" },
   { id: "coke", name: "Nước ngọt Coke", price: 35000, desc: "Ly lớn 32oz", image: "/assets/images/fnb-coke.jpg" },
 ];

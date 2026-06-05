@@ -2,6 +2,7 @@
 import { createShowtimesFromMovies } from "../data/seedShowtimes.js";
 import MovieModel from "../models/movie.model.js";
 import ReviewModel from "../models/review.model.js";
+import SeatLockModel from "../models/seatLock.model.js";
 import ShowtimeModel from "../models/showtime.model.js";
 import UserModel from "../models/user.model.js";
 
@@ -193,7 +194,11 @@ const serializeMovieDetail = (movie, timeMap = new Map()) => {
   };
 };
 
-const serializeShowtime = (showtime) => ({
+const serializeShowtime = (showtime, lockedSeatMap = new Map()) => {
+  const lockedSeats = lockedSeatMap.get(String(showtime._id)) || [];
+  const unavailableSeats = [...new Set([...(showtime.bookedSeats || []), ...lockedSeats])];
+
+  return {
   id: showtime._id,
   movieId: formatMovieId(showtime.movieLegacyId),
   cinemaName: showtime.cinemaName,
@@ -203,12 +208,15 @@ const serializeShowtime = (showtime) => ({
   displayTime: showtime.displayTime,
   price: showtime.price,
   seats: showtime.seats,
-  bookedSeats: showtime.bookedSeats,
+  bookedSeats: unavailableSeats,
+  soldSeats: showtime.bookedSeats,
+  lockedSeats,
   availableSeatCount: Math.max(
-    showtime.seats.length - showtime.bookedSeats.length,
+    showtime.seats.length - unavailableSeats.length,
     0
   ),
-});
+  };
+};
 
 const buildMovieFilter = (query) => {
   const filter = { deletedAt: null };
@@ -431,6 +439,17 @@ const moviesController = {
         }
       }
 
+      await SeatLockModel.deleteMany({ expiresAt: { $lte: new Date() } });
+      const activeLocks = await SeatLockModel.find({
+        showtimeId: { $in: showtimes.map((showtime) => showtime._id) },
+        expiresAt: { $gt: new Date() },
+      });
+      const lockedSeatMap = activeLocks.reduce((map, lock) => {
+        const key = String(lock.showtimeId);
+        map.set(key, [...(map.get(key) || []), ...(lock.seatNumbers || [])]);
+        return map;
+      }, new Map());
+
       return res.status(200).send({
         success: true,
         message: "Get movie showtimes successfully",
@@ -441,7 +460,7 @@ const moviesController = {
             poster: movie.poster,
             status: movie.status,
           },
-          showtimes: showtimes.map(serializeShowtime),
+          showtimes: showtimes.map((showtime) => serializeShowtime(showtime, lockedSeatMap)),
         },
       });
     } catch (error) {
