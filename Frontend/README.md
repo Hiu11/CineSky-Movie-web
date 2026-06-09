@@ -9,7 +9,7 @@ npm install
 copy .env.example .env
 ```
 
-Nếu dùng macOS/Linux:
+Nếu máy dùng macOS/Linux:
 
 ```bash
 cp .env.example .env
@@ -21,7 +21,7 @@ cp .env.example .env
 VITE_API_BASE_URL=http://localhost:5000
 ```
 
-Khi deploy trên Vercel, thêm Environment Variable:
+Khi deploy trên Vercel, thêm các Environment Variable:
 
 ```env
 VITE_API_BASE_URL=https://your-backend-vercel-domain.vercel.app
