@@ -4,6 +4,7 @@ import jellyfishChatAnimation from "../../assets/animations/JellyFish.json";
 import { askMovieAi, getChatConversation, sendChatMessage, startChatConversation } from "../../services/chatService";
 import "./AdminChatBox.css";
 
+
 const CHAT_STORAGE_KEY = "cinesky-admin-chat-v3";
 const getChatStorageKey = (userId) => `${CHAT_STORAGE_KEY}-${userId ? `user-${userId}` : "guest"}`;
 
