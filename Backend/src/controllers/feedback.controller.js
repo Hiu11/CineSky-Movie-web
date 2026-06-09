@@ -3,6 +3,17 @@ import UserModel from "../models/user.model.js";
 import { buildNonAdminFeedbackFilter, mergeMongoFilters } from "../utils/adminFilters.js";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const feedbackCategories = new Set(["booking_issue", "payment", "interface", "movie_showtime", "cinema_service", "other"]);
+const feedbackPriorities = new Set(["low", "medium", "high", "urgent"]);
+
+const serializeSupportMessages = (messages = []) =>
+  messages.map((message) => ({
+    id: message._id || `${message.sender}-${message.createdAt?.getTime?.() || Date.now()}`,
+    sender: message.sender || "user",
+    text: message.text || "",
+    authorName: message.authorName || "",
+    createdAt: message.createdAt || null,
+  }));
 
 const buildHeadline = (headline = "", message = "") => {
   const trimmedHeadline = String(headline).trim();
@@ -30,6 +41,10 @@ const serializeFeedback = (feedback) => ({
   headline: buildHeadline(feedback.headline, feedback.message),
   message: feedback.message,
   source: feedback.source || "feedback-page",
+  status: feedback.status || "new",
+  category: feedback.category || "other",
+  priority: feedback.priority || "medium",
+  supportMessages: serializeSupportMessages(feedback.supportMessages || []),
   response: feedback.response || "",
   respondedAt: feedback.respondedAt || null,
   createdAt: feedback.createdAt,
@@ -43,7 +58,7 @@ const feedbackController = {
       const skip = (page - 1) * safeLimit;
       const adminUsers = await UserModel.find({ role: "admin" }).select("_id email");
       const filter = mergeMongoFilters(
-        { isHidden: { $ne: true }, isSpam: { $ne: true } },
+        { isHidden: { $ne: true }, isSpam: { $ne: true }, source: { $ne: "support-chat" } },
         buildNonAdminFeedbackFilter(adminUsers)
       );
       const [feedbackEntries, totalItems] = await Promise.all([
@@ -82,12 +97,16 @@ const feedbackController = {
         rating = 0,
         headline = "",
         message = "",
+        initialSupportMessage = "",
         source = "feedback-page",
+        category = "other",
+        priority = "medium",
       } = req.body || {};
 
       const trimmedFullName = String(fullName).trim();
       const normalizedEmail = String(email).trim().toLowerCase();
       const trimmedMessage = String(message).trim();
+      const trimmedInitialSupportMessage = String(initialSupportMessage || "").trim();
       const safeRating = Number(rating);
 
       if (req.authUser?.role === "admin") {
@@ -130,11 +149,95 @@ const feedbackController = {
         headline: buildHeadline(headline, trimmedMessage),
         message: trimmedMessage,
         source: String(source || "feedback-page").trim() || "feedback-page",
+        category: feedbackCategories.has(category) ? category : "other",
+        priority: feedbackPriorities.has(priority) ? priority : "medium",
+        supportMessages:
+          source === "support-chat"
+            ? [{ sender: "user", text: trimmedInitialSupportMessage || trimmedMessage, authorName: trimmedFullName }]
+            : [],
       });
 
       return res.status(201).send({
         success: true,
         message: "Create feedback successfully",
+        data: serializeFeedback(feedback),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  getSupportMessages: async (req, res) => {
+    try {
+      const feedback = await FeedbackModel.findById(req.params.feedbackId);
+
+      if (!feedback || feedback.source !== "support-chat") {
+        return res.status(404).send({ success: false, message: "Support chat not found", data: null });
+      }
+
+      const requestedEmail = String(req.query.email || "").trim().toLowerCase();
+      const isAdmin = req.authUser?.role === "admin";
+
+      if (!isAdmin && requestedEmail !== feedback.email) {
+        return res.status(403).send({ success: false, message: "Email does not match this chat", data: null });
+      }
+
+      return res.status(200).send({
+        success: true,
+        message: "Get support messages successfully",
+        data: serializeSupportMessages(feedback.supportMessages || []),
+      });
+    } catch (error) {
+      return res.status(500).send({
+        success: false,
+        message: error.message || "Internal server error",
+        data: null,
+      });
+    }
+  },
+
+  addSupportMessage: async (req, res) => {
+    try {
+      const feedback = await FeedbackModel.findById(req.params.feedbackId);
+
+      if (!feedback || feedback.source !== "support-chat") {
+        return res.status(404).send({ success: false, message: "Support chat not found", data: null });
+      }
+
+      const text = String(req.body?.text || "").trim();
+      const requestedEmail = String(req.body?.email || "").trim().toLowerCase();
+      const isAdmin = req.authUser?.role === "admin";
+
+      if (!text) {
+        return res.status(400).send({ success: false, message: "Message is required", data: null });
+      }
+
+      if (!isAdmin && requestedEmail !== feedback.email) {
+        return res.status(403).send({ success: false, message: "Email does not match this chat", data: null });
+      }
+
+      feedback.supportMessages.push({
+        sender: isAdmin ? "admin" : "user",
+        text,
+        authorName: isAdmin ? req.authUser.fullName || req.authUser.email || "Admin" : feedback.fullName,
+      });
+
+      if (isAdmin) {
+        feedback.status = feedback.status === "closed" ? "responded" : "in_progress";
+      } else {
+        feedback.status = "new";
+        feedback.priority = feedback.priority === "urgent" ? "urgent" : "high";
+      }
+
+      await feedback.save();
+
+      return res.status(200).send({
+        success: true,
+        message: "Send support message successfully",
         data: serializeFeedback(feedback),
       });
     } catch (error) {

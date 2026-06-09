@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import Lottie from "lottie-react";
 import promoVoucherAnimation from "../../assets/animations/promoVoucher.json";
@@ -49,6 +49,7 @@ const getTierGroups = (vouchers = []) => {
 };
 
 export default function Promotions() {
+  const pageRef = useRef(null);
   const [promotions, setPromotions] = useState(fallbackPromotions);
   const [savedIds, setSavedIds] = useState([]);
   const [saveMessage, setSaveMessage] = useState("");
@@ -80,6 +81,41 @@ export default function Promotions() {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    const page = pageRef.current;
+    if (!page) return;
+
+    const revealItems = page.querySelectorAll(
+      ".promotions-hero, .promotion-tier-group, .promotion-card, .promotions-combos, .promotions-combo-list p"
+    );
+
+    revealItems.forEach((item, index) => {
+      item.classList.add("promotions-reveal");
+      item.style.setProperty("--reveal-delay", `${Math.min(index * 55, 360)}ms`);
+    });
+
+    if (!("IntersectionObserver" in window)) {
+      revealItems.forEach((item) => item.classList.add("is-visible"));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { rootMargin: "0px 0px -12% 0px", threshold: 0.08 }
+    );
+
+    revealItems.forEach((item) => observer.observe(item));
+
+    return () => observer.disconnect();
+  }, [promotions]);
 
   useEffect(() => {
     let isMounted = true;
@@ -118,8 +154,12 @@ export default function Promotions() {
   const tierGroups = useMemo(() => getTierGroups(vouchers), [vouchers]);
 
   return (
-    <main className="promotions-page">
+    <main className="promotions-page" ref={pageRef}>
       <div className="home-cinematic-backdrop" aria-hidden="true">
+        <video className="promotions-backdrop__video" autoPlay muted loop playsInline>
+          <source src="/assets/videos/galaxy%20video2.mp4" type="video/mp4" />
+          <source src="/assets/videos/galaxy-video2.mp4" type="video/mp4" />
+        </video>
         <div className="home-cinematic-backdrop__grain"></div>
         <div className="home-cinematic-backdrop__light home-cinematic-backdrop__light--gold"></div>
         <div className="home-cinematic-backdrop__light home-cinematic-backdrop__light--blue"></div>

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import adminController from "../controllers/admin.controller.js";
+import chatController from "../controllers/chat.controller.js";
 import { requireAuth, requireRole } from "../middlewares/auth.middleware.js";
 
 const adminRouter = Router();
@@ -11,6 +12,9 @@ adminRouter.get("/analytics", adminController.getDashboardAnalytics);
 adminRouter.get("/activity", adminController.getActivity);
 adminRouter.get("/users", adminController.getUsers);
 adminRouter.get("/bookings", adminController.getBookings);
+adminRouter.get("/chats", chatController.getAdminConversations);
+adminRouter.get("/chats/:conversationId", chatController.getAdminConversation);
+adminRouter.post("/chats/:conversationId/messages", chatController.sendAdminMessage);
 adminRouter.get("/promotions", adminController.getPromotions);
 adminRouter.post("/promotions", adminController.createPromotion);
 adminRouter.put("/promotions/:promotionId", adminController.updatePromotion);

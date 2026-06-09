@@ -16,6 +16,7 @@ export const moduleConfig = [
   { key: "orders", label: "Vé / đơn đặt", statusLabel: "Thanh toán" },
   { key: "payments", label: "Thanh toán", statusLabel: "Trạng thái" },
   { key: "checkin", label: "Check-in vé", statusLabel: "Trạng thái" },
+  { key: "supportChat", label: "Chat hỗ trợ", statusLabel: "Trạng thái" },
   { key: "feedback", label: "Góp ý", statusLabel: "Xử lý" },
   { key: "trash", label: "Thùng rác", statusLabel: "Đã xóa" },
   { key: "activity", label: "Nhật ký", statusLabel: "Hành động" },
@@ -68,6 +69,7 @@ export const adminNavGroups = [
     label: "Khách hàng",
     items: [
       { key: "users", label: "Người dùng" },
+      { key: "supportChat", label: "Chat hỗ trợ" },
       { key: "feedback", label: "Góp ý" },
     ],
   },
@@ -396,6 +398,7 @@ export const createPromotionForm = () => ({
 });
 export const createMovieForm = () => ({
   id: "",
+  slug: "",
   title: "",
   poster: "",
   genres: "",
@@ -414,6 +417,7 @@ export const createMovieForm = () => ({
   trailerPanelTitle: "",
   trailerPanelDescription: "",
   showtimes: "",
+  statusOrder: "0",
   catalogOrder: "999",
   heroOrder: "",
 });
@@ -795,6 +799,7 @@ export const mapFeedbackToRecord = (feedback) => ({
 
 export const mapMovieToForm = (movie) => ({
   id: String(movie.id || ""),
+  slug: movie.slug || "",
   title: movie.title || "",
   poster: movie.poster || "",
   genres: joinList(movie.genres),
@@ -813,6 +818,7 @@ export const mapMovieToForm = (movie) => ({
   trailerPanelTitle: movie.trailerPanel?.title || movie.title || "",
   trailerPanelDescription: movie.trailerPanel?.description || "",
   showtimes: joinList(movie.showtimes || movie.times),
+  statusOrder: String(movie.statusOrder ?? 0),
   catalogOrder: String(movie.catalogOrder ?? 999),
   heroOrder: movie.heroOrder === null || movie.heroOrder === undefined ? "" : String(movie.heroOrder),
 });
@@ -864,6 +870,7 @@ export const validateMovieForm = (form, movies = [], editingId = "") => {
 
 export const movieFormToPayload = (form) => ({
   legacyId: form.id ? Number(form.id) : undefined,
+  slug: form.slug,
   title: form.title,
   poster: form.poster,
   genres: splitList(form.genres),
@@ -884,6 +891,7 @@ export const movieFormToPayload = (form) => ({
     description: form.trailerPanelDescription,
   },
   showtimes: splitList(form.showtimes),
+  statusOrder: Number(form.statusOrder) || 0,
   catalogOrder: Number(form.catalogOrder) || 999,
   heroOrder: form.heroOrder === "" ? null : Number(form.heroOrder),
 });

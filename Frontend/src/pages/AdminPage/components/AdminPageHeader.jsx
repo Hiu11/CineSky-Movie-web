@@ -13,7 +13,7 @@ export default function AdminPageHeader({
 }) {
   return (
         <header className="admin-header">
-          <div>
+          <div style={{ display: "none" }}>
             <h1>{activeTitle}</h1>
           </div>
           <div className="admin-date-controls">

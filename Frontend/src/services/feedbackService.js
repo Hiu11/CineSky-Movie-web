@@ -94,6 +94,29 @@ export const createFeedbackEntry = async (payload) => {
   }
 };
 
+export const getSupportMessages = async (feedbackId, email = "") => {
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/feedback/${feedbackId}/support-messages${buildQueryString({ email })}`,
+    {
+      headers: getAuthHeaders(),
+    }
+  );
+
+  return parseResponse(response);
+};
+
+export const sendSupportMessage = async (feedbackId, payload) => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/feedback/${feedbackId}/support-messages`, {
+    method: "POST",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    body: JSON.stringify(payload),
+  });
+
+  return parseResponse(response);
+};
+
 export const updateAdminFeedbackEntry = async (feedbackId, payload) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/v1/admin/feedback/${feedbackId}`, {

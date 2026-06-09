@@ -23,6 +23,7 @@ import AdminPage from "./pages/AdminPage/AdminPage";
 import NotFound from "./pages/NotFound/NotFound";
 import Favorites from "./pages/Favorites/Favorites";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
+import AdminChatBox from "./components/AdminChatBox/AdminChatBox";
 import { clearAuthSession, normalizeAuthUser } from "./services/authService";
 import "./App.css";
 
@@ -182,6 +183,7 @@ function AppContent() {
   const handleLogout = () => {
     clearAuthSession();
     sessionStorage.removeItem("lastBookingReceipt");
+    localStorage.removeItem("cinesky-admin-chat-v2");
     setUser(null);
     setIsLoggedIn(false);
     setSearchQuery("");
@@ -237,6 +239,7 @@ function AppContent() {
       </Routes>
 
       {!isAuthPage ? <Footer flushTop={isBookingPage || isAdminPage || isMovieDetailPage} /> : null}
+      {(!isAuthPage && !isAdminPage && user?.role !== "admin") ? <AdminChatBox user={user} showToast={showToast} /> : null}
       <ToastViewport toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
@@ -245,7 +248,7 @@ function AppContent() {
 function App() {
   return (
     <ErrorBoundary>
-      <Router>
+      <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AppContent />
       </Router>
     </ErrorBoundary>

@@ -84,6 +84,13 @@
   z-index: 1;
 }
 
+.history-ticket__price,
+.history-page [class*="price"],
+.history-page [class*="total"] strong {
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
 .history-hero,
 .history-empty-card {
   border-radius: 30px;

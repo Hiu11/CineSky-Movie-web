@@ -8,6 +8,11 @@
   margin-top: 24px;
 }
 
+.fnb-price {
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
 .fnb-header {
   margin-bottom: 24px;
 }

@@ -251,6 +251,12 @@
   flex-wrap: wrap;
 }
 
+.booking-success-ticket__item strong,
+.booking-success-ticket__item--total strong {
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
 .booking-success-primary,
 .booking-success-secondary {
   display: inline-flex;

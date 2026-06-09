@@ -66,10 +66,13 @@ export const forgotPasswordSchema = Joi.object({
 
 export const resetPasswordSchema = Joi.object({
   email: Joi.string().email({ tlds: { allow: false } }).lowercase().trim().required(),
-  token: Joi.string().trim().required().messages({
-    "any.required": "Token là bắt buộc",
+  token: Joi.string().trim().allow("").optional(),
+  otp: Joi.string().trim().pattern(/^\d{6}$/).optional().messages({
+    "string.pattern.base": "Mã OTP phải gồm 6 chữ số",
   }),
   password: passwordField().required(),
+}).or("token", "otp").messages({
+  "object.missing": "Mã OTP là bắt buộc",
 });
 
 export const updateProfileSchema = Joi.object({

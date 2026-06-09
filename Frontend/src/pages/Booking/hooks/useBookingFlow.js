@@ -14,6 +14,10 @@ import { updateStoredUser } from "../../../services/authService";
 const DATE_OPTIONS_DAYS = 7;
 const PAYMENT_WINDOW_SECONDS = 15 * 60;
 const DEFAULT_SERVICE_FEE_PER_TICKET = 3000;
+const BOOKING_DRAFT_VERSION = 1;
+const BOOKING_DRAFT_TTL_MS = 6 * 60 * 60 * 1000;
+const BOOKING_DRAFT_PREFIX = "cinesky:booking-draft";
+const EMPTY_PAYMENT_FORM = { ownerName: "", reference: "", expiry: "", secureCode: "", promoCode: "" };
 
 export const PAYMENT_PROVIDERS = {
   bank: [
@@ -107,6 +111,79 @@ const buildRollingDateOptions = (days = DATE_OPTIONS_DAYS) => {
   });
 };
 
+const getBookingDraftUserKey = (user) => {
+  const userId = user?.id || user?._id || user?.email || "guest";
+  return String(userId).trim() || "guest";
+};
+
+const getBookingDraftKey = (movieId, user) =>
+  `${BOOKING_DRAFT_PREFIX}:v${BOOKING_DRAFT_VERSION}:${getBookingDraftUserKey(user)}:${movieId || "unknown"}`;
+
+const readBookingDraft = (movieId, user) => {
+  if (typeof window === "undefined" || !movieId) {
+    return null;
+  }
+
+  try {
+    const primaryKey = getBookingDraftKey(movieId, user);
+    const guestKey = getBookingDraftKey(movieId, null);
+    const raw = window.localStorage.getItem(primaryKey) ||
+      (primaryKey !== guestKey ? window.localStorage.getItem(guestKey) : null);
+    const draft = raw ? JSON.parse(raw) : null;
+
+    if (!draft || Date.now() - Number(draft.savedAt || 0) > BOOKING_DRAFT_TTL_MS) {
+      if (raw) {
+        window.localStorage.removeItem(primaryKey);
+        if (primaryKey !== guestKey) {
+          window.localStorage.removeItem(guestKey);
+        }
+      }
+      return null;
+    }
+
+    return draft;
+  } catch {
+    return null;
+  }
+};
+
+const writeBookingDraft = (movieId, user, draft) => {
+  if (typeof window === "undefined" || !movieId) {
+    return;
+  }
+
+  try {
+    window.localStorage.setItem(
+      getBookingDraftKey(movieId, user),
+      JSON.stringify({ ...draft, version: BOOKING_DRAFT_VERSION, savedAt: Date.now() })
+    );
+  } catch {}
+};
+
+const clearBookingDraft = (movieId, user) => {
+  if (typeof window === "undefined" || !movieId) {
+    return;
+  }
+
+  try {
+    window.localStorage.removeItem(getBookingDraftKey(movieId, user));
+    window.localStorage.removeItem(getBookingDraftKey(movieId, null));
+  } catch {}
+};
+
+const getLatestSessionUser = () => {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  try {
+    const raw = sessionStorage.getItem("user");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return null;
+  }
+};
+
 export function useBookingFlow({ showToast } = {}) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
@@ -136,7 +213,7 @@ export function useBookingFlow({ showToast } = {}) {
   const [isQrPaymentConfirmed, setIsQrPaymentConfirmed] = useState(false);
   const [paymentQrDataUrl, setPaymentQrDataUrl] = useState("");
 
-  const [paymentForm, setPaymentForm] = useState({ ownerName: "", reference: "", expiry: "", secureCode: "", promoCode: "" });
+  const [paymentForm, setPaymentForm] = useState(EMPTY_PAYMENT_FORM);
   const [voucherState, setVoucherState] = useState({ code: "", discountAmount: 0, message: "", error: "", isChecking: false });
   const [seatLock, setSeatLock] = useState(null);
 
@@ -159,6 +236,7 @@ export function useBookingFlow({ showToast } = {}) {
   const [paymentSecondsLeft, setPaymentSecondsLeft] = useState(PAYMENT_WINDOW_SECONDS);
   const [seatScale, setSeatScale] = useState(1);
   const [currentTime, setCurrentTime] = useState(() => new Date());
+  const [hasRestoredDraft, setHasRestoredDraft] = useState(false);
 
   useEffect(() => {
     getBookingFees()
@@ -171,12 +249,18 @@ export function useBookingFlow({ showToast } = {}) {
   useEffect(() => {
     setSelectedSeats([]);
     setSelectedScreeningDate(availableDateOptions[0]?.iso || "");
+    setSelectedCinemaName("");
+    setSelectedShowtimeId("");
+    setSelectedFnB([]);
+    setPaymentForm(EMPTY_PAYMENT_FORM);
+    setVoucherState({ code: "", discountAmount: 0, message: "", error: "", isChecking: false });
+    setHasRestoredDraft(false);
     setSubmitMessage({ type: "", message: "" });
   }, [availableDateOptions, movieId]);
 
   useEffect(() => {
     const nextProviders = PAYMENT_PROVIDERS[selectedPaymentMethod];
-    setSelectedProvider(nextProviders[0]);
+    setSelectedProvider((current) => nextProviders.includes(current) ? current : nextProviders[0]);
     setProviderSearch("");
     setUseQrPayment(false);
     setIsQrPaymentConfirmed(false);
@@ -275,6 +359,137 @@ export function useBookingFlow({ showToast } = {}) {
     () => showtimes.find((st) => String(st.id) === String(selectedShowtimeId)) || null,
     [showtimes, selectedShowtimeId]
   );
+
+  useEffect(() => {
+    if (isLoading || hasRestoredDraft || !movieId || !movie?.id) {
+      return;
+    }
+
+    const draft = readBookingDraft(movieId, sessionUser);
+
+    if (!draft) {
+      setHasRestoredDraft(true);
+      return;
+    }
+
+    const nextDate = availableDateOptions.some((option) => option.iso === draft.selectedScreeningDate)
+      ? draft.selectedScreeningDate
+      : availableDateOptions[0]?.iso || "";
+    const nextCinema = cinemaOptions.some((cinema) => cinema.cinemaName === draft.selectedCinemaName)
+      ? draft.selectedCinemaName
+      : "";
+    const nextShowtime = showtimes.find((showtime) =>
+      String(showtime.id) === String(draft.selectedShowtimeId) &&
+      (!nextCinema || showtime.cinemaName === nextCinema) &&
+      !isShowtimeInPast(nextDate, showtime.displayTime, currentTime)
+    );
+    const nextBookedSeats = new Set(nextShowtime?.bookedSeats || []);
+    const nextAvailableSeats = new Set(nextShowtime?.seats || []);
+    const nextSeats = Array.isArray(draft.selectedSeats)
+      ? draft.selectedSeats.filter((seat) => nextAvailableSeats.has(seat) && !nextBookedSeats.has(seat))
+      : [];
+    const nextPaymentMethod = PAYMENT_PROVIDERS[draft.selectedPaymentMethod]
+      ? draft.selectedPaymentMethod
+      : "bank";
+    const nextProviders = PAYMENT_PROVIDERS[nextPaymentMethod] || PAYMENT_PROVIDERS.bank;
+
+    setSelectedScreeningDate(nextDate);
+    setSelectedCinemaName(nextCinema);
+    setSelectedShowtimeId(nextShowtime ? String(nextShowtime.id) : "");
+    setSelectedSeats(nextShowtime ? nextSeats : []);
+    setSelectedFnB(Array.isArray(draft.selectedFnB) ? draft.selectedFnB : []);
+    setSelectedPaymentMethod(nextPaymentMethod);
+    setSelectedProvider(nextProviders.includes(draft.selectedProvider) ? draft.selectedProvider : nextProviders[0]);
+    setPaymentForm({
+      ...EMPTY_PAYMENT_FORM,
+      ownerName: draft.paymentForm?.ownerName || "",
+      reference: draft.paymentForm?.reference || "",
+      expiry: draft.paymentForm?.expiry || "",
+      promoCode: draft.paymentForm?.promoCode || "",
+    });
+    setUseQrPayment(Boolean(draft.useQrPayment));
+    setIsQrPaymentConfirmed(Boolean(draft.isQrPaymentConfirmed));
+    setPaymentSecondsLeft(PAYMENT_WINDOW_SECONDS);
+    setHasRestoredDraft(true);
+
+    if (nextShowtime || nextCinema || draft.paymentForm?.promoCode) {
+      showToast?.({
+        type: "info",
+        title: "Đã khôi phục nháp đặt vé",
+        message: "Bạn có thể tiếp tục từ bước đang làm dở.",
+      });
+    }
+  }, [
+    availableDateOptions,
+    cinemaOptions,
+    currentTime,
+    hasRestoredDraft,
+    isLoading,
+    movie?.id,
+    movieId,
+    sessionUser,
+    showToast,
+    showtimes,
+  ]);
+
+  useEffect(() => {
+    if (!hasRestoredDraft || !movieId || !movie?.id) {
+      return;
+    }
+
+    const hasDraftContent =
+      Boolean(selectedCinemaName || selectedShowtimeId || selectedSeats.length || selectedFnB.length || paymentForm.promoCode.trim()) ||
+      Boolean(paymentForm.ownerName.trim() || paymentForm.reference.trim() || paymentForm.expiry.trim()) ||
+      selectedPaymentMethod !== "bank" ||
+      selectedProvider !== PAYMENT_PROVIDERS.bank[0] ||
+      useQrPayment ||
+      isQrPaymentConfirmed;
+
+    if (!hasDraftContent) {
+      clearBookingDraft(movieId, sessionUser);
+      return;
+    }
+
+    const timer = window.setTimeout(() => {
+      writeBookingDraft(movieId, sessionUser, {
+        selectedScreeningDate,
+        selectedCinemaName,
+        selectedShowtimeId,
+        selectedSeats,
+        selectedFnB,
+        selectedPaymentMethod,
+        selectedProvider,
+        useQrPayment,
+        isQrPaymentConfirmed,
+        paymentForm: {
+          ownerName: paymentForm.ownerName,
+          reference: paymentForm.reference,
+          expiry: paymentForm.expiry,
+          promoCode: paymentForm.promoCode,
+        },
+      });
+    }, 250);
+
+    return () => window.clearTimeout(timer);
+  }, [
+    hasRestoredDraft,
+    isQrPaymentConfirmed,
+    movie?.id,
+    movieId,
+    paymentForm.expiry,
+    paymentForm.ownerName,
+    paymentForm.promoCode,
+    paymentForm.reference,
+    selectedCinemaName,
+    selectedFnB,
+    selectedPaymentMethod,
+    selectedProvider,
+    selectedScreeningDate,
+    selectedSeats,
+    selectedShowtimeId,
+    sessionUser,
+    useQrPayment,
+  ]);
 
   useEffect(() => {
     if (!selectedShowtime || !isShowtimeInPast(selectedScreeningDate, selectedShowtime.displayTime, currentTime)) return;
@@ -569,7 +784,9 @@ export function useBookingFlow({ showToast } = {}) {
         paymentProvider: selectedProvider,
         paymentReference: useQrPayment ? `QR-${Date.now()}` : paymentForm.reference,
       });
-      if (booking.membership) updateStoredUser({ ...sessionUser, membership: booking.membership });
+      if (booking.membership) {
+        updateStoredUser({ ...(getLatestSessionUser() || sessionUser), membership: booking.membership });
+      }
       setShowtimes((prev) => prev.map((st) =>
         String(st.id) === String(selectedShowtime.id)
           ? { ...st, bookedSeats: [...new Set([...(st.bookedSeats || []), ...selectedSeats])] }
@@ -595,6 +812,7 @@ export function useBookingFlow({ showToast } = {}) {
         emailDelivery: booking.emailDelivery || null,
       };
       sessionStorage.setItem("lastBookingReceipt", JSON.stringify(receipt));
+      clearBookingDraft(movie.id, sessionUser);
       setSelectedSeats([]);
       setSelectedFnB([]);
       setSeatLock(null);

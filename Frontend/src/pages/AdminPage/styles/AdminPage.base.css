@@ -1,5 +1,5 @@
 .admin-page {
-  min-height: calc(100vh - 130px);
+  min-height: 100vh;
   display: grid;
   grid-template-columns: 260px 1fr;
   align-items: stretch;
@@ -12,7 +12,7 @@
   top: 0;
   z-index: 1;
   align-self: start;
-  min-height: calc(100vh - 130px);
+  min-height: 100vh;
   height: auto;
   padding: 28px 20px;
   background: linear-gradient(180deg, rgba(18, 22, 40, 0.98), rgba(8, 10, 20, 0.98));
@@ -129,9 +129,9 @@
 .admin-main {
   position: relative;
   z-index: 1;
-  padding: 28px;
+  padding: 16px 28px;
   display: grid;
-  gap: 22px;
+  gap: 16px;
   align-content: start;
 }
 
@@ -163,47 +163,69 @@
   font-size: clamp(30px, 4vw, 46px);
 }
 
-.admin-feedback-alert {
+
+.admin-quick-actions {
   display: flex;
-  justify-content: space-between;
+  gap: 16px;
   align-items: center;
-  gap: 18px;
-  padding: 18px 20px;
+  padding: 16px;
   border-radius: 20px;
-  border: 1px solid rgba(247, 180, 0, 0.42);
-  background: #211a0d;
-  box-shadow: 0 16px 34px rgba(0, 0, 0, 0.24);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 23, 42, 0.4);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
 }
 
-.admin-feedback-alert span {
-  color: var(--primary-gold);
+.admin-quick-btn {
+  position: relative;
+  min-height: 48px;
+  padding: 0 24px;
+  border-radius: 14px;
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.admin-quick-btn--chat {
+  background: linear-gradient(135deg, #f7b400, #f2c14e);
+  color: #120d05;
+  box-shadow: 0 4px 16px rgba(247, 180, 0, 0.3);
+}
+
+.admin-quick-btn--chat:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(247, 180, 0, 0.4);
+}
+
+.admin-quick-btn--feedback {
+  background: linear-gradient(135deg, #2563eb, #3b82f6);
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(37, 99, 235, 0.3);
+}
+
+.admin-quick-btn--feedback:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+}
+
+.admin-quick-badge {
+  display: grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: #ef4444;
+  color: #fff;
   font-size: 12px;
   font-weight: 900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-}
-
-.admin-feedback-alert h2 {
-  margin: 4px 0 6px;
-  font-size: 22px;
-}
-
-.admin-feedback-alert p {
-  margin: 0;
-  color: rgba(255, 255, 255, 0.68);
-}
-
-.admin-feedback-alert button {
-  flex: 0 0 auto;
-  min-height: 42px;
-  padding: 0 16px;
-  border: 1px solid rgba(247, 180, 0, 0.5);
-  border-radius: 14px;
-  background: #33260d;
-  color: var(--primary-gold);
-  font: inherit;
-  font-weight: 900;
-  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.4);
 }
 
 .admin-header select,
@@ -844,4 +866,5 @@
   font-weight: 900;
   cursor: pointer;
 }
+
 

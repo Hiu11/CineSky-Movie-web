@@ -18,6 +18,7 @@ authRouter.post("/register", authRateLimiter, validateBody(registerSchema), auth
 authRouter.post("/login", authRateLimiter, validateBody(loginSchema), authController.login);
 authRouter.post("/forgot-password", authRateLimiter, validateBody(forgotPasswordSchema), authController.forgotPassword);
 authRouter.post("/reset-password", authRateLimiter, validateBody(resetPasswordSchema), authController.resetPassword);
+authRouter.get("/users/:userId/avatar", authController.getUserAvatar);
 
 // OAuth
 authRouter.get("/google", authController.redirectGoogle);

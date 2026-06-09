@@ -1,4 +1,4 @@
-﻿import GenreModel from "../models/genre.model.js";
+import GenreModel from "../models/genre.model.js";
 import { createShowtimesFromMovies } from "../data/seedShowtimes.js";
 import MovieModel from "../models/movie.model.js";
 import ReviewModel from "../models/review.model.js";
@@ -169,8 +169,14 @@ const serializeMovie = (movie, timeMap = new Map(), reviewMap = new Map()) => {
   reviewCount: reviewStats.reviewCount,
   popularityScore: movieTimes.length * 10 + reviewStats.reviewCount,
   release: movie.releaseDate,
+  releaseDate: movie.releaseDate,
   trailer: movie.trailer,
   description: movie.description,
+  showtimes: Array.isArray(movie.showtimes) ? movie.showtimes : [],
+  cast: Array.isArray(movie.cast) ? movie.cast : [],
+  gallery: Array.isArray(movie.gallery) ? movie.gallery : [],
+  trailerFacts: Array.isArray(movie.trailerFacts) ? movie.trailerFacts : [],
+  trailerPanel: movie.trailerPanel || null,
   times: movieTimes.length > 0 ? movieTimes : ["Chưa có lịch"],
   };
 };
@@ -189,8 +195,12 @@ const serializeMovieDetail = (movie, timeMap = new Map()) => {
     gallery: hasDetailItems(movie.gallery)
       ? movie.gallery
       : [...new Set(fallbackGallery)].slice(0, 4),
-    trailerFacts: buildTrailerFacts(movie, timeMap),
-    trailerPanel: buildTrailerPanel(movie, timeMap),
+    trailerFacts: hasDetailItems(movie.trailerFacts)
+      ? movie.trailerFacts
+      : buildTrailerFacts(movie, timeMap),
+    trailerPanel: hasTrailerPanelContent(movie.trailerPanel)
+      ? movie.trailerPanel
+      : buildTrailerPanel(movie, timeMap),
   };
 };
 
@@ -283,7 +293,7 @@ const moviesController = {
       const showtimes = await ShowtimeModel.find({
         movieLegacyId: { $in: movies.map((movie) => movie.legacyId) },
         displayTime: { $regex: /^\d{2}:\d{2}$/ },
-      }).sort({ startTime: 1 });
+      }).sort({ startTime: 1 }).select("movieLegacyId displayTime");
       const timeMap = createTimeMap(showtimes);
       const adminUsers = await UserModel.find({ role: "admin" }).select("_id");
       const adminUserIds = adminUsers.map((user) => user._id);

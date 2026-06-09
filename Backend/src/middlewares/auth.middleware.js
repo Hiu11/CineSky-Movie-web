@@ -35,7 +35,9 @@ export const requireAuth = async (req, res, next) => {
     }
 
     const payload = jwt.verify(token, jwtSecret);
-    const user = await UserModel.findById(payload.userId);
+    // Exclude avatar (can be large base64 string) to keep auth middleware lightweight.
+    // Avatar is still available via the /api/v1/auth/me endpoint when explicitly needed.
+    const user = await UserModel.findById(payload.userId).select("-avatar");
 
     if (!user) {
       return res.status(401).send({
@@ -67,7 +69,7 @@ export const optionalAuth = async (req, res, next) => {
     }
 
     const payload = jwt.verify(token, jwtSecret);
-    const user = await UserModel.findById(payload.userId);
+    const user = await UserModel.findById(payload.userId).select("-avatar");
 
     if (user) {
       req.authUser = user;

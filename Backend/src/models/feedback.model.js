@@ -45,6 +45,14 @@ const feedbackSchema = new mongoose.Schema(
       default: "feedback-page",
       trim: true,
     },
+    supportMessages: [
+      {
+        sender: { type: String, enum: ["user", "admin", "bot"], default: "user" },
+        text: { type: String, required: true, trim: true },
+        authorName: { type: String, default: "", trim: true },
+        createdAt: { type: Date, default: Date.now },
+      },
+    ],
     status: {
       type: String,
       enum: ["new", "in_progress", "responded", "closed"],

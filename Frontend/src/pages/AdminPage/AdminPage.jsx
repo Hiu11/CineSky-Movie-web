@@ -33,6 +33,8 @@ import AdminRecordModal from "./components/AdminRecordModal";
 import AdminRecordsTable from "./components/AdminRecordsTable";
 import AdminPageHeader from "./components/AdminPageHeader";
 import AdminSidebar from "./components/AdminSidebar";
+import AdminSupportChatView from "./components/AdminSupportChatView";
+import { getAdminChats, sendAdminChatMessage } from "../../services/chatService";
 import "./AdminPage.css";
 
 import {
@@ -123,6 +125,10 @@ export default function AdminPage() {
   const [ticketLookup, setTicketLookup] = useState(null);
   const [ticketMessage, setTicketMessage] = useState("");
   const [isTicketChecking, setIsTicketChecking] = useState(false);
+  const [supportChats, setSupportChats] = useState([]);
+  const [activeSupportChat, setActiveSupportChat] = useState(null);
+  const [supportChatDraft, setSupportChatDraft] = useState("");
+  const [isSupportChatLoading, setIsSupportChatLoading] = useState(false);
   const [revenueTrend, setRevenueTrend] = useState(initialRevenueTrend);
   const [movieRevenue, setMovieRevenue] = useState(initialMovieRevenue);
   const [paymentState, setPaymentState] = useState(initialPaymentState);
@@ -370,6 +376,39 @@ export default function AdminPage() {
       isMounted = false;
     };
   }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const loadSupportChats = async () => {
+      if (activeModule !== "supportChat") return;
+      setIsSupportChatLoading(true);
+      try {
+        const data = await getAdminChats();
+        if (isMounted) {
+          const chatsArray = Array.isArray(data) ? data : [];
+          setSupportChats(chatsArray);
+          setActiveSupportChat((current) => {
+            if (!current) return current;
+            const updated = chatsArray.find((c) => c.id === current.id);
+            return updated || current;
+          });
+        }
+      } catch (error) {
+        if (isMounted) setFormError(error.message || "Cannot load support chats.");
+      } finally {
+        if (isMounted) setIsSupportChatLoading(false);
+      }
+    };
+
+    loadSupportChats();
+    const interval = setInterval(loadSupportChats, 10000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [activeModule]);
 
   useEffect(() => {
     if (activeModule !== "feedback" || !selectedDetail) {
@@ -1249,7 +1288,23 @@ export default function AdminPage() {
     }
   };
 
+  const handleSelectSupportChat = (chat) => {
+    setActiveSupportChat(chat);
+  };
 
+  const handleSendSupportMessage = async (event) => {
+    event?.preventDefault();
+    if (!supportChatDraft.trim() || !activeSupportChat) return;
+
+    try {
+      const updatedChat = await sendAdminChatMessage(activeSupportChat.id, supportChatDraft.trim());
+      setSupportChatDraft("");
+      setSupportChats((prev) => prev.map((c) => (c.id === updatedChat.id ? updatedChat : c)));
+      setActiveSupportChat(updatedChat);
+    } catch (error) {
+      setFormError(error.message || "Không thể gửi tin nhắn.");
+    }
+  };
 
   return (
     <main className="admin-page">
@@ -1257,29 +1312,39 @@ export default function AdminPage() {
       <AdminSidebar activeModule={activeModule} navGroups={adminNavGroups} onSwitchModule={switchModule} />
 
       <section className="admin-main">
-        <AdminPageHeader
-          activeTitle={activeTitle}
-          analyticsDate={analyticsDate}
-          analyticsMonth={analyticsMonth}
-          analyticsYear={analyticsYear}
-          dateRange={dateRange}
-          setAnalyticsDate={setAnalyticsDate}
-          setAnalyticsMonth={setAnalyticsMonth}
-          setAnalyticsYear={setAnalyticsYear}
-          setDateRange={setDateRange}
-        />
+        {activeModule !== "supportChat" && (
+          <AdminPageHeader
+            activeTitle={activeTitle}
+            analyticsDate={analyticsDate}
+            analyticsMonth={analyticsMonth}
+            analyticsYear={analyticsYear}
+            dateRange={dateRange}
+            setAnalyticsDate={setAnalyticsDate}
+            setAnalyticsMonth={setAnalyticsMonth}
+            setAnalyticsYear={setAnalyticsYear}
+            setDateRange={setDateRange}
+          />
+        )}
 
-        {adminFeedbackAlerts.length > 0 ? (
-          <section className="admin-feedback-alert">
-            <div>
-              <span>{adminFeedbackAlerts.length} góp ý mới</span>
-              <h2>Có phản hồi mới</h2>
-            </div>
-            <button type="button" onClick={openFeedbackAlerts}>
-              Xem góp ý mới
-            </button>
-          </section>
-        ) : null}
+        <div className="admin-quick-actions">
+          <button
+            type="button"
+            className="admin-quick-btn admin-quick-btn--chat"
+            onClick={() => switchModule("supportChat")}
+          >
+            Chat hỗ trợ
+          </button>
+          <button
+            type="button"
+            className="admin-quick-btn admin-quick-btn--feedback"
+            onClick={() => switchModule("feedback")}
+          >
+            Góp ý
+            {adminFeedbackAlerts.length > 0 && (
+              <span className="admin-quick-badge">{adminFeedbackAlerts.length}</span>
+            )}
+          </button>
+        </div>
 
         {activeModule === "checkin" ? (
           <AdminCheckinView
@@ -1290,6 +1355,16 @@ export default function AdminPage() {
             ticketLookup={ticketLookup}
             ticketMessage={ticketMessage}
             ticketSearch={ticketSearch}
+          />
+        ) : activeModule === "supportChat" ? (
+          <AdminSupportChatView
+            activeChat={activeSupportChat}
+            chatDraft={supportChatDraft}
+            chats={supportChats}
+            isLoading={isSupportChatLoading}
+            onSelectChat={handleSelectSupportChat}
+            onSendMessage={handleSendSupportMessage}
+            setChatDraft={setSupportChatDraft}
           />
         ) : activeModule === "dashboard" ? (
           <AdminDashboardView

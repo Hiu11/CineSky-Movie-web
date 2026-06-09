@@ -1,5 +1,26 @@
+import dotenv from "dotenv";
+import path from "path";
+import { fileURLToPath } from "url";
+import fs from "fs";
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const envPath = path.resolve(__dirname, "../../.env");
+
+dotenv.config({ path: envPath });
+
+const getDotenvValue = (key = "") => {
+  try {
+    const parsed = dotenv.parse(fs.readFileSync(envPath));
+    return parsed[key] || "";
+  } catch {
+    return "";
+  }
+};
+
 const getEnvValue = (primaryKey, fallbackKey = "") =>
-  process.env[primaryKey] || (fallbackKey ? process.env[fallbackKey] : "");
+  process.env[primaryKey] ||
+  getDotenvValue(primaryKey) ||
+  (fallbackKey ? process.env[fallbackKey] || getDotenvValue(fallbackKey) : "");
 
 export const getMongoUri = () => getEnvValue("MONGODB_URI", "MONGO_URI");
 
@@ -40,3 +61,11 @@ export const getFacebookClientId = () => getEnvValue("FACEBOOK_CLIENT_ID");
 export const getFacebookClientSecret = () => getEnvValue("FACEBOOK_CLIENT_SECRET");
 
 export const getFacebookRedirectUri = () => getEnvValue("FACEBOOK_REDIRECT_URI");
+
+export const getOpenAiApiKey = () => getEnvValue("OPENAI_API_KEY");
+
+export const getOpenAiModel = () => getEnvValue("OPENAI_MODEL") || "gpt-4o-mini";
+
+export const getGeminiApiKey = () => getEnvValue("GEMINI_API_KEY");
+
+export const getGeminiModel = () => getEnvValue("GEMINI_MODEL") || "gemini-2.5-flash";

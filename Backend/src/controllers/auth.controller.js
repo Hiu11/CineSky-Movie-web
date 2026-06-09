@@ -1,4 +1,4 @@
-﻿import crypto from "crypto";
+import crypto from "crypto";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
@@ -19,6 +19,7 @@ import {
 import UserModel from "../models/user.model.js";
 import PromotionModel from "../models/promotion.model.js";
 import { serializePromotion } from "./promotions.controller.js";
+import { sendPasswordResetOtpEmail } from "../services/mockEmail.service.js";
 
 const normalizeEmail = (email = "") => email.trim().toLowerCase();
 
@@ -69,7 +70,7 @@ const hashPassword = async (password = "") => bcrypt.hash(password, 10);
 const hashResetToken = (token = "") =>
   crypto.createHash("sha256").update(token).digest("hex");
 
-const createResetPasswordToken = () => crypto.randomBytes(32).toString("hex");
+const createResetPasswordOtp = () => String(crypto.randomInt(100000, 1000000));
 
 const isPasswordMatch = async (storedPassword = "", plainPassword = "") => {
   if (!storedPassword || !plainPassword) {
@@ -327,7 +328,7 @@ const authController = {
       if (!normalizedEmail) {
         return res.status(400).send({
           success: false,
-          message: "Email lĂ  báº¯t buá»™c",
+          message: "Email là bắt buộc",
           data: null,
         });
       }
@@ -337,32 +338,30 @@ const authController = {
       );
 
       if (user) {
-        const resetToken = createResetPasswordToken();
-        user.resetPasswordTokenHash = hashResetToken(resetToken);
+        const resetOtp = createResetPasswordOtp();
+        user.resetPasswordTokenHash = hashResetToken(resetOtp);
         user.resetPasswordExpiresAt = new Date(Date.now() + 15 * 60 * 1000);
         await user.save();
 
-        const resetUrl = `${getFrontendUrl()}/forgot-password?token=${resetToken}&email=${encodeURIComponent(
-          normalizedEmail
-        )}`;
-
-        // Demo: chÆ°a cĂ³ SMTP â†’ chá»‰ log link trĂªn server Ä‘á»ƒ dev test, KHĂ”NG tráº£ vá» trong response
-        console.log(`[DEV] Password reset link for ${normalizedEmail}: ${resetUrl}`);
+        await sendPasswordResetOtpEmail({
+          to: normalizedEmail,
+          otp: resetOtp,
+          expiresInMinutes: 15,
+        });
 
         return res.status(200).send({
           success: true,
-          message: "Náº¿u email tá»“n táº¡i, há»‡ thá»‘ng Ä‘Ă£ táº¡o liĂªn káº¿t Ä‘áº·t láº¡i máº­t kháº©u vĂ  gá»­i qua email.",
+          message: "Nếu email tồn tại, hệ thống đã gửi mã OTP đặt lại mật khẩu qua email.",
           data: {
             email: normalizedEmail,
             expiresInMinutes: 15,
-            // resetUrl khĂ´ng Ä‘Æ°á»£c tráº£ vá» client vĂ¬ lĂ½ do báº£o máº­t
           },
         });
       }
 
       return res.status(200).send({
         success: true,
-        message: "Náº¿u email tá»“n táº¡i, há»‡ thá»‘ng Ä‘Ă£ táº¡o liĂªn káº¿t Ä‘áº·t láº¡i máº­t kháº©u.",
+        message: "Nếu email tồn tại, hệ thống đã gửi mã OTP đặt lại mật khẩu qua email.",
         data: {
           email: normalizedEmail,
           expiresInMinutes: 15,
@@ -379,13 +378,14 @@ const authController = {
 
   resetPassword: async (req, res) => {
     try {
-      const { email = "", token = "", password = "" } = req.body || {};
+      const { email = "", token = "", otp = "", password = "" } = req.body || {};
       const normalizedEmail = normalizeEmail(email);
+      const resetOtp = String(otp || token || "").trim();
 
-      if (!normalizedEmail || !token || !password) {
+      if (!normalizedEmail || !resetOtp || !password) {
         return res.status(400).send({
           success: false,
-          message: "Email, token vĂ  máº­t kháº©u má»›i lĂ  báº¯t buá»™c",
+          message: "Email, mã OTP và mật khẩu mới là bắt buộc",
           data: null,
         });
       }
@@ -393,7 +393,7 @@ const authController = {
       if (String(password).length < 6) {
         return res.status(400).send({
           success: false,
-          message: "Máº­t kháº©u má»›i pháº£i cĂ³ Ă­t nháº¥t 6 kĂ½ tá»±",
+          message: "Mật khẩu mới phải có ít nhất 6 ký tự",
           data: null,
         });
       }
@@ -405,13 +405,13 @@ const authController = {
       if (
         !user ||
         !user.resetPasswordTokenHash ||
-        user.resetPasswordTokenHash !== hashResetToken(token) ||
+        user.resetPasswordTokenHash !== hashResetToken(resetOtp) ||
         !user.resetPasswordExpiresAt ||
         user.resetPasswordExpiresAt.getTime() < Date.now()
       ) {
         return res.status(400).send({
           success: false,
-          message: "LiĂªn káº¿t Ä‘áº·t láº¡i máº­t kháº©u khĂ´ng há»£p lá»‡ hoáº·c Ä‘Ă£ háº¿t háº¡n",
+          message: "Mã OTP đặt lại mật khẩu không hợp lệ hoặc đã hết hạn",
           data: null,
         });
       }
@@ -424,7 +424,7 @@ const authController = {
 
       return res.status(200).send({
         success: true,
-        message: "Äáº·t láº¡i máº­t kháº©u thĂ nh cĂ´ng",
+        message: "Đặt lại mật khẩu thành công",
         data: null,
       });
     } catch (error) {
@@ -619,15 +619,16 @@ const authController = {
   },
 
   getProfile: async (req, res) => {
-    const savedPromotions = req.authUser?.savedPromotionIds?.length
-      ? await PromotionModel.find({ _id: { $in: req.authUser.savedPromotionIds }, isActive: true })
+    const fullUser = await UserModel.findById(req.authUser._id).select("+avatar");
+    const savedPromotions = fullUser?.savedPromotionIds?.length
+      ? await PromotionModel.find({ _id: { $in: fullUser.savedPromotionIds }, isActive: true })
       : [];
 
     return res.status(200).send({
       success: true,
       message: "Get profile successfully",
       data: {
-        ...serializeUser(req.authUser),
+        ...serializeUser(fullUser || req.authUser),
         savedPromotions: savedPromotions.map(serializePromotion),
       },
     });
@@ -652,10 +653,12 @@ const authController = {
       ];
       await req.authUser.save();
 
+      const fullUser = await UserModel.findById(req.authUser._id);
+
       return res.status(200).send({
         success: true,
         message: "Lưu ưu đãi thành công",
-        data: serializeUser(req.authUser),
+        data: serializeUser(fullUser || req.authUser),
       });
     } catch (error) {
       return res.status(500).send({
@@ -679,10 +682,12 @@ const authController = {
       );
       await req.authUser.save();
 
+      const fullUser = await UserModel.findById(req.authUser._id);
+
       return res.status(200).send({
         success: true,
         message: "Bỏ lưu ưu đãi thành công",
-        data: serializeUser(req.authUser),
+        data: serializeUser(fullUser || req.authUser),
       });
     } catch (error) {
       return res.status(500).send({
@@ -705,6 +710,8 @@ const authController = {
       } = req.body || {};
 
       const user = req.authUser;
+
+
 
       if (typeof fullName === "string" && fullName.trim()) {
         user.fullName = fullName.trim();
@@ -748,10 +755,12 @@ const authController = {
 
       await user.save();
 
+      const fullUser = await UserModel.findById(user._id);
+
       return res.status(200).send({
         success: true,
         message: "Update profile successfully",
-        data: serializeUser(user),
+        data: serializeUser(fullUser || user),
       });
     } catch (error) {
       return res.status(500).send({
@@ -821,6 +830,44 @@ const authController = {
         message: error.message || "Internal server error",
         data: null,
       });
+    }
+  },
+
+  getUserAvatar: async (req, res) => {
+    try {
+      const { userId } = req.params;
+      
+      let user = null;
+      if (userId === "admin") {
+        user = await UserModel.findOne({ role: "admin" }).select("avatar fullName email");
+      } else if (mongoose.Types.ObjectId.isValid(userId)) {
+        user = await UserModel.findById(userId).select("avatar fullName email");
+      }
+
+      if (!user || !user.avatar) {
+        const seed = encodeURIComponent(user?.fullName || user?.email || "Guest");
+        return res.redirect(`https://api.dicebear.com/7.x/notionists/svg?seed=${seed}&backgroundColor=f2c14e`);
+      }
+
+      if (user.avatar.startsWith("http")) {
+        return res.redirect(user.avatar);
+      }
+
+      const matchedDataUrl = user.avatar.match(/^data:(image\/(?:jpeg|png|webp|gif));base64,(.+)$/);
+      if (matchedDataUrl) {
+        const [, mimeType, base64Data] = matchedDataUrl;
+        const imageBuffer = Buffer.from(base64Data, "base64");
+        
+        res.setHeader("Content-Type", mimeType);
+        res.setHeader("Cache-Control", "public, max-age=0, must-revalidate");
+        return res.send(imageBuffer);
+      }
+
+      // Fallback if data is malformed
+      const seed = encodeURIComponent(user.fullName || user.email || "Guest");
+      return res.redirect(`https://api.dicebear.com/7.x/notionists/svg?seed=${seed}&backgroundColor=f2c14e`);
+    } catch (error) {
+      return res.redirect(`https://api.dicebear.com/7.x/notionists/svg?seed=Guest&backgroundColor=f2c14e`);
     }
   },
 };

@@ -173,6 +173,10 @@ const AboutPage = () => {
   return (
     <main className="about-page" ref={pageRef}>
       <div className="home-cinematic-backdrop about-parallax-bg" aria-hidden="true">
+        <video className="about-backdrop__video" autoPlay muted loop playsInline>
+          <source src="/assets/videos/galaxy%20video1.mp4" type="video/mp4" />
+          <source src="/assets/videos/galaxy-video1.mp4" type="video/mp4" />
+        </video>
         <div className="home-cinematic-backdrop__grain"></div>
         <div className="home-cinematic-backdrop__light home-cinematic-backdrop__light--gold"></div>
         <div className="home-cinematic-backdrop__light home-cinematic-backdrop__light--blue"></div>

@@ -131,4 +131,36 @@ export const sendBookingConfirmationEmail = async ({ to, booking, movie, showtim
   }
 };
 
+export const sendPasswordResetOtpEmail = async ({ to, otp, expiresInMinutes = 15 }) => {
+  if (!to || !otp) {
+    return { sent: false, provider: "mock", reason: "Missing recipient or OTP" };
+  }
+
+  const subject = "CineSky - Mã OTP đặt lại mật khẩu";
+  const text = [
+    "CineSky đã nhận yêu cầu đặt lại mật khẩu.",
+    "",
+    `Mã OTP của bạn là: ${otp}`,
+    `Mã có hiệu lực trong ${expiresInMinutes} phút.`,
+    "",
+    "Nếu bạn không yêu cầu thao tác này, vui lòng bỏ qua email.",
+  ].join("\n");
+  const email = { to, subject, preview: text.split("\n").filter(Boolean), createdAt: new Date().toISOString() };
+
+  try {
+    const delivery = await sendSmtpEmail({ to, subject, text });
+    if (delivery.sent) {
+      return delivery;
+    }
+
+    sentMockEmails.unshift(email);
+    console.info("[mock-email] Password reset OTP", email);
+    return { ...delivery, sent: false, mode: "mock_only", to, subject };
+  } catch (error) {
+    sentMockEmails.unshift(email);
+    console.warn("[mock-email] SMTP failed, stored password reset OTP instead", error.message);
+    return { sent: false, provider: "smtp", mode: "mock_only", reason: error.message, to, subject };
+  }
+};
+
 export const getSentMockEmails = () => sentMockEmails.slice(0, 50);

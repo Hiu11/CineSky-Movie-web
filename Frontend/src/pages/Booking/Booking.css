@@ -769,6 +769,16 @@
   margin-bottom: 18px;
 }
 
+.booking-page__summary-row strong,
+.booking-page__summary-row--total strong,
+.booking-page__showtime-price,
+.booking-page__price,
+.booking-page [class*="price"],
+.booking-page [class*="total"] strong {
+  white-space: nowrap;
+  word-break: keep-all;
+}
+
 .booking-page__payment-method,
 .booking-page__provider-tile {
   border: 1px solid rgba(255, 255, 255, 0.18);

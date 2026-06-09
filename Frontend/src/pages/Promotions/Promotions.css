@@ -9,18 +9,29 @@
 }
 
 .promotions-page::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  background:
-    linear-gradient(120deg, transparent 0 42%, rgba(255, 255, 255, 0.08) 42% 43%, transparent 43% 100%),
-    repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 96px);
-  opacity: 0.72;
+  content: none;
 }
 
 .promotions-page + .complex-footer {
   margin-top: 0;
+}
+
+.promotions-backdrop__video {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  opacity: 0.5;
+  filter: brightness(0.62) saturate(1.12) contrast(1.08);
+}
+
+.promotions-page .home-cinematic-backdrop__grain,
+.promotions-page .home-cinematic-backdrop__light,
+.promotions-page .home-cinematic-backdrop__beam,
+.promotions-page .home-cinematic-backdrop__film,
+.promotions-page .home-cinematic-backdrop__particles {
+  display: none;
 }
 
 .promotions-hero,
@@ -30,6 +41,33 @@
   z-index: 1;
   width: min(1180px, 100%);
   margin-inline: auto;
+}
+
+.promotions-reveal {
+  opacity: 0;
+  transform: translate3d(0, 28px, 0);
+  filter: blur(8px);
+  transition:
+    opacity 0.85s ease,
+    transform 0.85s cubic-bezier(0.16, 1, 0.3, 1),
+    filter 0.85s ease;
+  transition-delay: var(--reveal-delay, 0ms);
+  will-change: opacity, transform, filter;
+}
+
+.promotions-reveal.is-visible {
+  opacity: 1;
+  transform: translate3d(0, 0, 0);
+  filter: blur(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .promotions-reveal {
+    opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
 }
 
 .promotions-hero {
@@ -60,8 +98,7 @@
   padding: 34px;
   overflow: hidden;
   background:
-    radial-gradient(circle at 12% 18%, rgba(250, 204, 21, 0.15), transparent 40%),
-    linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02));
+    linear-gradient(135deg, rgba(10, 12, 22, 0.62), rgba(10, 12, 22, 0.28));
 }
 
 .promotions-lottie {

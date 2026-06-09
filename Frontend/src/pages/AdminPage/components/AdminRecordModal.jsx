@@ -142,6 +142,7 @@ export default function AdminRecordModal({
                     <datalist id="showtime-suggestions">{movieSuggestions.showtimes.map((item) => <option key={item} value={item} />)}</datalist>
                     <input className="admin-field--tiny" value={form.id} onChange={(event) => setForm({ ...form, id: event.target.value })} placeholder="Movie ID tự tạo nếu trống" disabled={Boolean(editingId)} />
                     <input className="admin-field--medium" required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="Tên phim" />
+                    <input className="admin-field--medium" value={form.slug} onChange={(event) => setForm({ ...form, slug: event.target.value })} placeholder="Slug URL, để trống sẽ tự tạo từ tên phim" />
                     <button className="admin-field--small admin-tmdb-btn" type="button" onClick={handleSyncTmdbMetadata} disabled={isTmdbSyncing}>
                       {isTmdbSyncing ? "Đang đồng bộ..." : "Đồng bộ TMDB"}
                     </button>
@@ -285,6 +286,7 @@ export default function AdminRecordModal({
                       </div>
                     </section>
                     <div className="admin-form-grid">
+                      <input type="number" value={form.statusOrder} onChange={(event) => setForm({ ...form, statusOrder: event.target.value })} placeholder="Thứ tự trạng thái" />
                       <input type="number" value={form.catalogOrder} onChange={(event) => setForm({ ...form, catalogOrder: event.target.value })} placeholder="Thứ tự catalog" />
                       <input type="number" value={form.heroOrder} onChange={(event) => setForm({ ...form, heroOrder: event.target.value })} placeholder="Thứ tự hero" />
                     </div>
@@ -434,6 +436,7 @@ export default function AdminRecordModal({
                         <dl>
                           <div><dt>Category</dt><dd>{selectedDetail.categoryLabel}</dd></div>
                           <div><dt>Priority</dt><dd>{selectedDetail.priorityLabel}</dd></div>
+                            <div><dt>Labels</dt><dd>{(selectedDetail.labels || []).join(", ") || "Ch�a c�"}</dd></div>
                           <div className="admin-feedback-response-box"><dt>Phản hồi cho khách</dt><dd>{selectedDetail.response || "Chưa phản hồi"}</dd></div>
                           <div className="admin-feedback-note-box"><dt>Admin note</dt><dd>{(selectedDetail.adminNotes || []).map((item) => `${item.adminName || "Admin"}: ${item.note}`).join(" | ") || "Chưa có"}</dd></div>
                           <div><dt>Lịch sử</dt><dd>{(selectedDetail.history || []).map((item) => `${formatAdminDateTime(item.createdAt)}: ${item.action} ${item.to || ""}`).join(" | ") || "Chưa có"}</dd></div>
@@ -458,3 +461,5 @@ export default function AdminRecordModal({
             </div>
   );
 }
+
+

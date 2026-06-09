@@ -71,7 +71,6 @@ export default function MovieDetail() {
     }
   };
 
-  const [isDetailIntroDone, setIsDetailIntroDone] = useState(false);
   const [hasTrailerIntroStarted, setHasTrailerIntroStarted] = useState(false);
   const [isTrailerIntroDone, setIsTrailerIntroDone] = useState(false);
   const [sessionUser] = useState(() => getSessionUser());
@@ -206,15 +205,7 @@ export default function MovieDetail() {
 
 
 
-  useEffect(() => {
-    setIsDetailIntroDone(false);
-
-    const introTimer = window.setTimeout(() => {
-      setIsDetailIntroDone(true);
-    }, 2300);
-
-    return () => window.clearTimeout(introTimer);
-  }, [movie?.id]);
+  // Removed detail intro delay to display content instantly
 
   useEffect(() => {
     const node = trailerSectionRef.current;
@@ -441,17 +432,7 @@ export default function MovieDetail() {
           </div>
         </div>
 
-        <div className={"md-content-panel" + (isDetailIntroDone ? " is-ready" : " is-intro")}>
-          {!isDetailIntroDone ? (
-            <div className="md-spoiler-intro" aria-hidden="true">
-              <DynamicLottie
-                src="/assets/lottie/spoiler-alert.json"
-                loop={false}
-                autoplay={true}
-              />
-            </div>
-          ) : null}
-
+        <div className="md-content-panel is-ready">
           <div className="md-detail-copy">
           <div className="md-topline">
             <span className="md-status-chip">{isComingSoon ? "Sắp chiếu" : "Đang chiếu"}</span>

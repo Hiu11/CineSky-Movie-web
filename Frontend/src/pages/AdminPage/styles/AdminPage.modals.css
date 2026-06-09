@@ -81,6 +81,7 @@
   to { opacity: 1; }
 }
 
+
 /* Polished CRUD/detail dialogs */
 .admin-side-panels-backdrop {
   --admin-modal-header-offset: clamp(210px, 19vw, 270px);

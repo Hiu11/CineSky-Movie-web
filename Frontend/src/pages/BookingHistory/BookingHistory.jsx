@@ -260,7 +260,7 @@ export default function BookingHistory() {
       );
       if (cancelledBooking.membership) {
         setMembership(cancelledBooking.membership);
-        updateStoredUser({ ...user, membership: cancelledBooking.membership });
+        updateStoredUser({ ...(getSessionUser() || user), membership: cancelledBooking.membership });
       }
       setHistoryMessage("Đã hủy vé và mở lại ghế đã đặt. Vé đã thanh toán trước nên không hoàn tiền.");
     } catch (error) {

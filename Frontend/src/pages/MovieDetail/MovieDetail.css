@@ -197,12 +197,15 @@
 .md-quick-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px;
+  gap: 10px;
 }
 
 .md-quick-card {
-  padding: 18px 16px;
-  border-radius: 22px;
+  min-height: 74px;
+  display: grid;
+  align-content: center;
+  padding: 12px 14px;
+  border-radius: 16px;
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.07), rgba(255, 255, 255, 0.02));
   border: 1px solid rgba(255, 255, 255, 0.1);
   transition: transform 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
@@ -232,7 +235,7 @@
 .md-quick-card span {
   display: block;
   color: rgba(255, 255, 255, 0.55);
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   font-weight: 700;
@@ -240,9 +243,9 @@
 
 .md-quick-card strong {
   display: block;
-  margin-top: 10px;
-  font-size: 18px;
-  line-height: 1.4;
+  margin-top: 6px;
+  font-size: 16px;
+  line-height: 1.25;
   color: #fff;
 }
 
@@ -362,7 +365,9 @@
   margin-top: 24px;
   padding: 26px;
   box-sizing: border-box;
-  height: 640px;
+  min-height: 640px;
+  height: auto;
+  overflow: visible;
 }
 
 .md-trailer.is-intro {
@@ -462,6 +467,7 @@
   gap: 18px;
   align-items: stretch;
   justify-content: center;
+  width: 100%;
   min-height: 0;
 }
 
@@ -529,12 +535,17 @@
 .md-videoWrap {
   padding: 14px;
   align-self: start;
+  min-width: 0;
+  width: 100%;
 }
 
 .md-trailer-side {
   display: grid;
   gap: 16px;
   align-content: start;
+  min-width: 0;
+  width: 100%;
+  max-width: 100%;
   min-height: 0;
 }
 
@@ -1304,18 +1315,45 @@
 @media (max-width: 1040px) {
   .md-shell {
     grid-template-columns: 1fr;
+    gap: 22px;
+    padding: 24px;
   }
 
   .md-poster-panel {
     max-width: 420px;
+    width: 100%;
+    justify-self: center;
+  }
+
+  .md-content-panel,
+  .md-detail-copy {
+    min-width: 0;
+  }
+
+  .md-quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .md-quick-card {
+    min-width: 0;
+    min-height: 68px;
+    padding: 10px 14px;
+    border-radius: 14px;
+  }
+
+  .md-quick-card strong {
+    font-size: 15px;
   }
 
   .md-trailer-layout {
     grid-template-columns: 1fr;
+    justify-content: stretch;
   }
 
   .md-trailer {
-    height: 900px;
+    min-height: 0;
+    height: auto;
   }
 
   
@@ -1653,10 +1691,11 @@
 }
 
   .md-quick-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
     gap: 10px !important;
   }
   .md-quick-card {
+    min-height: 58px !important;
     padding: 12px 10px !important;
     border-radius: 12px !important;
   }
@@ -1684,6 +1723,33 @@
     font-size: 11px !important;
     min-height: 28px !important;
     padding: 0 10px !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .md-quick-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .md-quick-card {
+    min-height: 52px !important;
+    padding: 9px 10px !important;
+  }
+
+  .md-quick-card span {
+    font-size: 8px !important;
+  }
+
+  .md-quick-card strong {
+    font-size: 12px !important;
+    line-height: 1.2 !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .md-quick-grid {
+    grid-template-columns: 1fr !important;
   }
 }
 

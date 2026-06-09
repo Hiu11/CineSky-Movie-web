@@ -114,6 +114,13 @@ const serializeFeedback = (feedback) => ({
   status: feedback.status || "new",
   category: feedback.category || "other",
   priority: feedback.priority || "medium",
+  supportMessages: (feedback.supportMessages || []).map((message) => ({
+    id: message._id,
+    sender: message.sender || "user",
+    text: message.text || "",
+    authorName: message.authorName || "",
+    createdAt: message.createdAt || null,
+  })),
   adminNotes: feedback.adminNotes || [],
   response: feedback.response || "",
   respondedAt: feedback.respondedAt || null,
@@ -787,7 +794,7 @@ const adminController = {
         BookingModel.countDocuments(nonAdminBookingFilter),
         ReviewModel.countDocuments(nonAdminUserContentFilter),
         FavoriteModel.countDocuments(nonAdminUserContentFilter),
-        FeedbackModel.countDocuments(mergeMongoFilters(nonAdminFeedbackFilter, { isHidden: { $ne: true } })),
+        FeedbackModel.countDocuments(mergeMongoFilters(nonAdminFeedbackFilter, { isHidden: { $ne: true }, source: { $ne: "support-chat" } })),
         MovieModel.countDocuments({ deletedAt: null, status: "now-showing" }),
         MovieModel.countDocuments({ deletedAt: null, status: "coming-soon" }),
         ShowtimeModel.countDocuments(),
@@ -807,12 +814,12 @@ const adminController = {
             { "membership.points": { $gte: 1500 } },
           ],
         }),
-        FeedbackModel.countDocuments(mergeMongoFilters(nonAdminFeedbackFilter, { isHidden: { $ne: true }, status: "new" })),
+        FeedbackModel.countDocuments(mergeMongoFilters(nonAdminFeedbackFilter, { isHidden: { $ne: true }, status: "new", source: { $ne: "support-chat" } })),
         FeedbackModel.countDocuments(
-          mergeMongoFilters(nonAdminFeedbackFilter, { isHidden: { $ne: true }, status: { $in: ["new", "in_progress"] } })
+          mergeMongoFilters(nonAdminFeedbackFilter, { isHidden: { $ne: true }, status: { $in: ["new", "in_progress"] }, source: { $ne: "support-chat" } })
         ),
         FeedbackModel.aggregate([
-          { $match: mergeMongoFilters(nonAdminFeedbackFilter, { isHidden: { $ne: true } }) },
+          { $match: mergeMongoFilters(nonAdminFeedbackFilter, { isHidden: { $ne: true }, source: { $ne: "support-chat" } }) },
           { $group: { _id: null, averageRating: { $avg: "$rating" } } },
         ]),
       ]);
@@ -861,7 +868,7 @@ const adminController = {
         BookingModel.find(nonAdminBookingFilter).sort({ createdAt: -1 }).limit(5000),
         MovieModel.find({ deletedAt: null }).sort({ catalogOrder: 1, legacyId: 1 }).limit(500),
         UserModel.find({ role: { $ne: "admin" } }).limit(1000),
-        FeedbackModel.find(mergeMongoFilters(nonAdminFeedbackFilter, { isHidden: { $ne: true } }))
+        FeedbackModel.find(mergeMongoFilters(nonAdminFeedbackFilter, { isHidden: { $ne: true }, source: { $ne: "support-chat" } }))
           .sort({ createdAt: -1 })
           .limit(1000),
       ]);
@@ -1391,7 +1398,7 @@ const adminController = {
   getFeedbackEntries: async (req, res) => {
     try {
       const limit = Math.min(Math.max(Number(req.query.limit) || 50, 1), 100);
-      const filter = { isHidden: { $ne: true } };
+      const filter = { isHidden: { $ne: true }, source: { $ne: "support-chat" } };
       const search = String(req.query.search || "").trim();
 
       if (feedbackStatuses.has(req.query.status)) {
@@ -1457,7 +1464,7 @@ const adminController = {
 
       const adminName = req.authUser?.fullName || req.authUser?.email || "";
       const history = [];
-      const { status, category, priority, adminNote, response, isSpam } = req.body || {};
+      const { status, category, priority, adminNote, response, isSpam, supportMessage } = req.body || {};
       const previousResponse = feedback.response || "";
 
       if (status && feedbackStatuses.has(status) && feedback.status !== status) {
@@ -1504,6 +1511,19 @@ const adminController = {
           adminName,
         });
         history.push({ action: "note", from: "", to: "Thêm admin note" });
+      }
+
+      const trimmedSupportMessage = String(supportMessage || "").trim();
+      if (trimmedSupportMessage && feedback.source === "support-chat") {
+        feedback.supportMessages.push({
+          sender: "admin",
+          text: trimmedSupportMessage,
+          authorName: adminName || "Admin",
+        });
+        if (feedback.status === "new") {
+          feedback.status = "in_progress";
+        }
+        history.push({ action: "chat", from: "", to: "Admin đã nhắn trong chat" });
       }
 
       history.forEach((item) => {
