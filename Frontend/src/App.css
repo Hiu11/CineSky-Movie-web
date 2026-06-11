@@ -437,7 +437,7 @@ button {
 
 @media (max-width: 820px) {
     .complex-footer {
-        padding: 32px 16px 22px;
+        padding: 32px 20px 22px 30px;
         overflow: hidden;
     }
 
@@ -638,7 +638,7 @@ body .feedback-textarea {
 /* Mobile comfort pass: smaller type, calmer cards, and consistent breathing room. */
 @media (max-width: 760px) {
   :root {
-    --mobile-page-x: 22px;
+    --mobile-page-x: 20px;
     --mobile-section-gap: 16px;
     --mobile-card-pad: 16px;
     --mobile-card-radius: 16px;
@@ -671,6 +671,7 @@ body .feedback-textarea {
   body .admin-page {
     padding-left: var(--mobile-page-x) !important;
     padding-right: var(--mobile-page-x) !important;
+    overflow-x: hidden;
   }
 
   body .homepage-shell,

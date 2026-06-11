@@ -229,6 +229,7 @@ function AppContent() {
         <Route path="/notifications" element={isLoggedIn ? <Notifications /> : <Navigate to="/login" replace />} />
         <Route path="/promotions" element={<Promotions />} />
         <Route path="/news" element={<CinemaNews />} />
+        <Route path="/news/:slug" element={<CinemaNews />} />
         <Route path="/favorites" element={isLoggedIn ? <Favorites showToast={showToast} /> : <Navigate to="/login" replace />} />
         <Route
           path="/admin"

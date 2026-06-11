@@ -903,31 +903,49 @@ select.profile-input option {
   }
 
   .sidebar-identity {
-    flex-direction: row;
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas: 
+      "avatar name"
+      "avatar email";
     align-items: center;
     text-align: left;
-    gap: 14px;
-    flex: 1 1 auto;
+    gap: 2px 14px;
+    flex: 1 1 100%;
   }
 
   .sidebar-avatar-wrap {
+    grid-area: avatar;
     width: 52px;
     height: 52px;
     margin-bottom: 0;
   }
 
+  .sidebar-identity h2 {
+    grid-area: name;
+    align-self: end;
+    font-size: 18px;
+    margin: 0;
+  }
+
+  .sidebar-identity p {
+    grid-area: email;
+    align-self: start;
+    font-size: 13px;
+    margin: 0;
+  }
+
   .sidebar-nav {
-    flex-direction: row;
-    flex-wrap: wrap;
-    gap: 6px;
+    flex-direction: column;
+    gap: 8px;
     width: 100%;
   }
 
   .nav-btn {
-    flex: 1 1 auto;
-    justify-content: center;
-    padding: 10px 12px;
-    font-size: 13px;
+    width: 100%;
+    justify-content: flex-start;
+    padding: 14px 16px;
+    font-size: 14px;
   }
 
   .sidebar-logout {
@@ -937,10 +955,7 @@ select.profile-input option {
     margin-top: 0;
   }
 
-  .logout-btn {
-    justify-content: center;
-    width: 100%;
-  }
+  .logout-btn { justify-content: flex-start; width: 100%; padding-left: 16px; }
 
   .dashboard-hero-glass {
     grid-template-columns: 1fr;
@@ -1534,19 +1549,30 @@ select.profile-input option {
   }
   .dashboard-sidebar {
     position: static;
-    flex-direction: row;
-    flex-wrap: wrap;
+    flex-direction: column;
     align-items: center;
     gap: 12px;
     padding: 16px 20px;
     border-radius: 20px;
   }
-  .sidebar-identity { flex-direction: row; text-align: left; gap: 14px; flex: 1 1 auto; }
-  .sidebar-avatar-wrap { width: 52px; height: 52px; margin-bottom: 0; }
-  .sidebar-nav { flex-direction: row; flex-wrap: wrap; gap: 6px; width: 100%; }
-  .nav-btn { flex: 1 1 auto; justify-content: center; padding: 10px 12px; font-size: 13px; }
+  .sidebar-identity {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas: "avatar name" "avatar email";
+    align-items: center;
+    text-align: left;
+    gap: 2px 14px;
+    width: 100%;
+  }
+  .sidebar-avatar-wrap { grid-area: avatar; width: 52px; height: 52px; margin-bottom: 0; }
+  .sidebar-identity h2 { grid-area: name; align-self: end; font-size: 18px; margin: 0; }
+  .sidebar-identity p { grid-area: email; align-self: start; font-size: 13px; margin: 0; }
+  
+  .sidebar-nav { flex-direction: column; gap: 8px; width: 100%; }
+  .nav-btn { width: 100%; justify-content: flex-start; padding: 14px 16px; font-size: 14px; }
+  
   .sidebar-logout { width: 100%; padding-top: 0; border-top: none; margin-top: 0; }
-  .logout-btn { justify-content: center; width: 100%; }
+  .logout-btn { justify-content: flex-start; width: 100%; }
   .dashboard-hero-glass { grid-template-columns: 1fr; gap: 20px; }
   .history-split-grid { grid-template-columns: 1fr; }
   .dashboard-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -1554,7 +1580,11 @@ select.profile-input option {
 
 @media (max-width: 640px) {
   .profile-dashboard-layout { padding: 80px 12px 48px; }
-  .dashboard-stats-grid { grid-template-columns: 1fr; }
+  .dashboard-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .stat-glass-panel { flex-direction: column; text-align: center; padding: 16px 12px; gap: 12px; border-radius: 16px; }
+  .stat-icon { width: 44px; height: 44px; border-radius: 12px; }
+  .stat-info span { font-size: 11px; }
+  .stat-info strong { font-size: 18px; }
   .glass-panel-section { padding: 20px 14px; }
   .form-grid { grid-template-columns: 1fr; }
   .form-footer { flex-direction: column; gap: 12px; align-items: stretch; }
@@ -1576,3 +1606,6 @@ select.profile-input option {
   .booking-details-mini { white-space: normal; word-break: break-word; }
   .timeline-content { min-width: 0; overflow: hidden; }
 }
+
+
+

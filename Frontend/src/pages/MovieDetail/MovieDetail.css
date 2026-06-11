@@ -1805,4 +1805,22 @@
   .md-carousel-btn {
     display: none; /* Hide buttons on mobile, rely on touch swipe */
   }
+
+  /* Make cast cards smaller on mobile */
+  .md-cast-card {
+    flex: 0 0 120px !important;
+    padding: 16px 12px !important;
+  }
+  .md-cast-card__avatar {
+    width: 56px !important;
+    height: 56px !important;
+    font-size: 22px !important;
+    margin-bottom: 10px !important;
+  }
+  .md-cast-card strong {
+    font-size: 13px !important;
+  }
+  .md-cast-card span {
+    font-size: 11px !important;
+  }
 }

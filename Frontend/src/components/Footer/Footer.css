@@ -233,7 +233,7 @@
 @media (max-width: 540px) {
   .complex-footer {
     margin-top: auto !important;
-    padding: 22px 18px 18px !important;
+    padding: 22px 18px 18px 30px !important;
     background: linear-gradient(180deg, #121520 0%, #07080e 100%);
   }
 

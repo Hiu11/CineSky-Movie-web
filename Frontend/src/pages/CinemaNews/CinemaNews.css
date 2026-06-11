@@ -266,7 +266,6 @@
 .cinema-news-brief,
 .cinema-news-expanded,
 .cinema-news-all,
-.cinema-news-detail,
 .cinema-news-related {
   margin-bottom: 42px;
   padding: 28px;
@@ -529,9 +528,12 @@
   .cinema-news-featured,
   .cinema-news-grid,
   .cinema-news-brief,
-  .cinema-news-stats,
   .cinema-news-expanded__grid {
     grid-template-columns: 1fr;
+  }
+
+  .cinema-news-stats {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   .cinema-news-card--compact {
@@ -552,13 +554,31 @@
   .cinema-news-brief,
   .cinema-news-expanded,
   .cinema-news-all,
-  .cinema-news-detail,
   .cinema-news-related {
-    padding: 22px;
+    padding: 18px;
   }
 
   .cinema-news-hero h1,
   .cinema-news-detail__header h1 {
-    font-size: 36px;
+    font-size: 26px;
+  }
+
+  .cinema-news-stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+
+  .cinema-news-stats article {
+    min-height: 0;
+    padding: 14px 12px;
+  }
+
+  .cinema-news-stats strong {
+    font-size: 18px;
+    margin: 6px 0;
+  }
+
+  .cinema-news-stats p {
+    font-size: 12px;
   }
 }

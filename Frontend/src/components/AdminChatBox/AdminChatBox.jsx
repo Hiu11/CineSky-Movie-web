@@ -280,9 +280,63 @@ export default function AdminChatBox({ user, showToast }) {
     email: user?.email || storedContact.email || "",
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // Drag state
+  const [widgetPos, setWidgetPos] = useState({ x: 0, y: 0 });
+  const [isTooltipHidden, setIsTooltipHidden] = useState(false);
+  const dragRef = useRef({ isDragging: false, startX: 0, startY: 0, initialX: 0, initialY: 0, hasMoved: false });
+  
   const scrollRef = useRef(null);
   const lastAdminMessageIdRef = useRef("");
   const lottieContainerRef = useRef(null);
+
+  const handlePointerDown = (e) => {
+    if (e.button !== undefined && e.button !== 0) return;
+    dragRef.current.isDragging = true;
+    dragRef.current.hasMoved = false;
+    dragRef.current.startX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+    dragRef.current.startY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+    dragRef.current.initialX = widgetPos.x;
+    dragRef.current.initialY = widgetPos.y;
+    
+    document.addEventListener("pointermove", handlePointerMove);
+    document.addEventListener("pointerup", handlePointerUp);
+    document.addEventListener("pointercancel", handlePointerUp);
+  };
+
+  const handlePointerMove = (e) => {
+    if (!dragRef.current.isDragging) return;
+    const currentX = e.clientX || (e.touches && e.touches[0].clientX) || 0;
+    const currentY = e.clientY || (e.touches && e.touches[0].clientY) || 0;
+    const dx = currentX - dragRef.current.startX;
+    const dy = currentY - dragRef.current.startY;
+    
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+      dragRef.current.hasMoved = true;
+    }
+    
+    setWidgetPos({
+      x: dragRef.current.initialX + dx,
+      y: dragRef.current.initialY + dy,
+    });
+  };
+
+  const handlePointerUp = () => {
+    dragRef.current.isDragging = false;
+    document.removeEventListener("pointermove", handlePointerMove);
+    document.removeEventListener("pointerup", handlePointerUp);
+    document.removeEventListener("pointercancel", handlePointerUp);
+  };
+
+  const handleLauncherClick = (e) => {
+    if (dragRef.current.hasMoved) {
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    setIsOpen(!isOpen);
+    setIsTooltipHidden(true);
+  };
 
   useEffect(() => {
     let anim = null;
@@ -630,7 +684,11 @@ export default function AdminChatBox({ user, showToast }) {
   };
 
   return (
-    <aside className={"admin-chat" + (isOpen ? " admin-chat--open" : "") + (conversationId ? " admin-chat--support" : "")} aria-label="Chat với admin">
+    <aside 
+      className={"admin-chat" + (isOpen ? " admin-chat--open" : "") + (conversationId ? " admin-chat--support" : "")} 
+      aria-label="Chat với admin"
+      style={{ transform: `translate(${widgetPos.x}px, ${widgetPos.y}px)`, touchAction: "none" }}
+    >
       {isOpen ? (
         <section className="admin-chat__panel">
           <header className="admin-chat__header">
@@ -797,9 +855,22 @@ export default function AdminChatBox({ user, showToast }) {
         </section>
       ) : null}
 
-      <button className={`admin-chat__launcher ${isOpen ? 'admin-chat__launcher--hidden' : ''}`} type="button" onClick={() => setIsOpen(!isOpen)} aria-label="Mở chat với admin">
-        {!isOpen && (
-          <span className="admin-chat__tooltip">Cần hỗ trợ? Chat ngay!</span>
+      <button 
+        className={`admin-chat__launcher ${isOpen ? 'admin-chat__launcher--hidden' : ''}`} 
+        type="button" 
+        onPointerDown={handlePointerDown}
+        onClick={handleLauncherClick}
+        aria-label="Mở chat với admin"
+      >
+        {!isOpen && !isTooltipHidden && (
+          <span className="admin-chat__tooltip">
+            Cần hỗ trợ? Chat ngay!
+            <div 
+              className="admin-chat__tooltip-close" 
+              onClick={(e) => { e.stopPropagation(); setIsTooltipHidden(true); }}
+              aria-label="Ẩn"
+            >×</div>
+          </span>
         )}
         <span className="admin-chat__launcher-icon" ref={lottieContainerRef} style={{ width: 138, height: 138, display: 'block' }}>
         </span>

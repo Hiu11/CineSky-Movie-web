@@ -227,10 +227,9 @@
 
 .promotion-card {
   min-height: 0;
-  display: grid;
-  grid-template-rows: auto auto auto auto auto;
-  align-content: start;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   padding: 20px;
   overflow: hidden;
   background: var(--voucher-bg, rgba(255, 255, 255, 0.05));
@@ -239,6 +238,22 @@
     0 16px 40px rgba(0, 0, 0, 0.2),
     0 0 42px var(--voucher-shadow, rgba(250, 204, 21, 0.08)),
     inset 4px 0 0 var(--voucher-border, rgba(247, 180, 0, 0.26));
+}
+
+.promotion-card__offer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.promotion-card__bottom {
+  margin-top: auto;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 12px;
 }
 .promotion-card:hover {
   transform: translateY(-8px);
@@ -503,4 +518,95 @@
   gap: 8px;
   align-items: center;
   min-height: 20px;
+}
+
+@media (max-width: 540px) {
+  .promotion-card {
+    padding: 12px 14px !important;
+    gap: 6px !important;
+  }
+
+  .promotions-hero > div:first-child {
+    padding: 16px !important;
+  }
+
+  .promotions-hero h1 {
+    font-size: 20px !important;
+    margin: 8px 0 !important;
+  }
+
+  .promotions-hero p {
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+  }
+
+  .promotions-ticket {
+    min-height: 140px !important;
+    padding: 16px !important;
+    gap: 6px !important;
+  }
+
+  .promotions-ticket strong {
+    font-size: 24px !important;
+  }
+
+  .promotion-card h2 {
+    font-size: 16px !important;
+    margin: 2px 0 !important;
+  }
+
+  .promotion-card strong {
+    font-size: 18px !important;
+    padding: 4px 8px !important;
+    margin: 2px 0 !important;
+  }
+
+  .promotions-page span,
+  .promotions-ticket small {
+    font-size: 10px !important;
+    padding: 0 8px !important;
+    min-height: 20px !important;
+  }
+
+  .promotion-card p {
+    font-size: 12px !important;
+    line-height: 1.4 !important;
+    margin: 0 !important;
+  }
+
+  .promotion-save-btn {
+    padding: 6px 10px !important;
+    font-size: 11px !important;
+    margin-top: 2px !important;
+  }
+
+  .promotion-code {
+    min-height: 24px !important;
+    padding: 0 8px !important;
+    font-size: 11px !important;
+  }
+
+  .promotion-tier-head span {
+    font-size: 15px !important;
+  }
+
+  .promotion-tier-list {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    scroll-snap-type: x mandatory !important;
+    gap: 12px !important;
+    padding-bottom: 12px !important;
+    margin-inline: -16px !important;
+    padding-inline: 16px !important;
+    -ms-overflow-style: none !important;
+  }
+  .promotion-tier-list::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .promotion-tier-list .promotion-card {
+    flex: 0 0 85% !important;
+    scroll-snap-align: center !important;
+  }
 }

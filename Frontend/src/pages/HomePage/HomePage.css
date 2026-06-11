@@ -3446,10 +3446,18 @@
   }
 
   .home-membership-promo__tiers {
-    display: grid;
-    grid-template-columns: 1fr;
+    display: flex;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    margin-inline: -14px;
+    padding-inline: 14px;
+    padding-bottom: 8px;
+    -ms-overflow-style: none;
     gap: 12px;
     min-height: 0;
+  }
+  .home-membership-promo__tiers::-webkit-scrollbar { 
+    display: none; 
   }
 
   .home-membership-tier {
@@ -3506,11 +3514,15 @@
 
   .home-section__header h2,
   .home-membership-promo__copy h2,
-  .home-deals-brief__title,
-  .home-insight-card h3 {
+  .home-deals-brief__title {
     font-size: clamp(20px, 5.8vw, 26px) !important;
     line-height: 1.16 !important;
     letter-spacing: 0 !important;
+  }
+
+  .home-insight-card h2 {
+    font-size: 18px !important;
+    line-height: 1.35 !important;
   }
 
   .home-preview-card__body,
@@ -3552,4 +3564,116 @@
     padding: 0 14px !important;
     font-size: 13px !important;
   }
+
+  .home-hero__actions,
+  .home-now-card__actions,
+  .home-poster-feature__actions {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+  }
+  .home-hero__actions a,
+  .home-hero__actions button,
+  .home-now-card__actions a,
+  .home-now-card__actions button,
+  .home-poster-feature__actions a,
+  .home-poster-feature__actions button {
+    flex: 1;
+    justify-content: center;
+    padding: 0 8px !important;
+  }
+
+  /* Stat cards taking too much space */
+  .home-hero-stats {
+    display: flex !important;
+    flex-direction: row !important;
+    gap: 12px !important;
+  }
+  .home-stat-card {
+    flex: 1;
+    min-width: 0;
+    padding: 12px 8px !important;
+    text-align: center;
+  }
+  .home-stat-card strong {
+    font-size: 20px !important;
+  }
+  .home-stat-card span {
+    font-size: 11px !important;
+    margin-top: 4px !important;
+  }
+
+  /* Phim sắp chiếu nhỏ lại */
+  .home-soon-stack {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+  .home-soon-card {
+    min-height: 240px !important;
+    flex-basis: auto !important;
+  }
+  .home-soon-card__poster {
+    height: 180px !important;
+  }
+  .home-soon-card__body {
+    padding: 10px !important;
+    gap: 6px !important;
+  }
+  .home-soon-card__body h3 {
+    font-size: 13px !important;
+  }
+
+  /* Câu hỏi thường gặp nhỏ lại */
+  .home-faq-card {
+    padding: 8px 12px !important;
+  }
+  .home-faq-card__button {
+    min-height: 0 !important;
+    padding: 6px 0 !important;
+  }
+  .home-faq-card__button span:first-child {
+    font-size: 14px !important;
+    line-height: 1.4 !important;
+  }
+  .home-faq-card__icon {
+    width: 28px !important;
+    height: 28px !important;
+    flex: 0 0 28px !important;
+  }
+  .home-faq-card__answer {
+    font-size: 13px !important;
+  }
+  .home-faq-card.is-active .home-faq-card__answer {
+    padding: 0 0 8px !important;
+  }
+
+  .home-catalog-hero__stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+  .home-catalog-hero__stats div {
+    padding: 10px 8px !important;
+    border-radius: 12px !important;
+    text-align: center;
+  }
+  .home-catalog-hero__stats strong {
+    font-size: 20px !important;
+  }
+  .home-catalog-hero__stats span {
+    font-size: 10px !important;
+    margin-top: 4px !important;
+  }
+  .home-catalog-hero__content h1 {
+    font-size: 28px !important;
+  }
+  .home-kicker {
+    font-size: 10px !important;
+  }
+  .home-catalog-hero__links {
+    gap: 8px !important;
+  }
+  .home-catalog-hero__links a {
+    min-height: 40px !important;
+    font-size: 13px !important;
+  }
 }
+

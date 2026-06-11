@@ -568,10 +568,30 @@
   font-size: 13px;
   font-weight: 800;
   white-space: nowrap;
-  pointer-events: none;
+  pointer-events: auto;
   z-index: 10;
   animation: floatTooltip 3s ease-in-out infinite, glowPulse 1.5s infinite alternate;
   box-shadow: 0 0 15px rgba(247, 180, 0, 0.6);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.admin-chat__tooltip-close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.15);
+  color: #120d05;
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.admin-chat__tooltip-close:hover {
+  background: rgba(0,0,0,0.3);
 }
 
 .admin-chat__tooltip::after {
@@ -641,27 +661,27 @@
   }
 
   .admin-chat__launcher {
-    width: 96px;
-    height: 96px;
+    width: 72px;
+    height: 72px;
   }
 
   .admin-chat__launcher-icon {
-    width: 96px;
-    height: 96px;
+    width: 72px;
+    height: 72px;
   }
 
   .admin-chat__tooltip {
     right: 86px;
     top: 14px;
-    max-width: min(220px, calc(100vw - 120px));
-    font-size: 11px;
+    max-width: none;
+    font-size: 12px;
     padding: 6px 10px;
-    white-space: normal;
+    white-space: nowrap;
   }
 
   .admin-chat__lottie {
-    width: 102px !important;
-    height: 102px !important;
+    width: 78px !important;
+    height: 78px !important;
   }
 }
 
@@ -698,17 +718,17 @@
   }
 
   .admin-chat__launcher {
-    width: 84px;
-    height: 84px;
+    width: 64px;
+    height: 64px;
   }
 
   .admin-chat__launcher-icon {
-    width: 84px;
-    height: 84px;
+    width: 64px;
+    height: 64px;
   }
 
   .admin-chat__lottie {
-    width: 90px !important;
-    height: 90px !important;
+    width: 70px !important;
+    height: 70px !important;
   }
 }

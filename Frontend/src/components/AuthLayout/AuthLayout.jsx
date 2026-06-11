@@ -145,14 +145,16 @@ export function AuthDivider({ label = "Or" }) {
 }
 
 export function AuthSocialFooter() {
-  const items = ["facebook", "twitter", "instagram"];
+  const items = [
+    { name: "facebook", iconClass: "fab fa-facebook" },
+    { name: "twitter", iconClass: "fab fa-twitter" },
+    { name: "instagram", iconClass: "fab fa-instagram" },
+  ];
 
   return (
     <div className="auth-social-footer" aria-label="Social links">
       {items.map((item) => (
-        <button key={item} type="button" className="auth-social-footer__button" aria-label={item}>
-          <SocialGlyph name={item} />
-        </button>
+        <i key={item.name} className={item.iconClass} aria-label={item.name}></i>
       ))}
     </div>
   );
@@ -398,3 +400,4 @@ export default function AuthLayout({
     </div>
   );
 }
+

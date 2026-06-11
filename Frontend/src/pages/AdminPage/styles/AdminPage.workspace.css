@@ -1234,3 +1234,31 @@
   box-shadow: 0 2px 10px rgba(247, 180, 0, 0.3);
 }
 
+
+@media (max-width: 760px) {
+  .admin-stat-grid, .admin-analytics-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 12px !important;
+  }
+  .admin-stat-card {
+    padding: 14px 12px 14px 18px !important;
+  }
+  .admin-stat-card span {
+    font-size: 11px !important;
+  }
+  .admin-stat-card strong {
+    font-size: 18px !important;
+    margin: 4px 0 !important;
+  }
+  .admin-stat-card small {
+    font-size: 10px !important;
+  }
+  .admin-stat-card::before {
+    left: 0 !important;
+    top: 12px !important;
+    bottom: 12px !important;
+    width: 4px !important;
+  }
+}
+
+

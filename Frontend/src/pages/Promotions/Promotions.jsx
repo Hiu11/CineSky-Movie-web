@@ -218,19 +218,25 @@ export default function Promotions() {
             <div className="promotion-tier-list">
               {tierVouchers.map((voucher) => (
                 <article key={voucher.id || voucher.title} className={`promotion-card promotion-card--${String(voucher.theme || voucher.tag || "slate").toLowerCase()}`}>
-                  <span>{voucher.tag}</span>
-                  <h2>{voucher.title}</h2>
-                  <strong>{voucher.value}</strong>
-                  {voucher.code ? <code className="promotion-code">{voucher.code}</code> : null}
-                  <p>{voucher.description}</p>
-                  <div className="promotion-meta">
-                    {voucher.requiredPoints ? <small>{Number(voucher.requiredPoints).toLocaleString("vi-VN")} điểm</small> : null}
-                    {voucher.maxUsesPerUser ? <small>{voucher.maxUsesPerUser} lần/user</small> : null}
-                    {voucher.applicableGenres?.length ? <small>{voucher.applicableGenres.join(", ")}</small> : null}
+                  <div className="promotion-card__top">
+                    <span>{voucher.tag}</span>
+                    <h2>{voucher.title}</h2>
                   </div>
-                  <button type="button" className="promotion-save-btn" onClick={() => handleToggleSave(voucher)}>
-                    {savedIds.includes(String(voucher.id)) ? "Đã lưu" : "Lưu mã"}
-                  </button>
+                  <div className="promotion-card__offer">
+                    <strong>{voucher.value}</strong>
+                    {voucher.code ? <code className="promotion-code">{voucher.code}</code> : null}
+                  </div>
+                  <p>{voucher.description}</p>
+                  <div className="promotion-card__bottom">
+                    <div className="promotion-meta">
+                      {voucher.requiredPoints ? <small>{Number(voucher.requiredPoints).toLocaleString("vi-VN")} điểm</small> : null}
+                      {voucher.maxUsesPerUser ? <small>{voucher.maxUsesPerUser} lần/user</small> : null}
+                      {voucher.applicableGenres?.length ? <small>{voucher.applicableGenres.join(", ")}</small> : null}
+                    </div>
+                    <button type="button" className="promotion-save-btn" onClick={() => handleToggleSave(voucher)}>
+                      {savedIds.includes(String(voucher.id)) ? "Đã lưu" : "Lưu mã"}
+                    </button>
+                  </div>
                 </article>
               ))}
             </div>
