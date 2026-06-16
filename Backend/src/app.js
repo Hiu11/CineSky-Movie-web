@@ -28,6 +28,7 @@ const isAllowedOrigin = (origin = "") => {
   return (
     origin === "http://localhost:3000" ||
     origin === "http://localhost:5173" ||
+    origin === "https://cine-sky-fe.vercel.app" ||
     /^https:\/\/cine-sky-fe(?:-[a-z0-9-]+)?-[a-z0-9-]+\.vercel\.app$/i.test(origin) ||
     /^https:\/\/cine-sky-[a-z0-9-]+-cine-sky-s-projects\.vercel\.app$/i.test(origin)
   );
