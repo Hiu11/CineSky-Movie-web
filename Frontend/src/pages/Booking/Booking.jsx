@@ -106,6 +106,7 @@ export default function Booking({ showToast }) {
             paymentSession={flow.paymentSession}
             paymentSessionError={flow.paymentSessionError}
             paymentQrDataUrl={flow.paymentQrDataUrl}
+            qrPaymentUrl={flow.qrPaymentUrl}
             isPaymentExpired={flow.isPaymentExpired}
             paymentCountdownLabel={flow.paymentCountdownLabel}
             voucherState={flow.voucherState}

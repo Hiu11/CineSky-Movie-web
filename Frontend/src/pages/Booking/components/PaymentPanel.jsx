@@ -18,7 +18,7 @@ export default function PaymentPanel({
   useQrPayment, setUseQrPayment,
   isQrPaymentConfirmed, setIsQrPaymentConfirmed,
   paymentSession, paymentSessionError,
-  paymentQrDataUrl, isPaymentExpired, paymentCountdownLabel,
+  paymentQrDataUrl, qrPaymentUrl, isPaymentExpired, paymentCountdownLabel,
   voucherState, finalTotal, formatCurrency,
 }) {
   const qrStatusLabel = isQrPaymentConfirmed
@@ -138,8 +138,18 @@ export default function PaymentPanel({
               <div className={"booking-page__qr-status" + (isQrPaymentConfirmed ? " is-paid" : "")} aria-live="polite">
                 {isQrPaymentConfirmed
                   ? "Bạn có thể xác nhận đặt vé."
-                  : "Quét QR bằng điện thoại, mở trang xác nhận rồi bấm Đã thanh toán."}
+                  : "Quét QR hoặc bấm nút bên dưới để mở trang xác nhận thanh toán."}
               </div>
+              {qrPaymentUrl && !isPaymentExpired ? (
+                <a
+                  className="booking-page__qr-link"
+                  href={qrPaymentUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Mở trang thanh toán
+                </a>
+              ) : null}
               {paymentSessionError ? (
                 <p className="booking-page__qr-error">{paymentSessionError}</p>
               ) : null}

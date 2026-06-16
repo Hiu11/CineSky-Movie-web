@@ -966,7 +966,7 @@ export function useBookingFlow({ showToast } = {}) {
     selectedCinemaName, selectedShowtimeId, selectedScreeningDate,
     selectedSeats, selectedPaymentMethod, selectedProvider, providerSearch,
     paymentForm, voucherState, seatLock, useQrPayment, setUseQrPayment, isQrPaymentConfirmed, setIsQrPaymentConfirmed,
-    paymentQrDataUrl, paymentSession, paymentSessionError, visibleProviders, selectedFnB,
+    paymentQrDataUrl, qrPaymentUrl, paymentSession, paymentSessionError, visibleProviders, selectedFnB,
     isLoading, isHistoryLoading, errorMessage, submitMessage,
     isSubmitting, isDesktopViewport, isSummaryCollapsed, setIsSummaryCollapsed,
     isDesktopSummaryCollapsed, seatScale, setSeatScale, currentTime,
