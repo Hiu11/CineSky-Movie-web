@@ -1,4 +1,4 @@
-import ChatConversationModel from "../models/chatConversation.model.js";
+﻿import ChatConversationModel from "../models/chatConversation.model.js";
 import { getGeminiApiKey, getGeminiModel, getOpenAiApiKey, getOpenAiModel } from "../config/env.js";
 import MovieModel from "../models/movie.model.js";
 import BookingModel from "../models/booking.model.js";

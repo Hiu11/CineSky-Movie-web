@@ -1,4 +1,4 @@
-import net from "net";
+﻿import net from "net";
 import tls from "tls";
 
 const sentMockEmails = [];
@@ -103,7 +103,7 @@ export const sendBookingConfirmationEmail = async ({ to, booking, movie, showtim
     "CineSky xác nhận đặt vé thành công.",
     "",
     `Phim: ${movie?.title || "CineSky"}`,
-    `Suất: ${booking.screeningDateLabel || showtime?.displayDate || ""} ${showtime?.displayTime || ""}`.trim(),
+    `Suất: ${booking.screeningDateLabel || showtime?.displayDate || ""} ${booking.displayTime || showtime?.displayTime || ""}`.trim(),
     `Rạp: ${showtime?.cinemaName || "CineSky"}`,
     `Phòng: ${showtime?.roomName || ""}`,
     `Ghế: ${(booking.seatNumbers || []).join(", ")}`,

@@ -1,4 +1,4 @@
-import {
+﻿import {
   LOCALIZED_PAYMENT_METHODS,
   PAYMENT_PROVIDER_LOGOS,
   PAYMENT_SEARCH_PLACEHOLDERS,
@@ -17,9 +17,16 @@ export default function PaymentPanel({
   visibleProviders, paymentForm, onPaymentFieldChange,
   useQrPayment, setUseQrPayment,
   isQrPaymentConfirmed, setIsQrPaymentConfirmed,
+  paymentSession, paymentSessionError,
   paymentQrDataUrl, isPaymentExpired, paymentCountdownLabel,
   voucherState, finalTotal, formatCurrency,
 }) {
+  const qrStatusLabel = isQrPaymentConfirmed
+    ? "Điện thoại đã xác nhận thanh toán"
+    : paymentSession?.status === "expired"
+      ? "Phiên QR đã hết hạn"
+      : "Đang chờ điện thoại xác nhận";
+
   return (
     <section className="booking-page__panel booking-page__panel--payment">
       <div className="booking-page__panel-header booking-page__panel-header--split">
@@ -126,16 +133,16 @@ export default function PaymentPanel({
               )}
               <div>
                 <strong>{formatCurrency(finalTotal)} VND</strong>
-                <span>{isQrPaymentConfirmed ? `${selectedProvider} • Đã xác nhận thanh toán` : `${selectedProvider} • Đang chờ thanh toán`}</span>
+                <span>{selectedProvider} • {qrStatusLabel}</span>
               </div>
-              <button
-                type="button"
-                className="booking-page__qr-confirm"
-                onClick={() => setIsQrPaymentConfirmed(true)}
-                disabled={isQrPaymentConfirmed || finalTotal <= 0}
-              >
-                {isQrPaymentConfirmed ? "Đã thanh toán" : "Tôi đã thanh toán"}
-              </button>
+              <div className={"booking-page__qr-status" + (isQrPaymentConfirmed ? " is-paid" : "")} aria-live="polite">
+                {isQrPaymentConfirmed
+                  ? "Bạn có thể xác nhận đặt vé."
+                  : "Quét QR bằng điện thoại, mở trang xác nhận rồi bấm Đã thanh toán."}
+              </div>
+              {paymentSessionError ? (
+                <p className="booking-page__qr-error">{paymentSessionError}</p>
+              ) : null}
             </div>
           ) : (
             <div className="booking-page__payment-form-grid">

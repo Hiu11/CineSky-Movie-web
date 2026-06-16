@@ -1,4 +1,4 @@
-import { formatCurrency } from "../utils/adminPageUtils";
+﻿import { formatCurrency } from "../utils/adminPageUtils";
 
 const renderHorizontalBars = (rows, formatter = formatCurrency, unitLabel = "Đơn vị: VND") => (
   <div className="admin-analytics-bars">

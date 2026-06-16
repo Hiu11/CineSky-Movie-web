@@ -227,19 +227,44 @@
 }
 
 @media (max-width: 600px) {
+  .membership-3d-wrapper {
+    max-width: 360px;
+  }
+
+  .membership-card-3d {
+    border-radius: 16px;
+  }
+
   .membership-card__content {
-    padding: 20px;
+    padding: 16px;
   }
   
   .membership-card__brand {
-    font-size: 20px;
+    font-size: 17px;
+    letter-spacing: 1.4px;
+  }
+
+  .membership-card__tier {
+    padding: 3px 8px;
+    font-size: 10px;
+    letter-spacing: 1px;
+  }
+
+  .membership-card__chip {
+    width: 42px;
+    height: 30px;
   }
   
   .membership-card__name {
-    font-size: 15px;
+    font-size: 12px;
+    letter-spacing: 1.5px;
   }
   
+  .membership-stat small {
+    font-size: 9px;
+  }
+
   .membership-stat strong {
-    font-size: 14px;
+    font-size: 12px;
   }
 }

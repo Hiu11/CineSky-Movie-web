@@ -1,4 +1,4 @@
-import { dateRangeLabels, formatCurrency } from "../utils/adminPageUtils";
+﻿import { dateRangeLabels, formatCurrency } from "../utils/adminPageUtils";
 
 export default function AdminDashboardView({
   analyticsData,

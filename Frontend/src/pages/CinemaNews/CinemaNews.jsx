@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+﻿import { useEffect, useRef } from "react";
 import { Link, Navigate, useParams } from "react-router-dom";
 import { cinemaNewsArticles, featuredCinemaNews } from "../../data/cinemaNewsArticles";
 import "../HomePage/HomePage.css";

@@ -1,4 +1,4 @@
-export const cinemaNewsArticles = [
+﻿export const cinemaNewsArticles = [
   {
     slug: "mat-biec-ho-so-phong-ve-hau-truong",
     movieId: 20,

@@ -1,4 +1,4 @@
-const analyticsCinemaCatalog = [
+﻿const analyticsCinemaCatalog = [
   { name: "CineSky Nguyen Hue", rooms: ["Sky Hall 1", "Sky Hall 2"] },
   { name: "CineSky Hai Ba Trung", rooms: ["Moon Hall", "Galaxy Hall"] },
   { name: "CineSky Dien Bien Phu", rooms: ["Nova Hall", "Aurora Hall"] },

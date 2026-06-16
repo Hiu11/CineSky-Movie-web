@@ -1,0 +1,748 @@
+.showtimes-page {
+  min-height: 0;
+  padding: 34px 5% 12px;
+  color: #fff;
+  background:
+    radial-gradient(circle at 8% 12%, rgba(247, 180, 0, 0.16), transparent 28%),
+    radial-gradient(circle at 92% 8%, rgba(20, 184, 166, 0.12), transparent 30%),
+    linear-gradient(180deg, #090b12 0%, #11131f 48%, #080910 100%);
+}
+
+.showtimes-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 520px);
+  gap: 28px;
+  align-items: end;
+  max-width: 1240px;
+  margin: 0 auto 24px;
+}
+
+.showtimes-hero__copy {
+  display: grid;
+  gap: 12px;
+}
+
+.showtimes-kicker {
+  width: fit-content;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(247, 180, 0, 0.13);
+  color: #f7c948;
+  font-size: 13px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.showtimes-hero h1 {
+  margin: 0;
+  font-size: clamp(34px, 5vw, 62px);
+  line-height: 1.02;
+}
+
+.showtimes-hero p {
+  max-width: 640px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.showtimes-hero__stats,
+.showtimes-smart-row,
+.showtime-movie,
+.showtimes-toolbar,
+.showtimes-empty,
+.showtimes-skeleton {
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.26);
+  -webkit-backdrop-filter: blur(24px);
+  backdrop-filter: blur(24px);
+}
+
+.showtimes-hero__stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  max-width: 400px;
+  justify-self: end;
+  border-radius: 18px;
+  overflow: hidden;
+}
+
+.showtimes-hero__stats div {
+  display: grid;
+  gap: 2px;
+  min-height: 66px;
+  padding: 12px 14px;
+}
+
+.showtimes-hero__stats div + div {
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.showtimes-hero__stats strong {
+  font-size: 24px;
+  line-height: 1;
+  color: #f7c948;
+}
+
+.showtimes-hero__stats span,
+.showtimes-smart-row span {
+  color: rgba(255, 255, 255, 0.62);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.showtimes-toolbar {
+  position: relative;
+  z-index: 3200;
+  max-width: 1240px;
+  margin: 0 auto 18px;
+  padding: 18px;
+  border-radius: 24px;
+  display: grid;
+  gap: 18px;
+}
+
+.showtimes-date-tabs {
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.showtimes-date-tabs button {
+  min-width: 132px;
+  padding: 13px 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: #fff;
+  text-align: left;
+  cursor: pointer;
+}
+
+.showtimes-date-tabs button.is-active {
+  border-color: rgba(247, 180, 0, 0.7);
+  background: linear-gradient(135deg, rgba(247, 180, 0, 0.24), rgba(20, 184, 166, 0.12));
+}
+
+.showtimes-date-tabs span,
+.showtimes-date-tabs strong {
+  display: block;
+}
+
+.showtimes-date-tabs span {
+  color: rgba(255, 255, 255, 0.64);
+  font-size: 12px;
+}
+
+.showtimes-filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  align-items: end;
+}
+
+.showtimes-filters label {
+  display: grid;
+  gap: 7px;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.showtimes-filters select {
+  min-width: 0;
+  width: 100%;
+  min-height: 46px;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(10, 12, 20, 0.92);
+  color: #fff;
+  outline: none;
+}
+
+.showtimes-filter-select {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.showtimes-filter-select.is-open {
+  z-index: 3300;
+}
+
+.showtimes-filter-select__label {
+  line-height: 1.25;
+}
+
+.showtimes-filter-select__button {
+  width: 100%;
+  min-width: 0;
+  min-height: 46px;
+  padding: 0 38px 0 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(10, 12, 20, 0.92);
+  color: #fff;
+  cursor: pointer;
+  outline: none;
+  position: relative;
+  text-align: left;
+}
+
+.showtimes-filter-select__button::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid rgba(255, 255, 255, 0.62);
+  border-bottom: 2px solid rgba(255, 255, 255, 0.62);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+.showtimes-filter-select__button:hover,
+.showtimes-filter-select__button[aria-expanded="true"] {
+  border-color: rgba(247, 180, 0, 0.48);
+  background: rgba(14, 16, 27, 0.96);
+}
+
+.showtimes-filter-select__button span {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.showtimes-filter-select__menu {
+  position: absolute;
+  z-index: 3400;
+  top: calc(100% + 8px);
+  left: 0;
+  width: 100%;
+  max-height: min(280px, 46vh);
+  overflow-y: auto;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: #111222;
+  box-shadow: 0 18px 42px rgba(0, 0, 0, 0.42);
+}
+
+.showtimes-filter-select__menu button {
+  display: block;
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+  font: inherit;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.showtimes-filter-select__menu button:hover,
+.showtimes-filter-select__menu button.is-selected {
+  background: rgba(247, 180, 0, 0.16);
+  color: #ffe39a;
+}
+
+.showtimes-toggle {
+  min-height: 46px;
+  display: flex !important;
+  grid-template-columns: none !important;
+  align-items: center;
+  gap: 10px !important;
+  padding: 0 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.showtimes-toggle input {
+  width: 18px;
+  height: 18px;
+  accent-color: #f7c948;
+}
+
+.showtimes-smart-row {
+  position: relative;
+  z-index: 1;
+  max-width: 1240px;
+  margin: 0 auto 18px;
+  padding: 16px;
+  border-radius: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.showtimes-smart-row div {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.showtimes-smart-row strong {
+  overflow: hidden;
+  color: #fff;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.showtimes-list {
+  max-width: 1240px;
+  margin: 0 auto;
+  display: grid;
+  gap: 18px;
+}
+
+.showtime-movie {
+  position: relative;
+  min-height: 0;
+  overflow: visible;
+  padding: 0;
+  border-radius: 24px;
+  isolation: isolate;
+}
+
+.showtime-movie__backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background-position: center;
+  background-size: cover;
+  filter: blur(8px) saturate(1.08);
+  transform: scale(1.02);
+  opacity: 0.42;
+}
+
+.showtime-movie__backdrop::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(6, 8, 12, 0.94) 0%, rgba(9, 11, 16, 0.86) 46%, rgba(9, 11, 16, 0.78) 100%),
+    linear-gradient(180deg, rgba(8, 10, 16, 0.26) 0%, rgba(8, 10, 16, 0.94) 100%);
+}
+
+.showtime-movie__content,
+.showtime-cinema-list {
+  display: grid;
+  gap: 16px;
+}
+
+.showtime-movie__content {
+  padding: 20px;
+}
+
+.showtime-movie__header {
+  display: block;
+  min-height: 0;
+}
+
+.showtime-movie__poster-card {
+  position: relative;
+  display: block;
+  min-height: 260px;
+  overflow: hidden;
+  border-radius: 20px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+  text-decoration: none;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.38);
+}
+
+.showtime-movie__poster-card img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(1.08);
+  transform: scale(1.02);
+}
+
+.showtime-movie__poster-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(90deg, rgba(6, 8, 12, 0.88) 0%, rgba(6, 8, 12, 0.64) 46%, rgba(6, 8, 12, 0.22) 100%),
+    linear-gradient(180deg, rgba(6, 8, 12, 0.08) 0%, rgba(6, 8, 12, 0.88) 100%);
+}
+
+.showtime-movie__poster-info {
+  position: relative;
+  z-index: 1;
+  width: min(620px, 100%);
+  min-height: 260px;
+  display: grid;
+  align-content: end;
+  gap: 7px;
+  padding: 24px;
+}
+
+.showtime-movie__poster-info h2 {
+  margin: 2px 0;
+  max-width: 760px;
+  color: #fff;
+  font-size: clamp(24px, 3vw, 38px);
+  line-height: 1.08;
+  text-shadow: 0 4px 28px rgba(0, 0, 0, 0.55);
+}
+
+.showtime-movie__poster-info p,
+.showtime-movie__poster-info span,
+.showtime-cinema__meta span {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.64);
+}
+
+.showtime-movie__poster-info p {
+  max-width: 680px;
+  font-size: 15px;
+}
+
+.showtime-movie__actions {
+  flex: 0 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.showtime-movie__actions strong,
+.showtime-movie__actions em {
+  height: fit-content;
+  border-radius: 999px;
+  font-weight: 800;
+  font-style: normal;
+}
+
+.showtime-movie__actions strong {
+  padding: 10px 16px;
+  background: rgba(247, 180, 0, 0.18);
+  color: #f7c948;
+}
+
+.showtime-movie__actions em {
+  padding: 8px 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.09);
+  color: #fff;
+}
+
+.showtime-cinema {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  background: rgba(12, 14, 20, 0.56);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  -webkit-backdrop-filter: blur(18px);
+  backdrop-filter: blur(18px);
+  overflow: visible;
+}
+
+.showtime-cinema__meta {
+  display: grid;
+  gap: 4px;
+}
+
+.showtime-buttons {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(64px, 1fr));
+  gap: 8px;
+}
+
+.showtime-button {
+  position: relative;
+  min-height: 42px;
+  padding: 0 8px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.09);
+  color: #fff;
+  text-align: center;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.showtime-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  border-color: rgba(247, 180, 0, 0.58);
+  background: rgba(247, 180, 0, 0.12);
+}
+
+.showtime-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.46;
+}
+
+.showtime-button strong,
+.showtime-button span,
+.showtime-button small,
+.showtime-button em {
+  display: block;
+}
+
+.showtime-button strong {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.showtime-button span,
+.showtime-button small,
+.showtime-button em {
+  position: absolute;
+  left: 50%;
+  z-index: 8;
+  width: max-content;
+  max-width: 190px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate(-50%, 4px);
+  transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s ease;
+}
+
+.showtime-button span {
+  bottom: calc(100% + 52px);
+  padding: 8px 10px 0;
+  border-radius: 12px 12px 0 0;
+  background: rgba(21, 23, 34, 0.98);
+  color: rgba(255, 255, 255, 0.72);
+  font-size: 12px;
+  font-weight: 800;
+  text-align: left;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.32);
+}
+
+.showtime-button small {
+  bottom: calc(100% + 28px);
+  padding: 2px 10px;
+  background: rgba(21, 23, 34, 0.98);
+  color: #9ee6b3;
+  font-size: 11px;
+  font-weight: 800;
+  text-align: left;
+}
+
+.showtime-button em {
+  bottom: calc(100% + 4px);
+  padding: 0 10px 8px;
+  border-radius: 0 0 12px 12px;
+  background: rgba(21, 23, 34, 0.98);
+  color: rgba(255, 255, 255, 0.72);
+  font-style: normal;
+  font-size: 11px;
+  text-align: left;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.32);
+}
+
+.showtime-button span::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -52px;
+  width: 100%;
+  height: 52px;
+  transform: translateX(-50%);
+  border-radius: inherit;
+  background: rgba(21, 23, 34, 0.98);
+  z-index: -1;
+}
+
+.showtime-button:hover span,
+.showtime-button:hover small,
+.showtime-button:hover em,
+.showtime-button:focus-visible span,
+.showtime-button:focus-visible small,
+.showtime-button:focus-visible em {
+  opacity: 1;
+  visibility: visible;
+  transform: translate(-50%, 0);
+}
+
+.showtime-button--low small {
+  color: #ffcf7a;
+}
+
+.showtime-button--soldout small {
+  color: #ff9b9b;
+}
+
+.showtimes-empty {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  padding: 48px 20px;
+  border-radius: 24px;
+  text-align: center;
+}
+
+.showtimes-empty strong {
+  font-size: 24px;
+}
+
+.showtimes-empty p {
+  max-width: 520px;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+.showtimes-empty button {
+  margin-top: 8px;
+  min-height: 44px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #f7c948;
+  color: #14130d;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.showtimes-skeleton {
+  height: 230px;
+  border-radius: 24px;
+  padding: 18px;
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.showtimes-skeleton span,
+.showtimes-skeleton strong,
+.showtimes-skeleton small {
+  display: block;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06));
+  background-size: 220% 100%;
+  animation: showtimesShimmer 1.2s linear infinite;
+}
+
+.showtimes-skeleton span {
+  width: 150px;
+  height: 18px;
+}
+
+.showtimes-skeleton strong {
+  width: min(420px, 70%);
+  height: 34px;
+}
+
+.showtimes-skeleton small {
+  width: 100%;
+  height: 96px;
+  border-radius: 18px;
+}
+
+@keyframes showtimesShimmer {
+  from {
+    background-position: 200% 0;
+  }
+
+  to {
+    background-position: -20% 0;
+  }
+}
+
+@media (max-width: 940px) {
+  .showtimes-page {
+    padding: 24px 16px 36px;
+  }
+
+  .showtimes-hero {
+    grid-template-columns: 1fr;
+  }
+
+  .showtimes-hero__stats,
+  .showtimes-smart-row,
+  .showtimes-filters {
+    grid-template-columns: 1fr;
+  }
+
+  .showtimes-filter-select__menu {
+    width: min(100%, calc(100vw - 60px));
+    max-width: 100%;
+  }
+
+  .showtime-movie__content {
+    padding: 22px;
+  }
+
+  .showtime-movie__header {
+    display: block;
+  }
+
+  .showtime-movie__poster-card,
+  .showtime-movie__poster-info {
+    min-height: 230px;
+  }
+}
+
+@media (max-width: 620px) {
+  .showtimes-hero__stats {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .showtimes-hero__stats div {
+    min-height: 56px;
+    padding: 9px 10px;
+  }
+
+  .showtimes-hero__stats strong {
+    font-size: 20px;
+  }
+
+  .showtimes-toolbar {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .showtime-movie {
+    border-radius: 18px;
+  }
+
+  .showtime-movie__content {
+    padding: 16px;
+  }
+
+  .showtime-movie__header {
+    display: block;
+  }
+
+  .showtime-movie__poster-card {
+    min-height: 300px;
+    border-radius: 12px;
+  }
+
+  .showtime-movie__poster-info {
+    min-height: 300px;
+    padding: 16px;
+  }
+
+  .showtime-movie__poster-info h2 {
+    font-size: clamp(21px, 7vw, 28px);
+  }
+
+  .showtime-buttons {
+    grid-template-columns: repeat(auto-fill, minmax(62px, 1fr));
+  }
+}

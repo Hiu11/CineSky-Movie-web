@@ -1,4 +1,4 @@
-export const moduleConfig = [
+﻿export const moduleConfig = [
   { key: "dashboard", label: "Tổng quan", statusLabel: "Trạng thái" },
   { key: "revenueAnalytics", label: "Thống kê doanh thu", statusLabel: "Giá trị" },
   { key: "movieAnalytics", label: "Thống kê phim", statusLabel: "Giá trị" },
@@ -396,8 +396,21 @@ export const createPromotionForm = () => ({
   order: "0",
   isActive: true,
 });
-export const createMovieForm = () => ({
-  id: "",
+export const getNextMovieOrder = (movies = [], field = "catalogOrder") => {
+  return String(movies.filter((movie) => movie?.[field] !== null && movie?.[field] !== undefined).length + 1);
+};
+
+export const getNextMovieId = (movies = []) => {
+  const maxId = movies.reduce((maxValue, movie) => {
+    const numericId = Number(String(movie?.id || "").replace(/\D+/g, ""));
+    return Number.isFinite(numericId) && numericId > maxValue ? numericId : maxValue;
+  }, 0);
+
+  return String(maxId + 1).padStart(3, "0");
+};
+
+export const createMovieForm = (orderDefaults = {}) => ({
+  id: orderDefaults.id || "",
   slug: "",
   title: "",
   poster: "",
@@ -418,8 +431,8 @@ export const createMovieForm = () => ({
   trailerPanelDescription: "",
   showtimes: "",
   statusOrder: "0",
-  catalogOrder: "999",
-  heroOrder: "",
+  catalogOrder: orderDefaults.catalogOrder || "1",
+  heroOrder: orderDefaults.heroOrder || "",
 });
 
 export const movieSuggestions = {
@@ -719,20 +732,21 @@ export const buildAnalyticsData = ({ bookings = [], movies = [], users = [], fee
   };
 };
 
-export const joinList = (items = []) => (Array.isArray(items) ? items.join(", ") : "");
+export const joinList = (items = [], separator = ", ") => (Array.isArray(items) ? items.join(separator) : "");
 
 export const joinKeyValueLines = (items = [], keyName = "label", valueName = "value") =>
   Array.isArray(items)
     ? items.map((item) => `${item?.[keyName] || ""}: ${item?.[valueName] || ""}`.trim()).join("\n")
     : "";
 
-export const mapMovieToRecord = (movie) => ({
+export const mapMovieToRecord = (movie, index = null) => ({
   ...movie,
   id: String(movie.id),
   name: movie.title,
   status: movie.status === "coming-soon" ? "Coming soon" : "Now showing",
   time: movie.releaseDate || movie.release || "Not updated",
   value: `${movie.rating || "P"} • ${movie.duration || 0} min • ${(movie.genres || []).join(", ")}`,
+  catalogOrder: Number.isInteger(index) ? index + 1 : movie.catalogOrder,
 });
 
 export const mapPromotionToRecord = (promotion) => ({
@@ -812,7 +826,7 @@ export const mapMovieToForm = (movie) => ({
   trailer: movie.trailer || "",
   description: movie.description || "",
   cast: joinKeyValueLines(movie.cast, "name", "role"),
-  gallery: joinList(movie.gallery),
+  gallery: joinList(movie.gallery, "\n"),
   trailerFacts: joinKeyValueLines(movie.trailerFacts),
   trailerPanelLabel: movie.trailerPanel?.label || "Thông tin nhanh",
   trailerPanelTitle: movie.trailerPanel?.title || movie.title || "",
@@ -823,11 +837,23 @@ export const mapMovieToForm = (movie) => ({
   heroOrder: movie.heroOrder === null || movie.heroOrder === undefined ? "" : String(movie.heroOrder),
 });
 
-export const splitList = (value = "") =>
-  String(value)
+export const splitList = (value = "") => {
+  const dataUrls = [];
+  const text = String(value).replace(/data:image\/[a-z0-9.+-]+;base64,[a-z0-9+/=]+/gi, (match) => {
+    const token = `__CINESKY_DATA_URL_${dataUrls.length}__`;
+    dataUrls.push(match);
+    return token;
+  });
+
+  return text
     .split(/,|\n/)
     .map((item) => item.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .map((item) => {
+      const tokenMatch = item.match(/^__CINESKY_DATA_URL_(\d+)__$/);
+      return tokenMatch ? dataUrls[Number(tokenMatch[1])] : item;
+    });
+};
 
 export const normalizeComparable = (value = "") => String(value).trim().toLowerCase();
 
@@ -852,6 +878,34 @@ export const validateMovieForm = (form, movies = [], editingId = "") => {
 
   if (Number(form.duration) <= 0) {
     return "Thời lượng phải lớn hơn 0.";
+  }
+
+  const otherMovies = movies.filter((movie) => movie.id !== editingId);
+  const nowShowingCount = otherMovies.filter((movie) =>
+    movie.status === "Now showing" || movie.status === "now-showing"
+  ).length;
+  const totalMovieCount = otherMovies.length;
+  const catalogOrder = Number(form.catalogOrder);
+  const isComingSoon = form.status === "coming-soon";
+  const minCatalogOrder = isComingSoon ? nowShowingCount + 1 : 1;
+  const maxCatalogOrder = isComingSoon ? totalMovieCount + 1 : nowShowingCount + 1;
+
+  if (!Number.isFinite(catalogOrder) || catalogOrder < minCatalogOrder || catalogOrder > maxCatalogOrder) {
+    return isComingSoon
+      ? `Phim sắp chiếu phải nằm sau phim đang chiếu. Vui lòng nhập thứ tự từ ${minCatalogOrder} đến ${maxCatalogOrder}.`
+      : `Phim đang chiếu chỉ được nhập thứ tự từ 1 đến ${maxCatalogOrder}.`;
+  }
+
+  if (form.heroOrder !== "") {
+    const heroOrder = Number(form.heroOrder);
+    const heroOrders = otherMovies
+      .map((movie) => Number(movie.heroOrder))
+      .filter((order) => Number.isFinite(order) && order > 0);
+    const maxHeroOrder = Math.max(heroOrders.length, ...heroOrders, 0) + 1;
+
+    if (!Number.isFinite(heroOrder) || heroOrder < 1 || heroOrder > maxHeroOrder) {
+      return `Thứ tự slide chỉ được nhập từ 1 đến ${maxHeroOrder}.`;
+    }
   }
 
   const duplicatedMovie = movies.find(

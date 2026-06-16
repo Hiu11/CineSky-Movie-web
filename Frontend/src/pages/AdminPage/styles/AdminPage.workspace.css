@@ -650,6 +650,19 @@
   font-size: 12px;
 }
 
+.admin-row-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: rgba(247, 180, 0, 0.16);
+  color: #f7b400;
+  font-size: 12px;
+  font-weight: 800;
+  text-decoration: none;
+}
+
 .admin-row-actions button:disabled {
   opacity: 0.45;
   cursor: not-allowed;

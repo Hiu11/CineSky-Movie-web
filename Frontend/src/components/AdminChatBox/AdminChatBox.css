@@ -459,8 +459,8 @@
 
 .admin-chat__launcher {
   position: relative;
-  width: 132px;
-  height: 132px;
+  width: 100px;
+  height: 100px;
   display: grid;
   place-items: center;
   padding: 0;
@@ -472,8 +472,8 @@
 
 .admin-chat__launcher-icon {
   position: relative;
-  width: 132px;
-  height: 132px;
+  width: 100px;
+  height: 100px;
   display: grid;
   place-items: center;
   border-radius: 0;
@@ -487,8 +487,8 @@
 .admin-chat__lottie {
   position: relative;
   z-index: 3;
-  width: 138px !important;
-  height: 138px !important;
+  width: 100px !important;
+  height: 100px !important;
   min-height: 0 !important;
   display: block;
   transform: translateY(0);
@@ -559,13 +559,13 @@
 
 .admin-chat__tooltip {
   position: absolute;
-  top: 24px;
-  right: 120px;
+  top: 18px;
+  right: 92px;
   background: linear-gradient(135deg, #f7b400, #f2c14e);
   color: #120d05;
-  padding: 8px 14px;
-  border-radius: 12px;
-  font-size: 13px;
+  padding: 2px 4px !important;
+  border-radius: 8px;
+  font-size: 9px !important;
   font-weight: 800;
   white-space: nowrap;
   pointer-events: auto;
@@ -574,19 +574,19 @@
   box-shadow: 0 0 15px rgba(247, 180, 0, 0.6);
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
 }
 
 .admin-chat__tooltip-close {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 18px;
-  height: 18px;
+  width: 10px !important;
+  height: 10px !important;
   border-radius: 50%;
   background: rgba(0,0,0,0.15);
   color: #120d05;
-  font-size: 14px;
+  font-size: 9px !important;
   line-height: 1;
   cursor: pointer;
 }
@@ -661,27 +661,27 @@
   }
 
   .admin-chat__launcher {
-    width: 72px;
-    height: 72px;
+    width: 100px;
+    height: 100px;
   }
 
   .admin-chat__launcher-icon {
-    width: 72px;
-    height: 72px;
+    width: 100px;
+    height: 100px;
   }
 
   .admin-chat__tooltip {
     right: 86px;
     top: 14px;
     max-width: none;
-    font-size: 12px;
-    padding: 6px 10px;
+    font-size: 9px;
+    padding: 2px 4px;
     white-space: nowrap;
   }
 
   .admin-chat__lottie {
-    width: 78px !important;
-    height: 78px !important;
+    width: 100px !important;
+    height: 100px !important;
   }
 }
 
@@ -718,17 +718,17 @@
   }
 
   .admin-chat__launcher {
-    width: 64px;
-    height: 64px;
+    width: 100px;
+    height: 100px;
   }
 
   .admin-chat__launcher-icon {
-    width: 64px;
-    height: 64px;
+    width: 100px;
+    height: 100px;
   }
 
   .admin-chat__lottie {
-    width: 70px !important;
-    height: 70px !important;
+    width: 100px !important;
+    height: 100px !important;
   }
 }

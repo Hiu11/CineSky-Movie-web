@@ -1,4 +1,4 @@
-export default function AdminCheckinView({
+﻿export default function AdminCheckinView({
   handleCheckInTicket,
   handleLookupTicket,
   isTicketChecking,

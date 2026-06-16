@@ -925,3 +925,53 @@ body .feedback-textarea {
     padding-top: 15px !important;
   }
 }
+
+/* Mobile readability and overlap guardrails */
+@media (max-width: 760px) {
+  html,
+  body,
+  #root,
+  .App {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  body {
+    font-size: 14px;
+    text-size-adjust: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body :where(h1, h2, h3, h4, h5, h6, p, span, small, strong, em, a, button, label, li, td, th) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  body :where(input, textarea, select) {
+    min-width: 0;
+    font-size: 16px;
+  }
+
+  body :where(button, .btn-action, .tab-btn, .mobile-nav__link, .mobile-auth-link) {
+    min-width: 0;
+    font-size: max(12px, 1em);
+  }
+
+  body :where(small, .mobile-tab-item, .movie-card__badge, .movie-card-badge, .admin-chat small) {
+    font-size: max(12px, 1em);
+    line-height: 1.35;
+  }
+
+  body :where(img, video, canvas, iframe) {
+    max-width: 100%;
+  }
+
+  body :where(.showtimes-page, .booking-page, .history-page, .profile-page, .notifications-page, .promotions-page, .cinema-news-page, .favorites-page, .about-page, .feedback-page, .md-page, .filter-page, .homepage-shell) {
+    padding-bottom: calc(96px + env(safe-area-inset-bottom, 0px)) !important;
+  }
+
+  body :where(.showtimes-toolbar, .filter-toolbar, .booking-page__panel, .profile-card, .history-card, .notifications-shell, .promotion-card, .cinema-news-card, .favorites-hero, .about-hero, .feedback-card) {
+    max-width: 100%;
+  }
+}

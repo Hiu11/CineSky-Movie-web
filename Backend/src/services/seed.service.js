@@ -334,10 +334,39 @@ const ensureAdminSampleData = async () => {
   console.log("Synced admin sample data");
 };
 
+const compactMovieCatalogOrder = async () => {
+  const movies = await MovieModel.find({ deletedAt: null })
+    .sort({ statusOrder: 1, catalogOrder: 1, legacyId: 1 });
+
+  await Promise.all(
+    movies.map((movie, index) => {
+      const nextCatalogOrder = index + 1;
+      const nextStatusOrder = movie.status === "coming-soon" ? 1 : 0;
+
+      if (
+        Number(movie.catalogOrder) === nextCatalogOrder &&
+        Number(movie.statusOrder) === nextStatusOrder
+      ) {
+        return null;
+      }
+
+      return MovieModel.updateOne(
+        { _id: movie._id },
+        {
+          $set: {
+            catalogOrder: nextCatalogOrder,
+            statusOrder: nextStatusOrder,
+          },
+        }
+      );
+    })
+  );
+};
+
 export const ensureMovieSeedData = async () => {
   const moviesWithDetails = seedMovies.map((movie) => ({
-    ...movie,
     ...buildMovieDetailSeed(movie),
+    ...movie,
   }));
 
   await MovieModel.bulkWrite(
@@ -350,14 +379,27 @@ export const ensureMovieSeedData = async () => {
   );
 
   await MovieModel.bulkWrite(
-    moviesWithDetails.map((movie) => ({
-      updateOne: {
-        filter: { slug: movie.slug },
-        update: { $set: movie },
-        upsert: true,
-      },
-    }))
+    moviesWithDetails.map((movie) => {
+      const { catalogOrder, heroOrder, statusOrder, ...moviePayload } = movie;
+
+      return {
+        updateOne: {
+          filter: { slug: movie.slug },
+          update: {
+            $set: moviePayload,
+            $setOnInsert: {
+              catalogOrder,
+              heroOrder,
+              statusOrder,
+            },
+          },
+          upsert: true,
+        },
+      };
+    })
   );
+
+  await compactMovieCatalogOrder();
 
   await Promise.all(
     [...movieLegacyIdMigrationMap.entries()].flatMap(([oldId, newId]) => [

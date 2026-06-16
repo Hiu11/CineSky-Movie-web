@@ -34,6 +34,11 @@ const bookingSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    displayTime: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     movieLegacyId: {
       type: Number,
       required: true,

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import lottie from "lottie-web";
 import jellyfishChatAnimation from "../../assets/animations/JellyFish.json";
 import { askMovieAi, getChatConversation, sendChatMessage, startChatConversation } from "../../services/chatService";

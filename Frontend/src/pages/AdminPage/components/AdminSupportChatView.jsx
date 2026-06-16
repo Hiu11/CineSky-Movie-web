@@ -1,4 +1,4 @@
-const getAdminMessageStatus = (message) => {
+﻿const getAdminMessageStatus = (message) => {
   if (message.status === "sending") {
     return "Đang gửi";
   }

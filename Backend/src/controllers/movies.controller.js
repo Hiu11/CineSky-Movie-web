@@ -1,4 +1,4 @@
-import GenreModel from "../models/genre.model.js";
+﻿import GenreModel from "../models/genre.model.js";
 import { createShowtimesFromMovies } from "../data/seedShowtimes.js";
 import MovieModel from "../models/movie.model.js";
 import ReviewModel from "../models/review.model.js";

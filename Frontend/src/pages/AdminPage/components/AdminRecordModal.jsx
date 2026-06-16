@@ -1,4 +1,4 @@
-import { useState } from "react";
+﻿import { useState } from "react";
 import {
   feedbackCategoryOptions,
   feedbackPriorityOptions,
@@ -7,6 +7,7 @@ import {
   formatDetailValue,
   movieSuggestions,
   normalizeFeedbackRating,
+  splitList,
 } from "../utils/adminPageUtils";
 
 export default function AdminRecordModal({
@@ -25,6 +26,7 @@ export default function AdminRecordModal({
   isCrudMode,
   isPosterUploading,
   isTmdbSyncing,
+  movieOrderHints = {},
   selectedDetail,
   setFeedbackDraft,
   setForm,
@@ -47,10 +49,7 @@ export default function AdminRecordModal({
       };
     });
   const setCastItems = (items) => setForm({ ...form, cast: items.map((item) => item.role ? `${item.name}: ${item.role}` : item.name).join("\n") });
-  const galleryItems = String(form.gallery || "")
-    .split(/[,\n]/)
-    .map((item) => item.trim())
-    .filter(Boolean);
+  const galleryItems = splitList(form.gallery);
   const trailerFactItems = String(form.trailerFacts || "")
     .split(/\r?\n/)
     .map((line) => line.trim())
@@ -77,6 +76,7 @@ export default function AdminRecordModal({
     setCastDraft({ name: "", role: "" });
   };
   const handleRemoveCast = (index) => setCastItems(castItems.filter((_, itemIndex) => itemIndex !== index));
+  const setGalleryItems = (items) => setListField("gallery", items, "\n");
   const handleAddGallery = (value = galleryDraft) => {
     const nextValue = String(value || "").trim();
 
@@ -84,10 +84,10 @@ export default function AdminRecordModal({
       return;
     }
 
-    setListField("gallery", [...galleryItems, nextValue]);
+    setGalleryItems([...galleryItems, nextValue]);
     setGalleryDraft("");
   };
-  const handleRemoveGallery = (index) => setListField("gallery", galleryItems.filter((_, itemIndex) => itemIndex !== index));
+  const handleRemoveGallery = (index) => setGalleryItems(galleryItems.filter((_, itemIndex) => itemIndex !== index));
   const handleAddTrailerFact = () => {
     const label = trailerFactDraft.label.trim();
     const value = trailerFactDraft.value.trim();
@@ -119,7 +119,7 @@ export default function AdminRecordModal({
   return (
             <div className="admin-side-panels-backdrop" onClick={() => { closeCrudMode(); setSelectedDetail(null); }}>
               <aside className="admin-side-panels admin-side-panels--popup" onClick={(e) => e.stopPropagation()}>
-                <button type="button" className="admin-popup-close" onClick={() => { closeCrudMode(); setSelectedDetail(null); }}>✕</button>
+                <button type="button" className="admin-popup-close" onClick={() => { closeCrudMode(); setSelectedDetail(null); }}>×</button>
                 {isCrudMode && activeModule !== "trash" && activeModule !== "activity" && activeModule !== "feedback" ? (
                 <form className="admin-panel admin-form" onSubmit={handleSubmit}>
                 <div className="admin-form-head">
@@ -193,7 +193,14 @@ export default function AdminRecordModal({
                         <option value="T18">T18</option>
                         <option value="C18">C18</option>
                       </select>
-                      <select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value })}>
+                      <select value={form.status} onChange={(event) => {
+                        const nextStatus = event.target.value;
+                        const nextCatalogOrder = nextStatus === "coming-soon"
+                          ? movieOrderHints.comingSoonCatalogOrder
+                          : movieOrderHints.nowShowingCatalogOrder;
+
+                        setForm({ ...form, status: nextStatus, catalogOrder: nextCatalogOrder || form.catalogOrder });
+                      }}>
                         <option value="now-showing">Đang chiếu</option>
                         <option value="coming-soon">Sắp chiếu</option>
                       </select>
@@ -225,18 +232,18 @@ export default function AdminRecordModal({
                         <small>{galleryItems.length} images</small>
                       </div>
                       <div className="admin-list-editor__inputs">
-                        <input value={galleryDraft} onChange={(event) => setGalleryDraft(event.target.value)} placeholder="Gallery image URL" />
-                        <button type="button" onClick={() => handleAddGallery()}>Add image</button>
-                        <button type="button" onClick={() => handleAddGallery(form.poster)} disabled={!form.poster}>Add poster</button>
+                        <input value={galleryDraft} onChange={(event) => setGalleryDraft(event.target.value)} placeholder="Link ảnh gallery, không dùng link bài viết" />
+                        <button type="button" onClick={() => handleAddGallery()}>Thêm ảnh</button>
+                        <button type="button" onClick={() => handleAddGallery(form.poster)} disabled={!form.poster}>Thêm poster</button>
                       </div>
                       <div className="admin-list-editor__grid">
                         {galleryItems.length > 0 ? galleryItems.map((item, index) => (
                           <span key={`${item}-${index}`} className="admin-list-card admin-gallery-card">
                             <strong>{String(item).startsWith("data:image/") ? "Ảnh đã lưu" : item.split('/').pop() || item}</strong>
                             <small>{String(item).length > 120 ? `${String(item).slice(0, 120)}...` : item}</small>
-                            <button type="button" onClick={() => handleRemoveGallery(index)} aria-label={`Remove image ${index + 1}`}>Remove</button>
+                            <button type="button" onClick={() => handleRemoveGallery(index)} aria-label={`Xóa ảnh ${index + 1}`}>Xóa</button>
                           </span>
-                        )) : <small>No gallery images yet.</small>}
+                        )) : <small>Chưa có ảnh gallery.</small>}
                       </div>
                     </section>
                     <section className="admin-list-editor admin-facts-editor admin-field--wide">
@@ -286,10 +293,12 @@ export default function AdminRecordModal({
                       </div>
                     </section>
                     <div className="admin-form-grid">
-                      <input type="number" value={form.statusOrder} onChange={(event) => setForm({ ...form, statusOrder: event.target.value })} placeholder="Thứ tự trạng thái" />
-                      <input type="number" value={form.catalogOrder} onChange={(event) => setForm({ ...form, catalogOrder: event.target.value })} placeholder="Thứ tự catalog" />
-                      <input type="number" value={form.heroOrder} onChange={(event) => setForm({ ...form, heroOrder: event.target.value })} placeholder="Thứ tự hero" />
+                      <input type="number" min="1" value={form.catalogOrder} onChange={(event) => setForm({ ...form, catalogOrder: event.target.value })} placeholder="Thứ tự catalog" />
+                      <input type="number" min="1" value={form.heroOrder} onChange={(event) => setForm({ ...form, heroOrder: event.target.value })} placeholder="Thứ tự slide" />
                     </div>
+                    <small className="admin-field-hint admin-field--wide">
+                      Catalog: nhập số đã có thì các phim phía sau tự cộng 1. Slide: nhập số đã có thì phim này thay trực tiếp vào vị trí đó, phim cũ sẽ bị gỡ khỏi slide.
+                    </small>
                   </>
                 ) : activeModule === "promotions" ? (
                   <>
@@ -436,7 +445,7 @@ export default function AdminRecordModal({
                         <dl>
                           <div><dt>Category</dt><dd>{selectedDetail.categoryLabel}</dd></div>
                           <div><dt>Priority</dt><dd>{selectedDetail.priorityLabel}</dd></div>
-                            <div><dt>Labels</dt><dd>{(selectedDetail.labels || []).join(", ") || "Ch�a c�"}</dd></div>
+                            <div><dt>Labels</dt><dd>{(selectedDetail.labels || []).join(", ") || "Chưa có"}</dd></div>
                           <div className="admin-feedback-response-box"><dt>Phản hồi cho khách</dt><dd>{selectedDetail.response || "Chưa phản hồi"}</dd></div>
                           <div className="admin-feedback-note-box"><dt>Admin note</dt><dd>{(selectedDetail.adminNotes || []).map((item) => `${item.adminName || "Admin"}: ${item.note}`).join(" | ") || "Chưa có"}</dd></div>
                           <div><dt>Lịch sử</dt><dd>{(selectedDetail.history || []).map((item) => `${formatAdminDateTime(item.createdAt)}: ${item.action} ${item.to || ""}`).join(" | ") || "Chưa có"}</dd></div>
@@ -461,5 +470,6 @@ export default function AdminRecordModal({
             </div>
   );
 }
+
 
 

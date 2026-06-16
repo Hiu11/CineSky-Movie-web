@@ -327,6 +327,12 @@ export default function Profile() {
             </header>
 
             <div className="dashboard-hero-glass">
+              <div className="profile-rewards-copy">
+                <span>CineSky Rewards</span>
+                <h2>Tích điểm sau mỗi vé, mở khóa ưu đãi theo hạng.</h2>
+                <p>100 điểm cho mỗi vé thành công. Điểm tự cập nhật trong lịch sử đặt vé.</p>
+              </div>
+
               <div className="hero-card-3d-wrap">
                  <MembershipCard3D user={user} recentBookings={recentBookings} />
               </div>

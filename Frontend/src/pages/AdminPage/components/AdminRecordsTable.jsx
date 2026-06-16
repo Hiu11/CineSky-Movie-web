@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import { getAdminStatusTone, readOnlyModules } from "../utils/adminPageUtils";
 
 export default function AdminRecordsTable({
@@ -135,6 +136,14 @@ export default function AdminRecordsTable({
                       ) : null}
                       {activeModule === "activity" ? (
                         <button disabled={!record.undo} onClick={() => handleUndoActivity(record)}>Hoàn tác</button>
+                      ) : null}
+                      {activeModule === "orders" && record.showtimeId ? (
+                        <Link
+                          className="admin-row-link"
+                          to={`/admin/showtime-detail?movieId=${encodeURIComponent(record.movieId || "")}&showtimeId=${encodeURIComponent(record.showtimeId || "")}&screeningDate=${encodeURIComponent(record.screeningDate || "")}`}
+                        >
+                          Chi tiết suất
+                        </Link>
                       ) : null}
                       {activeModule === "users" ? (
                         <button onClick={() => handleToggleUserRole(record)}>

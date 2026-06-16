@@ -35,21 +35,60 @@ const parseResponse = async (response) => {
   return payload.data;
 };
 
-const normalizeMoviePoster = (poster = "") => {
-  if (poster === "/assets/images/dai-tiec-trang-mau-1.jpg") {
+const TMDB_IMAGE_BASE_URL = "https://image.tmdb.org/t/p/w780";
+const imageExtensionPattern = /\.(avif|gif|jpe?g|png|webp)(\?.*)?$/i;
+
+const normalizeMovieImage = (image = "") => {
+  const source = String(image || "").trim();
+
+  if (!source) {
+    return "";
+  }
+
+  if (source === "/assets/images/dai-tiec-trang-mau-1.jpg") {
     return "/assets/images/dai-tiec-trang-mau.jpg";
   }
 
-  return poster;
+  if (/^data:image\//i.test(source) || /^https?:\/\//i.test(source)) {
+    return source;
+  }
+
+  if (source.startsWith("/assets/")) {
+    return source;
+  }
+
+  if (source.startsWith("assets/")) {
+    return `/${source}`;
+  }
+
+  if (source.startsWith("/") && imageExtensionPattern.test(source)) {
+    return `${TMDB_IMAGE_BASE_URL}${source}`;
+  }
+
+  return source;
+};
+
+const isUsableGalleryImage = (image = "") => {
+  const source = String(image || "").trim();
+
+  return (
+    /^data:image\/[a-z0-9.+-]+;base64,/i.test(source) ||
+    source.startsWith("/assets/") ||
+    source.startsWith("assets/") ||
+    imageExtensionPattern.test(source) ||
+    (source.startsWith(TMDB_IMAGE_BASE_URL) && imageExtensionPattern.test(source))
+  );
 };
 
 const normalizeMovieAsset = (movie) =>
   movie
     ? {
         ...movie,
-        poster: normalizeMoviePoster(movie.poster),
+        poster: normalizeMovieImage(movie.poster),
         gallery: Array.isArray(movie.gallery)
-          ? movie.gallery.map((item) => normalizeMoviePoster(item))
+          ? movie.gallery
+              .map((item) => normalizeMovieImage(item))
+              .filter((item) => isUsableGalleryImage(item))
           : movie.gallery,
       }
     : movie;
@@ -115,6 +154,34 @@ export const createBooking = async (payload) => {
       "Content-Type": "application/json",
     }),
     body: JSON.stringify(payload),
+  });
+
+  return parseResponse(response);
+};
+
+export const createMockPaymentSession = async (payload) => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/payments/mock-sessions`, {
+    method: "POST",
+    headers: getAuthHeaders({
+      "Content-Type": "application/json",
+    }),
+    body: JSON.stringify(payload),
+  });
+
+  return parseResponse(response);
+};
+
+export const getMockPaymentSession = async (sessionId) => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/payments/mock-sessions/${sessionId}`, {
+    cache: "no-store",
+  });
+
+  return parseResponse(response);
+};
+
+export const confirmMockPaymentSession = async (sessionId) => {
+  const response = await fetch(`${API_BASE_URL}/api/v1/payments/mock-sessions/${sessionId}/confirm`, {
+    method: "PATCH",
   });
 
   return parseResponse(response);

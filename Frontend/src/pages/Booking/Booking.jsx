@@ -103,6 +103,8 @@ export default function Booking({ showToast }) {
             setUseQrPayment={flow.setUseQrPayment}
             isQrPaymentConfirmed={flow.isQrPaymentConfirmed}
             setIsQrPaymentConfirmed={flow.setIsQrPaymentConfirmed}
+            paymentSession={flow.paymentSession}
+            paymentSessionError={flow.paymentSessionError}
             paymentQrDataUrl={flow.paymentQrDataUrl}
             isPaymentExpired={flow.isPaymentExpired}
             paymentCountdownLabel={flow.paymentCountdownLabel}

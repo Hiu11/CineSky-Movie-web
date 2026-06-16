@@ -1245,15 +1245,44 @@ select.profile-input option {
   background: linear-gradient(135deg, rgba(20,26,43,0.8), rgba(10,15,30,0.9));
   border: 1px solid rgba(255,255,255,0.08);
   border-radius: 24px;
-  padding: 32px;
+  padding: 26px;
   display: grid;
-  grid-template-columns: minmax(300px, 420px) 1fr;
-  gap: 40px;
+  grid-template-columns: minmax(280px, 420px) 1fr;
+  gap: 22px 30px;
   align-items: center;
   margin-bottom: 24px;
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+}
+
+.profile-rewards-copy {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 10px;
+  max-width: 720px;
+}
+
+.profile-rewards-copy span {
+  color: #f7b400;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.profile-rewards-copy h2 {
+  margin: 0;
+  color: #fff;
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 1.1;
+}
+
+.profile-rewards-copy p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.68);
+  font-size: 15px;
+  line-height: 1.65;
 }
 
 .hero-card-3d-wrap {
@@ -1605,6 +1634,45 @@ select.profile-input option {
   .glass-table td strong { white-space: normal; }
   .booking-details-mini { white-space: normal; word-break: break-word; }
   .timeline-content { min-width: 0; overflow: hidden; }
+}
+
+@media (max-width: 760px) {
+  .dashboard-hero-glass {
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    padding: 16px !important;
+  }
+
+  .profile-rewards-copy {
+    gap: 8px !important;
+  }
+
+  .profile-rewards-copy span {
+    font-size: 10px !important;
+  }
+
+  .profile-rewards-copy h2 {
+    font-size: clamp(22px, 7vw, 28px) !important;
+    line-height: 1.12 !important;
+  }
+
+  .profile-rewards-copy p {
+    font-size: 14px !important;
+    line-height: 1.55 !important;
+  }
+
+  .hero-tier-progress {
+    gap: 12px !important;
+  }
+
+  .tier-header {
+    gap: 10px !important;
+    flex-wrap: wrap !important;
+  }
+
+  .tier-header h3 {
+    font-size: 22px !important;
+  }
 }
 
 

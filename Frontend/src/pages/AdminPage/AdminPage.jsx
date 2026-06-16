@@ -66,6 +66,8 @@ import {
   createEmptyForm,
   createPromotionForm,
   createMovieForm,
+  getNextMovieId,
+  getNextMovieOrder,
   formatAdminDateTime,
   buildDashboardCharts,
   getBookingDate,
@@ -340,6 +342,9 @@ export default function AdminPage() {
             status: booking.status === "cancelled" ? "Đã hủy" : booking.status === "used" ? "Đã check-in" : "Đã thanh toán",
             time: [booking.displayDate, booking.displayTime].filter(Boolean).join(" • ") || formatAdminDateTime(booking.createdAt),
             value: `${booking.ticketCode || String(booking.id).slice(-6)} • ${Number(booking.totalPrice || 0).toLocaleString("vi-VN")} VND • ${booking.customerName || booking.customerEmail || "Guest"}`,
+            movieId: booking.movieId,
+            showtimeId: booking.showtimeId,
+            screeningDate: booking.screeningDate,
           })) : current.orders,
           payments: safeBookings.length > 0 ? safeBookings.map((booking) => ({
             id: String(booking.id),
@@ -426,6 +431,21 @@ export default function AdminPage() {
 
   const activeConfig = moduleConfig.find((item) => item.key === activeModule) || moduleConfig[0];
   const activeRecords = useMemo(() => records[activeModule] || [], [activeModule, records]);
+  const movieOrderHints = useMemo(() => {
+    const nowShowingMovies = records.movies.filter((movie) =>
+      movie.status === "Now showing" || movie.status === "now-showing"
+    );
+
+    return {
+      nextMovieId: getNextMovieId([...records.movies, ...records.trash]),
+      nowShowingCatalogOrder: getNextMovieOrder(nowShowingMovies, "catalogOrder"),
+      comingSoonCatalogOrder: getNextMovieOrder(records.movies, "catalogOrder"),
+      heroOrder: getNextMovieOrder(
+        records.movies.filter((movie) => movie.heroOrder !== null && movie.heroOrder !== undefined),
+        "heroOrder"
+      ),
+    };
+  }, [records.movies, records.trash]);
   const statuses = Array.from(new Set(activeRecords.map((item) => item.status)));
   const analyticsFilters = useMemo(
     () => ({
@@ -523,7 +543,13 @@ export default function AdminPage() {
   };
 
   const getEmptyFormForModule = (moduleKey = activeModule) => {
-    if (moduleKey === "movies") return createMovieForm();
+    if (moduleKey === "movies") {
+      return createMovieForm({
+        id: movieOrderHints.nextMovieId,
+        catalogOrder: movieOrderHints.nowShowingCatalogOrder,
+        heroOrder: movieOrderHints.heroOrder,
+      });
+    }
     if (moduleKey === "promotions") return createPromotionForm();
     return createEmptyForm();
   };
@@ -766,6 +792,9 @@ export default function AdminPage() {
         }
 
         const nextRecord = mapMovieToRecord(savedMovie);
+        const refreshedMovies = await getMovies({ limit: 500 })
+          .then((movies) => (Array.isArray(movies) ? movies.map(mapMovieToRecord) : null))
+          .catch(() => null);
         localStorage.removeItem(getDraftKey("movies"));
 
         setRecords((current) => {
@@ -783,13 +812,15 @@ export default function AdminPage() {
 
           return {
             ...current,
-            movies: editingId
-              ? current.movies.map((item) => (item.id === editingId ? nextRecord : item))
-              : [nextRecord, ...current.movies],
+            movies: refreshedMovies || (
+              editingId
+                ? current.movies.map((item) => (item.id === editingId ? nextRecord : item))
+                : [nextRecord, ...current.movies]
+            ),
             activity: [nextActivity, ...current.activity],
           };
         });
-        setForm(createMovieForm());
+        setForm(getEmptyFormForModule("movies"));
         setEditingId("");
         setIsCrudMode(false);
         setSelectedDetail(nextRecord);
@@ -887,7 +918,7 @@ export default function AdminPage() {
     if (activeModule === "movies") {
       try {
         const movieDetail = await getMovieById(record.id);
-        setForm(mapMovieToForm(movieDetail));
+        setForm(mapMovieToForm({ ...movieDetail, catalogOrder: record.catalogOrder }));
       } catch {
         setForm(mapMovieToForm(record));
       }
@@ -1430,6 +1461,7 @@ export default function AdminPage() {
               isCrudMode={isCrudMode}
               isPosterUploading={isPosterUploading}
               isTmdbSyncing={isTmdbSyncing}
+              movieOrderHints={movieOrderHints}
               selectedDetail={selectedDetail}
               setFeedbackDraft={setFeedbackDraft}
               setForm={setForm}

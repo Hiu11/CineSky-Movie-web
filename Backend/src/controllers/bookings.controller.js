@@ -8,12 +8,25 @@ import PromotionRedemptionModel from "../models/promotionRedemption.model.js";
 import SeatLockModel from "../models/seatLock.model.js";
 import ShowtimeModel from "../models/showtime.model.js";
 import { sendBookingConfirmationEmail } from "../services/mockEmail.service.js";
+import { getMockPaymentSession } from "../services/mockPayment.service.js";
 
 const formatMovieId = (legacyId) => String(legacyId).padStart(3, "0");
 const POINTS_PER_TICKET = 100;
 const TICKET_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const SEAT_LOCK_MINUTES = 10;
 const DEFAULT_SERVICE_FEE_PER_TICKET = 3000;
+const WEEKEND_SURCHARGE_RATE = 0.18;
+const HOLIDAY_SURCHARGE_RATE = 0.28;
+const FIXED_HOLIDAY_DATES = new Set(["01-01", "04-30", "05-01", "09-02", "12-24", "12-25"]);
+const SEASONAL_HOLIDAY_DATES = new Set([
+  "2026-02-16",
+  "2026-02-17",
+  "2026-02-18",
+  "2026-02-19",
+  "2026-02-20",
+  "2026-02-21",
+  "2026-02-22",
+]);
 
 const buildTicketCode = (bookingId) =>
   `CSK${String(bookingId || "")
@@ -47,10 +60,64 @@ const buildScreeningDateTime = (screeningDate = "", displayTime = "") => {
   return Number.isNaN(date.getTime()) ? null : date;
 };
 
+const getScreeningPriceMultiplier = (screeningDate = "") => {
+  const normalizedDate = String(screeningDate || "").trim();
+
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) {
+    return 1;
+  }
+
+  const date = new Date(`${normalizedDate}T12:00:00+07:00`);
+  const isWeekend = [0, 6].includes(date.getDay());
+  const isHoliday = FIXED_HOLIDAY_DATES.has(normalizedDate.slice(5)) || SEASONAL_HOLIDAY_DATES.has(normalizedDate);
+
+  if (isHoliday) {
+    return 1 + HOLIDAY_SURCHARGE_RATE;
+  }
+
+  if (isWeekend) {
+    return 1 + WEEKEND_SURCHARGE_RATE;
+  }
+
+  return 1;
+};
+
+const getEffectiveTicketPrice = (basePrice = 0, screeningDate = "") =>
+  Math.round((Number(basePrice || 0) * getScreeningPriceMultiplier(screeningDate)) / 1000) * 1000;
+
+const cinemaOffsetRules = [
+  { pattern: /nguyen hue/i, minutes: 0 },
+  { pattern: /hai ba trung/i, minutes: 10 },
+  { pattern: /dien bien phu/i, minutes: 20 },
+];
+
+const getCinemaOffsetMinutes = (cinemaName = "") =>
+  cinemaOffsetRules.find((rule) => rule.pattern.test(String(cinemaName)))?.minutes || 0;
+
+const shiftTimeLabel = (timeLabel = "", offsetMinutes = 0) => {
+  if (!/^\d{2}:\d{2}$/.test(String(timeLabel))) {
+    return timeLabel || "";
+  }
+
+  const [hour, minute] = String(timeLabel).split(":").map(Number);
+  const totalMinutes = (hour * 60 + minute + offsetMinutes + 24 * 60) % (24 * 60);
+  const nextHour = Math.floor(totalMinutes / 60);
+  const nextMinute = totalMinutes % 60;
+
+  return `${String(nextHour).padStart(2, "0")}:${String(nextMinute).padStart(2, "0")}`;
+};
+
+const getShowtimeAdjustedDisplayTime = (showtime) =>
+  shiftTimeLabel(showtime?.displayTime || "", getCinemaOffsetMinutes(showtime?.cinemaName));
+
+const getBookingDisplayTime = (booking, showtime) =>
+  booking?.displayTime || getShowtimeAdjustedDisplayTime(showtime) || showtime?.displayTime || "";
+
 const getBookingEffectiveStatus = (booking, showtime, movie) => {
   const durationMinutes = Number(movie?.duration || 0) || 120;
+  const displayTime = getBookingDisplayTime(booking, showtime);
   const screeningStartFromBooking = booking.screeningDate
-    ? buildScreeningDateTime(booking.screeningDate, showtime?.displayTime)
+    ? buildScreeningDateTime(booking.screeningDate, displayTime)
     : null;
   const screeningEndFromBooking =
     screeningStartFromBooking && !Number.isNaN(screeningStartFromBooking.getTime())
@@ -80,7 +147,7 @@ const getBookingEffectiveStatus = (booking, showtime, movie) => {
   }
 
   const screeningStart =
-    buildScreeningDateTime(booking.screeningDate || showtime?.displayDate, showtime?.displayTime) ||
+    buildScreeningDateTime(booking.screeningDate || showtime?.displayDate, displayTime) ||
     (showtime?.startTime ? new Date(showtime.startTime) : null);
 
   if (!screeningStart || Number.isNaN(screeningStart.getTime())) {
@@ -150,6 +217,31 @@ const updateUserMembership = async (user, ticketDelta = 0) => {
 
 const getServiceFeePerTicket = () =>
   Number(process.env.SERVICE_FEE_PER_TICKET) || DEFAULT_SERVICE_FEE_PER_TICKET;
+
+const verifyQrPaymentReference = (paymentReference = "", expectedAmount = 0) => {
+  const reference = String(paymentReference || "").trim();
+
+  if (!reference.startsWith("QR-")) {
+    return null;
+  }
+
+  const sessionId = reference.slice(3);
+  const session = getMockPaymentSession(sessionId);
+
+  if (session.status !== "paid") {
+    const error = new Error("Thanh toán QR chưa được xác nhận trên điện thoại.");
+    error.statusCode = 402;
+    throw error;
+  }
+
+  if (Number(session.amount || 0) !== Number(expectedAmount || 0)) {
+    const error = new Error("Số tiền thanh toán QR không khớp với đơn đặt vé.");
+    error.statusCode = 409;
+    throw error;
+  }
+
+  return session;
+};
 
 const cleanupExpiredSeatLocks = () =>
   SeatLockModel.deleteMany({ expiresAt: { $lte: new Date() } });
@@ -478,7 +570,7 @@ const createBookingNotifications = async ({ authUser, booking, movie, showtime }
     return;
   }
 
-  const showtimeLabel = [booking.screeningDateLabel || showtime?.displayDate, showtime?.displayTime]
+  const showtimeLabel = [booking.screeningDateLabel || showtime?.displayDate, getBookingDisplayTime(booking, showtime)]
     .filter(Boolean)
     .join(" ");
 
@@ -506,8 +598,9 @@ const createBookingNotifications = async ({ authUser, booking, movie, showtime }
 };
 
 const getReminderScheduledFor = (booking, showtime) => {
+  const displayTime = getBookingDisplayTime(booking, showtime);
   const startTime =
-    buildScreeningDateTime(booking.screeningDate || showtime?.displayDate, showtime?.displayTime) ||
+    buildScreeningDateTime(booking.screeningDate || showtime?.displayDate, displayTime) ||
     (showtime?.startTime ? new Date(showtime.startTime) : null);
 
   if (!startTime || Number.isNaN(startTime.getTime())) {
@@ -549,7 +642,7 @@ const serializeBooking = (booking, showtime, movie) => ({
   screeningDate: booking.screeningDate || "",
   screeningDateLabel: booking.screeningDateLabel || "",
   displayDate: booking.screeningDateLabel || showtime?.displayDate || "",
-  displayTime: showtime?.displayTime || "",
+  displayTime: getBookingDisplayTime(booking, showtime),
   seatNumbers: booking.seatNumbers,
   fnbItems: booking.fnbItems || [],
   totalPrice: booking.totalPrice,
@@ -832,9 +925,11 @@ const bookingsController = {
         });
       }
 
+      const requestedDisplayTime = getShowtimeAdjustedDisplayTime(showtime) || showtime.displayTime;
+
       const requestedScreeningStart = buildScreeningDateTime(
         String(screeningDate).trim() || showtime.displayDate,
-        showtime.displayTime
+        requestedDisplayTime
       );
 
       if (requestedScreeningStart && requestedScreeningStart.getTime() <= Date.now()) {
@@ -856,7 +951,8 @@ const bookingsController = {
         });
       }
 
-      const ticketSubtotal = showtime.price * seatNumbers.length;
+      const effectiveTicketPrice = getEffectiveTicketPrice(showtime.price, String(screeningDate).trim() || showtime.displayDate);
+      const ticketSubtotal = effectiveTicketPrice * seatNumbers.length;
       const safeFnbItems = Array.isArray(fnbItems) ? fnbItems : [];
       const fnbTotal = safeFnbItems.reduce(
         (acc, item) => acc + Number(item.price || 0) * Number(item.quantity || 0),
@@ -876,6 +972,7 @@ const bookingsController = {
           })
         : { code: "", discountAmount: 0 };
       const totalPrice = Math.max(ticketSubtotal + fnbTotal + serviceFee - voucher.discountAmount, 0);
+      verifyQrPaymentReference(paymentReference, totalPrice);
 
       const reservedShowtime = isAdminBooking
         ? showtime
@@ -938,6 +1035,7 @@ const bookingsController = {
           showtimeId: reservedShowtime._id,
           screeningDate: String(screeningDate).trim(),
           screeningDateLabel: String(screeningDateLabel).trim(),
+          displayTime: requestedDisplayTime,
           seatNumbers,
           fnbItems: safeFnbItems,
           subtotalPrice: ticketSubtotal + fnbTotal,

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+﻿import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
 import { getMovies } from "../../services/movieService";
 import { getUnreadNotificationCount } from "../../services/notificationService";
@@ -16,6 +16,7 @@ const navItems = [
   { to: "/", label: "Trang chủ", id: "home" },
   { to: "/?tab=now", label: "Phim đang chiếu", id: "now" },
   { to: "/?tab=soon", label: "Phim sắp chiếu", id: "soon" },
+  { to: "/showtimes", label: "Lịch chiếu", id: "showtimes" },
   { to: "/filter", label: "Lọc phim", id: "filter" },
   { to: "/promotions", label: "Ưu đãi", id: "promotions" },
   { to: "/news", label: "Tin tức", id: "news" },
@@ -27,6 +28,7 @@ const navIconPaths = {
   home: "M3.5 10.5 12 3l8.5 7.5v8.5a1.5 1.5 0 0 1-1.5 1.5h-4.2v-6h-5.6v6H5a1.5 1.5 0 0 1-1.5-1.5z",
   now: "M8 5.5v13l11-6.5z",
   soon: "M12 4.5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15zm0 3v5l3.3 2",
+  showtimes: "M7 4.5h10M6.5 8.5h11A1.5 1.5 0 0 1 19 10v7.5A1.5 1.5 0 0 1 17.5 19h-11A1.5 1.5 0 0 1 5 17.5V10A1.5 1.5 0 0 1 6.5 8.5zm2.5 3.5h2.5M9 15h6M14.5 12H15",
   filter: "M4 7h10M18 7h2M4 12h2M10 12h10M4 17h8M16 17h4M14 5v4M8 10v4M14 15v4",
   promotions: "M5 6.5V12l7 7 6.5-6.5-7-7H5zm4 2.5h.01",
   news: "M5 5.5h12a2 2 0 0 1 2 2v11H7a2 2 0 0 1-2-2zm3 4h8M8 13h8M8 16h5",
@@ -53,7 +55,7 @@ const navGroups = [
     title: "Lịch phim CineSky",
     description: "Xem nhanh trang chủ, phim đang chiếu và phim sắp ra mắt.",
     spotlight: "Đặt vé nhanh theo suất chiếu hôm nay",
-    items: navItems.filter((item) => ["home", "now", "soon"].includes(item.id)),
+    items: navItems.filter((item) => ["home", "now", "soon", "showtimes"].includes(item.id)),
   },
   {
     id: "search",
@@ -950,3 +952,5 @@ export default function Header({
     </header>
   );
 }
+
+

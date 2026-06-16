@@ -1,4 +1,6 @@
 import mongoose from "mongoose";
+import fs from "fs/promises";
+import path from "path";
 import AdminActivityModel from "../models/adminActivity.model.js";
 import BookingModel from "../models/booking.model.js";
 import FavoriteModel from "../models/favorite.model.js";
@@ -56,6 +58,34 @@ const serializeAdminUser = (user, stats = {}) => ({
   },
 });
 
+const cinemaOffsetRules = [
+  { pattern: /nguyen hue/i, minutes: 0 },
+  { pattern: /hai ba trung/i, minutes: 10 },
+  { pattern: /dien bien phu/i, minutes: 20 },
+];
+
+const getCinemaOffsetMinutes = (cinemaName = "") =>
+  cinemaOffsetRules.find((rule) => rule.pattern.test(String(cinemaName)))?.minutes || 0;
+
+const shiftTimeLabel = (timeLabel = "", offsetMinutes = 0) => {
+  if (!/^\d{2}:\d{2}$/.test(String(timeLabel))) {
+    return timeLabel || "";
+  }
+
+  const [hour, minute] = String(timeLabel).split(":").map(Number);
+  const totalMinutes = (hour * 60 + minute + offsetMinutes + 24 * 60) % (24 * 60);
+  const nextHour = Math.floor(totalMinutes / 60);
+  const nextMinute = totalMinutes % 60;
+
+  return `${String(nextHour).padStart(2, "0")}:${String(nextMinute).padStart(2, "0")}`;
+};
+
+const getShowtimeAdjustedDisplayTime = (showtime) =>
+  shiftTimeLabel(showtime?.displayTime || "", getCinemaOffsetMinutes(showtime?.cinemaName));
+
+const getBookingDisplayTime = (booking, showtime) =>
+  booking?.displayTime || getShowtimeAdjustedDisplayTime(showtime) || showtime?.displayTime || "";
+
 const serializeBooking = (booking, movie, showtime) => ({
   id: booking._id,
   ticketCode: booking.ticketCode || buildTicketCode(booking._id),
@@ -66,7 +96,7 @@ const serializeBooking = (booking, movie, showtime) => ({
   screeningDate: booking.screeningDate || "",
   screeningDateLabel: booking.screeningDateLabel || "",
   displayDate: booking.screeningDateLabel || showtime?.displayDate || "",
-  displayTime: showtime?.displayTime || "",
+  displayTime: getBookingDisplayTime(booking, showtime),
   cinemaName: showtime?.cinemaName || "CineSky Nguyen Hue",
   roomName: showtime?.roomName || "",
   seatNumbers: booking.seatNumbers || [],
@@ -271,6 +301,256 @@ const normalizeYoutubeTrailer = (value = "") => {
 
 const formatMovieId = (legacyId) => String(legacyId).padStart(3, "0");
 
+const MOVIE_SEED_FILE_PATH = path.join(process.cwd(), "src", "data", "seedMovies.js");
+
+const isPositiveOrder = (value) => Number.isFinite(Number(value)) && Number(value) > 0;
+
+const clampOrder = (value, fallback = 1) =>
+  Math.max(1, Math.floor(Number(value) || fallback));
+
+const getMovieStatusOrder = (status = "now-showing") =>
+  status === "coming-soon" ? 1 : 0;
+
+const getMovieOrderContext = async (excludeLegacyId = null) => {
+  const excludeFilter = excludeLegacyId === null ? {} : { legacyId: { $ne: Number(excludeLegacyId) } };
+  const [nowShowingCount, comingSoonCount] = await Promise.all([
+    MovieModel.countDocuments({ deletedAt: null, status: "now-showing", ...excludeFilter }),
+    MovieModel.countDocuments({ deletedAt: null, status: "coming-soon", ...excludeFilter }),
+  ]);
+
+  return {
+    nowShowingCount,
+    comingSoonCount,
+    totalCount: nowShowingCount + comingSoonCount,
+  };
+};
+
+const getDefaultCatalogOrderForStatus = (status, context) =>
+  status === "coming-soon"
+    ? context.totalCount + 1
+    : context.nowShowingCount + 1;
+
+const getCurrentCatalogOrderRank = async (legacyId) => {
+  const movies = await MovieModel.find({ deletedAt: null })
+    .sort({ statusOrder: 1, catalogOrder: 1, legacyId: 1 })
+    .select("legacyId")
+    .lean();
+  const index = movies.findIndex((movie) => Number(movie.legacyId) === Number(legacyId));
+
+  return index >= 0 ? index + 1 : null;
+};
+
+const validateCatalogOrderForStatus = (status, order, context) => {
+  const nextOrder = clampOrder(order);
+  const minOrder = status === "coming-soon" ? context.nowShowingCount + 1 : 1;
+  const maxOrder = status === "coming-soon"
+    ? context.totalCount + 1
+    : context.nowShowingCount + 1;
+
+  if (nextOrder < minOrder || nextOrder > maxOrder) {
+    return status === "coming-soon"
+      ? `Phim sắp chiếu phải nằm sau phim đang chiếu. Vui lòng nhập thứ tự từ ${minOrder} đến ${maxOrder}.`
+      : `Phim đang chiếu chỉ được nhập thứ tự từ 1 đến ${maxOrder}.`;
+  }
+
+  return "";
+};
+
+const validateHeroOrder = async (heroOrder, excludeLegacyId = null) => {
+  if (heroOrder === null || heroOrder === undefined || heroOrder === "") {
+    return "";
+  }
+
+  const baseFilter = {
+    deletedAt: null,
+    heroOrder: { $ne: null },
+  };
+
+  if (excludeLegacyId !== null) {
+    baseFilter.legacyId = { $ne: Number(excludeLegacyId) };
+  }
+
+  const [heroCount, maxHeroMovie] = await Promise.all([
+    MovieModel.countDocuments(baseFilter),
+    MovieModel.findOne(baseFilter).sort({ heroOrder: -1 }).select("heroOrder").lean(),
+  ]);
+  const maxOrder = Math.max(heroCount, Number(maxHeroMovie?.heroOrder || 0)) + 1;
+
+  return clampOrder(heroOrder) > maxOrder
+    ? `Thứ tự slide chỉ được nhập từ 1 đến ${maxOrder}.`
+    : "";
+};
+
+const applyDirectHeroOrder = async (heroOrder, excludeLegacyId = null) => {
+  if (!isPositiveOrder(heroOrder)) {
+    return;
+  }
+
+  const filter = {
+    deletedAt: null,
+    heroOrder: clampOrder(heroOrder),
+  };
+
+  if (excludeLegacyId !== null) {
+    filter.legacyId = { $ne: Number(excludeLegacyId) };
+  }
+
+  await MovieModel.updateMany(filter, { $set: { heroOrder: null } });
+};
+
+const shiftMovieOrderForInsert = async (field, order, excludeLegacyId = null) => {
+  if (!isPositiveOrder(order)) {
+    return;
+  }
+
+  const filter = {
+    deletedAt: null,
+    [field]: { $ne: null, $gte: clampOrder(order) },
+  };
+
+  if (excludeLegacyId !== null) {
+    filter.legacyId = { $ne: Number(excludeLegacyId) };
+  }
+
+  await MovieModel.updateMany(filter, { $inc: { [field]: 1 } });
+};
+
+const moveMovieOrder = async (field, previousOrder, nextOrder, legacyId) => {
+  if (!isPositiveOrder(previousOrder) || !isPositiveOrder(nextOrder)) {
+    return shiftMovieOrderForInsert(field, nextOrder, legacyId);
+  }
+
+  const fromOrder = clampOrder(previousOrder);
+  const toOrder = clampOrder(nextOrder);
+
+  if (fromOrder === toOrder) {
+    return;
+  }
+
+  if (toOrder < fromOrder) {
+    await MovieModel.updateMany(
+      {
+        deletedAt: null,
+        legacyId: { $ne: Number(legacyId) },
+        [field]: { $gte: toOrder, $lt: fromOrder },
+      },
+      { $inc: { [field]: 1 } }
+    );
+    return;
+  }
+
+  await MovieModel.updateMany(
+    {
+      deletedAt: null,
+      legacyId: { $ne: Number(legacyId) },
+      [field]: { $gt: fromOrder, $lte: toOrder },
+    },
+    { $inc: { [field]: -1 } }
+  );
+};
+
+const compactMovieOrder = async (field) => {
+  const movies = await MovieModel.find({
+    deletedAt: null,
+    [field]: { $ne: null },
+  }).sort(
+    field === "catalogOrder"
+      ? { statusOrder: 1, [field]: 1, legacyId: 1 }
+      : { [field]: 1, legacyId: 1 }
+  );
+
+  await Promise.all(
+    movies.map((movie, index) =>
+      Number(movie[field]) === index + 1
+        ? null
+        : MovieModel.updateOne({ _id: movie._id }, { $set: { [field]: index + 1 } })
+    )
+  );
+};
+
+const escapeSeedString = (value = "") => JSON.stringify(String(value || ""));
+
+const formatSeedValue = (value, indent = 4) => {
+  if (Array.isArray(value)) {
+    if (value.length === 0) {
+      return "[]";
+    }
+
+    const nextIndent = " ".repeat(indent + 2);
+    const currentIndent = " ".repeat(indent);
+    return `[\n${value
+      .map((item) => `${nextIndent}${formatSeedValue(item, indent + 2)}`)
+      .join(",\n")}\n${currentIndent}]`;
+  }
+
+  if (value && typeof value === "object") {
+    const entries = Object.entries(value).filter(([, entryValue]) => entryValue !== undefined);
+
+    if (entries.length === 0) {
+      return "{}";
+    }
+
+    const nextIndent = " ".repeat(indent + 2);
+    const currentIndent = " ".repeat(indent);
+    return `{\n${entries
+      .map(([key, entryValue]) => `${nextIndent}${key}: ${formatSeedValue(entryValue, indent + 2)}`)
+      .join(",\n")}\n${currentIndent}}`;
+  }
+
+  if (value === null || value === undefined) {
+    return "null";
+  }
+
+  if (typeof value === "number") {
+    return Number.isFinite(value) ? String(value) : "0";
+  }
+
+  return escapeSeedString(value);
+};
+
+const formatMovieSeedObject = (movie) => {
+  const fields = [
+    ["legacyId", movie.legacyId],
+    ["slug", movie.slug],
+    ["title", movie.title],
+    ["poster", movie.poster],
+    ["genres", movie.genres || []],
+    ["country", movie.country],
+    ["director", movie.director],
+    ["duration", movie.duration],
+    ["rating", movie.rating],
+    ["status", movie.status],
+    ["statusOrder", movie.statusOrder ?? 0],
+    ["catalogOrder", movie.catalogOrder ?? 999],
+    ["heroOrder", movie.heroOrder ?? null],
+    ["showtimes", movie.showtimes || []],
+    ["releaseDate", movie.releaseDate],
+    ["trailer", movie.trailer],
+    ["description", movie.description],
+    ["cast", movie.cast || []],
+    ["gallery", movie.gallery || []],
+    ["trailerFacts", movie.trailerFacts || []],
+    ["trailerPanel", movie.trailerPanel || null],
+  ];
+
+  return `  {\n${fields
+    .map(([key, value]) => `    ${key}: ${formatSeedValue(value)},`)
+    .join("\n")}\n  }`;
+};
+
+const syncMovieSeedFileFromDatabase = async () => {
+  try {
+    const movies = await MovieModel.find({ deletedAt: null })
+      .sort({ statusOrder: 1, catalogOrder: 1, legacyId: 1 })
+      .lean();
+    const content = `// File này được đồng bộ tự động sau khi admin thêm/sửa/xóa phim.\n// Admin chỉnh \"Thứ tự catalog\" để đổi vị trí danh sách phim.\n// Admin chỉnh \"Thứ tự slide\" để ghim phim vào hero/slide trang chủ.\n\nconst seedMovies = [\n${movies.map(formatMovieSeedObject).join(",\n")}\n];\n\nexport default seedMovies;\n`;
+
+    await fs.writeFile(MOVIE_SEED_FILE_PATH, content, "utf8");
+  } catch (error) {
+    console.warn("Could not sync movie seed file:", error.message);
+  }
+};
+
 const buildTicketCode = (bookingId) =>
   `CSK${String(bookingId || "")
     .replace(/[^a-z0-9]/gi, "")
@@ -289,8 +569,9 @@ const buildScreeningDateTime = (screeningDate = "", displayTime = "") => {
 
 const getBookingEffectiveStatus = (booking, movie, showtime) => {
   const durationMinutes = Number(movie?.duration || 0) || 120;
+  const displayTime = getBookingDisplayTime(booking, showtime);
   const screeningStartFromBooking = booking.screeningDate
-    ? buildScreeningDateTime(booking.screeningDate, showtime?.displayTime)
+    ? buildScreeningDateTime(booking.screeningDate, displayTime)
     : null;
   const screeningEndFromBooking =
     screeningStartFromBooking && !Number.isNaN(screeningStartFromBooking.getTime())
@@ -320,7 +601,7 @@ const getBookingEffectiveStatus = (booking, movie, showtime) => {
   }
 
   const screeningStart =
-    buildScreeningDateTime(booking.screeningDate || showtime?.displayDate, showtime?.displayTime) ||
+    buildScreeningDateTime(booking.screeningDate || showtime?.displayDate, displayTime) ||
     (showtime?.startTime ? new Date(showtime.startTime) : null);
 
   if (!screeningStart || Number.isNaN(screeningStart.getTime())) {
@@ -476,6 +757,10 @@ const serializeAdminMovie = (movie) => ({
 const buildMoviePayload = (body = {}) => {
   const title = String(body.title || body.name || "").trim();
   const slug = slugify(body.slug || title);
+  const catalogOrder =
+    body.catalogOrder === "" || body.catalogOrder === null || body.catalogOrder === undefined
+      ? null
+      : Number(body.catalogOrder);
   const heroOrder =
     body.heroOrder === "" || body.heroOrder === null || body.heroOrder === undefined
       ? null
@@ -492,8 +777,8 @@ const buildMoviePayload = (body = {}) => {
     duration: Math.max(Number(body.duration) || 0, 0),
     rating: String(body.rating || "P").trim().toUpperCase(),
     status: ["now-showing", "coming-soon"].includes(body.status) ? body.status : "now-showing",
-    statusOrder: Number(body.statusOrder) || 0,
-    catalogOrder: Number(body.catalogOrder) || 999,
+    statusOrder: getMovieStatusOrder(body.status),
+    catalogOrder: Number.isFinite(catalogOrder) && catalogOrder > 0 ? clampOrder(catalogOrder) : null,
     heroOrder: Number.isFinite(heroOrder) ? heroOrder : null,
     showtimes: normalizeStringList(body.showtimes),
     releaseDate: String(body.releaseDate || body.release || "").trim(),
@@ -973,9 +1258,29 @@ const adminController = {
 
   getBookings: async (req, res) => {
     try {
-      const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 50);
+      const limit = Math.min(Math.max(Number(req.query.limit) || 20, 1), 1000);
       const adminUsers = await UserModel.find({ role: "admin" }).select("_id email");
-      const bookings = await BookingModel.find(buildNonAdminBookingFilter(adminUsers))
+      const bookingFilter = buildNonAdminBookingFilter(adminUsers);
+      const queryFilter = {};
+      const movieLegacyId = Number(req.query.movieId);
+
+      if (Number.isFinite(movieLegacyId) && movieLegacyId > 0) {
+        queryFilter.movieLegacyId = movieLegacyId;
+      }
+
+      if (mongoose.Types.ObjectId.isValid(req.query.showtimeId)) {
+        queryFilter.showtimeId = req.query.showtimeId;
+      }
+
+      if (req.query.screeningDate) {
+        queryFilter.screeningDate = String(req.query.screeningDate).trim();
+      }
+
+      if (["booked", "used", "cancelled", "expired"].includes(req.query.status)) {
+        queryFilter.status = req.query.status;
+      }
+
+      const bookings = await BookingModel.find(mergeMongoFilters(bookingFilter, queryFilter))
         .sort({ createdAt: -1 })
         .limit(limit);
 
@@ -1075,7 +1380,26 @@ const adminController = {
         });
       }
 
+      const orderContext = await getMovieOrderContext();
+      payload.catalogOrder = payload.catalogOrder || getDefaultCatalogOrderForStatus(payload.status, orderContext);
+      const catalogOrderMessage = validateCatalogOrderForStatus(payload.status, payload.catalogOrder, orderContext);
+      const heroOrderMessage = await validateHeroOrder(payload.heroOrder);
+
+      if (catalogOrderMessage || heroOrderMessage) {
+        return res.status(400).send({
+          success: false,
+          message: catalogOrderMessage || heroOrderMessage,
+          data: null,
+        });
+      }
+
+      payload.heroOrder = payload.heroOrder === null ? null : clampOrder(payload.heroOrder);
+      await shiftMovieOrderForInsert("catalogOrder", payload.catalogOrder);
+      await applyDirectHeroOrder(payload.heroOrder, payload.legacyId);
+
       const movie = await MovieModel.create(payload);
+      await compactMovieOrder("catalogOrder");
+      await syncMovieSeedFileFromDatabase();
       await createAdminActivity(req, {
         action: "CREATE",
         name: movie.title,
@@ -1131,6 +1455,48 @@ const adminController = {
         });
       }
 
+      const currentMovie = await MovieModel.findOne({ legacyId, deletedAt: null });
+
+      if (!currentMovie) {
+        return res.status(404).send({
+          success: false,
+          message: "Movie not found",
+          data: null,
+        });
+      }
+
+      const orderContext = await getMovieOrderContext(legacyId);
+      const currentCatalogRank = await getCurrentCatalogOrderRank(legacyId);
+
+      if (
+        currentCatalogRank &&
+        Number(payload.catalogOrder) === Number(currentMovie.catalogOrder)
+      ) {
+        payload.catalogOrder = currentCatalogRank;
+      }
+
+      payload.catalogOrder = payload.catalogOrder || getDefaultCatalogOrderForStatus(payload.status, orderContext);
+      const catalogOrderMessage = validateCatalogOrderForStatus(payload.status, payload.catalogOrder, orderContext);
+      const heroOrderMessage = await validateHeroOrder(payload.heroOrder, legacyId);
+
+      if (catalogOrderMessage || heroOrderMessage) {
+        return res.status(400).send({
+          success: false,
+          message: catalogOrderMessage || heroOrderMessage,
+          data: null,
+        });
+      }
+
+      payload.heroOrder = payload.heroOrder === null ? null : clampOrder(payload.heroOrder);
+
+      await moveMovieOrder("catalogOrder", currentMovie.catalogOrder, payload.catalogOrder, legacyId);
+
+      if (payload.heroOrder === null) {
+        payload.heroOrder = null;
+      } else {
+        await applyDirectHeroOrder(payload.heroOrder, legacyId);
+      }
+
       const movie = await MovieModel.findOneAndUpdate({ legacyId, deletedAt: null }, payload, {
         new: true,
         runValidators: true,
@@ -1151,6 +1517,8 @@ const adminController = {
         entityType: "movie",
         entityId: formatMovieId(movie.legacyId),
       });
+      await compactMovieOrder("catalogOrder");
+      await syncMovieSeedFileFromDatabase();
 
       return res.status(200).send({
         success: true,
@@ -1199,6 +1567,8 @@ const adminController = {
         entityType: "movie",
         entityId: formatMovieId(movie.legacyId),
       });
+      await compactMovieOrder("catalogOrder");
+      await syncMovieSeedFileFromDatabase();
 
       return res.status(200).send({
         success: true,
@@ -1226,19 +1596,50 @@ const adminController = {
         });
       }
 
-      const movie = await MovieModel.findOneAndUpdate(
-        { legacyId, deletedAt: { $ne: null } },
-        { deletedAt: null },
-        { new: true, runValidators: true }
-      );
+      const deletedMovie = await MovieModel.findOne({ legacyId, deletedAt: { $ne: null } });
 
-      if (!movie) {
+      if (!deletedMovie) {
         return res.status(404).send({
           success: false,
           message: "Deleted movie not found",
           data: null,
         });
       }
+
+      const orderContext = await getMovieOrderContext(legacyId);
+      let restoredCatalogOrder = deletedMovie.catalogOrder || getDefaultCatalogOrderForStatus(deletedMovie.status, orderContext);
+      const restoredHeroOrder = deletedMovie.heroOrder === null || deletedMovie.heroOrder === undefined
+        ? null
+        : clampOrder(deletedMovie.heroOrder);
+      let catalogOrderMessage = validateCatalogOrderForStatus(deletedMovie.status, restoredCatalogOrder, orderContext);
+
+      if (catalogOrderMessage) {
+        restoredCatalogOrder = getDefaultCatalogOrderForStatus(deletedMovie.status, orderContext);
+        catalogOrderMessage = "";
+      }
+
+      const heroOrderMessage = await validateHeroOrder(restoredHeroOrder, legacyId);
+
+      if (catalogOrderMessage || heroOrderMessage) {
+        return res.status(400).send({
+          success: false,
+          message: catalogOrderMessage || heroOrderMessage,
+          data: null,
+        });
+      }
+
+      await shiftMovieOrderForInsert("catalogOrder", restoredCatalogOrder, legacyId);
+      await applyDirectHeroOrder(restoredHeroOrder, legacyId);
+
+      const movie = await MovieModel.findOneAndUpdate(
+        { legacyId, deletedAt: { $ne: null } },
+        {
+          deletedAt: null,
+          catalogOrder: restoredCatalogOrder,
+          heroOrder: restoredHeroOrder,
+        },
+        { new: true, runValidators: true }
+      );
 
       await createAdminActivity(req, {
         action: "RESTORE",
@@ -1247,6 +1648,8 @@ const adminController = {
         entityType: "movie",
         entityId: formatMovieId(movie.legacyId),
       });
+      await compactMovieOrder("catalogOrder");
+      await syncMovieSeedFileFromDatabase();
 
       return res.status(200).send({
         success: true,

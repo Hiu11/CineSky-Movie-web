@@ -6,6 +6,7 @@ import Footer from "./components/Footer/Footer";
 import ToastViewport from "./components/Toast/ToastViewport";
 import HomePage from "./pages/HomePage/HomePage";
 import FilterPage from "./pages/FilterPage/FilterPage";
+import ShowtimesPage from "./pages/ShowtimesPage/ShowtimesPage";
 import AboutPage from "./pages/AboutPage/AboutPage";
 import FeedbackPage from "./pages/FeedbackPage/FeedbackPage";
 import Login from "./pages/Login/Login";
@@ -14,12 +15,14 @@ import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
 import Booking from "./pages/Booking/Booking";
 import MovieDetail from "./pages/MovieDetail/MovieDetail";
 import BookingSuccess from "./pages/BookingSuccess/BookingSuccess";
+import PaymentConfirm from "./pages/PaymentConfirm/PaymentConfirm";
 import BookingHistory from "./pages/BookingHistory/BookingHistory";
 import Profile from "./pages/Profile/Profile";
 import Notifications from "./pages/Notifications/Notifications";
 import Promotions from "./pages/Promotions/Promotions";
 import CinemaNews from "./pages/CinemaNews/CinemaNews";
 import AdminPage from "./pages/AdminPage/AdminPage";
+import AdminShowtimeDetail from "./pages/AdminShowtimeDetail/AdminShowtimeDetail";
 import NotFound from "./pages/NotFound/NotFound";
 import Favorites from "./pages/Favorites/Favorites";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
@@ -55,8 +58,9 @@ function AppContent() {
     location.pathname === "/forgot-password";
   const isBookingPage =
     location.pathname === "/booking" || location.pathname === "/booking/success";
-  const isAdminPage = location.pathname === "/admin";
+  const isAdminPage = location.pathname.startsWith("/admin");
   const isMovieDetailPage = location.pathname.startsWith("/movie/");
+  const isShowtimesPage = location.pathname === "/showtimes";
 
   useEffect(() => {
     if ("scrollRestoration" in window.history) {
@@ -211,6 +215,7 @@ function AppContent() {
       <Routes>
         <Route path="/" element={<HomePage searchQuery={searchQuery} />} />
         <Route path="/filter" element={<FilterPage searchQuery={searchQuery} />} />
+        <Route path="/showtimes" element={<ShowtimesPage searchQuery={searchQuery} />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/feedback" element={<FeedbackPage showToast={showToast} />} />
         <Route
@@ -224,6 +229,7 @@ function AppContent() {
         <Route path="/forgot-password" element={<ForgotPassword showToast={showToast} />} />
         <Route path="/booking" element={<Booking showToast={showToast} />} />
         <Route path="/booking/success" element={<BookingSuccess />} />
+        <Route path="/payment/confirm/:sessionId" element={<PaymentConfirm />} />
         <Route path="/history" element={<BookingHistory />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/notifications" element={isLoggedIn ? <Notifications /> : <Navigate to="/login" replace />} />
@@ -235,11 +241,15 @@ function AppContent() {
           path="/admin"
           element={user?.role === "admin" ? <AdminPage /> : <Navigate to="/login" replace />}
         />
+        <Route
+          path="/admin/showtime-detail"
+          element={user?.role === "admin" ? <AdminShowtimeDetail /> : <Navigate to="/login" replace />}
+        />
         <Route path="/movie/:id" element={<MovieDetail />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {!isAuthPage ? <Footer flushTop={isBookingPage || isAdminPage || isMovieDetailPage} /> : null}
+      {!isAuthPage ? <Footer flushTop={isBookingPage || isAdminPage || isMovieDetailPage || isShowtimesPage} /> : null}
       {(!isAuthPage && !isAdminPage && user?.role !== "admin") ? <AdminChatBox user={user} showToast={showToast} /> : null}
       <ToastViewport toasts={toasts} onDismiss={dismissToast} />
     </div>

@@ -1,4 +1,4 @@
-import PromotionModel from "../models/promotion.model.js";
+﻿import PromotionModel from "../models/promotion.model.js";
 
 const DEFAULT_PROMOTION_SEED_VERSION = 6;
 

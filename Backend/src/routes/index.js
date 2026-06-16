@@ -8,6 +8,7 @@ import feedbackRouter from "./feedback.routes.js";
 import genresRouter from "./genres.routes.js";
 import moviesRouter from "./movies.routes.js";
 import notificationsRouter from "./notifications.routes.js";
+import paymentsRouter from "./payments.routes.js";
 import promotionsRouter from "./promotions.routes.js";
 import reviewsRouter from "./reviews.routes.js";
 
@@ -23,6 +24,7 @@ rootRouter.use("/feedback", feedbackRouter);
 rootRouter.use("/favorites", favoritesRouter);
 rootRouter.use("/reviews", reviewsRouter);
 rootRouter.use("/notifications", notificationsRouter);
+rootRouter.use("/payments", paymentsRouter);
 rootRouter.use("/promotions", promotionsRouter);
 
 export default rootRouter;

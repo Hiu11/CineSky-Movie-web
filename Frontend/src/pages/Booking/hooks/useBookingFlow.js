@@ -1,15 +1,18 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   createBooking,
+  createMockPaymentSession,
   getBookingFees,
   getBookingHistory,
+  getMockPaymentSession,
   getMovieShowtimes,
   lockBookingSeats,
   validateBookingVoucher,
 } from "../../../services/movieService";
 import { updateStoredUser } from "../../../services/authService";
+import { applyCinemaTimeOffsets, applyShowtimePricing } from "../../../utils/showtimeSchedule";
 
 const DATE_OPTIONS_DAYS = 7;
 const PAYMENT_WINDOW_SECONDS = 15 * 60;
@@ -188,6 +191,8 @@ export function useBookingFlow({ showToast } = {}) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const movieId = searchParams.get("movieId");
+  const queryShowtimeId = searchParams.get("showtimeId");
+  const queryScreeningDate = searchParams.get("date");
 
   const availableDateOptions = useMemo(() => buildRollingDateOptions(), []);
 
@@ -212,6 +217,8 @@ export function useBookingFlow({ showToast } = {}) {
   const [useQrPayment, setUseQrPayment] = useState(false);
   const [isQrPaymentConfirmed, setIsQrPaymentConfirmed] = useState(false);
   const [paymentQrDataUrl, setPaymentQrDataUrl] = useState("");
+  const [paymentSession, setPaymentSession] = useState(null);
+  const [paymentSessionError, setPaymentSessionError] = useState("");
 
   const [paymentForm, setPaymentForm] = useState(EMPTY_PAYMENT_FORM);
   const [voucherState, setVoucherState] = useState({ code: "", discountAmount: 0, message: "", error: "", isChecking: false });
@@ -287,7 +294,7 @@ export function useBookingFlow({ showToast } = {}) {
         const data = await getMovieShowtimes(movieId);
         if (!mounted) return;
         setMovie(data.movie);
-        setShowtimes(data.showtimes || []);
+        setShowtimes(applyShowtimePricing(applyCinemaTimeOffsets(data.showtimes || []), selectedScreeningDate));
         setSelectedCinemaName("");
         setSelectedShowtimeId("");
         setSelectedSeats([]);
@@ -311,6 +318,10 @@ export function useBookingFlow({ showToast } = {}) {
       mounted = false;
     };
   }, [movieId]);
+
+  useEffect(() => {
+    setShowtimes((prev) => applyShowtimePricing(prev, selectedScreeningDate));
+  }, [selectedScreeningDate]);
 
   useEffect(() => {
     let mounted = true;
@@ -367,6 +378,25 @@ export function useBookingFlow({ showToast } = {}) {
 
     const draft = readBookingDraft(movieId, sessionUser);
 
+    if (queryShowtimeId) {
+      const nextDate = availableDateOptions.some((option) => option.iso === queryScreeningDate)
+        ? queryScreeningDate
+        : availableDateOptions[0]?.iso || "";
+      const nextShowtime = showtimes.find((showtime) =>
+        String(showtime.id) === String(queryShowtimeId) &&
+        !isShowtimeInPast(nextDate, showtime.displayTime, currentTime)
+      );
+
+      if (nextShowtime) {
+        setSelectedScreeningDate(nextDate);
+        setSelectedCinemaName(nextShowtime.cinemaName || "");
+        setSelectedShowtimeId(String(nextShowtime.id));
+        setSelectedSeats([]);
+        setHasRestoredDraft(true);
+        return;
+      }
+    }
+
     if (!draft) {
       setHasRestoredDraft(true);
       return;
@@ -408,7 +438,7 @@ export function useBookingFlow({ showToast } = {}) {
       promoCode: draft.paymentForm?.promoCode || "",
     });
     setUseQrPayment(Boolean(draft.useQrPayment));
-    setIsQrPaymentConfirmed(Boolean(draft.isQrPaymentConfirmed));
+    setIsQrPaymentConfirmed(false);
     setPaymentSecondsLeft(PAYMENT_WINDOW_SECONDS);
     setHasRestoredDraft(true);
 
@@ -427,6 +457,8 @@ export function useBookingFlow({ showToast } = {}) {
     isLoading,
     movie?.id,
     movieId,
+    queryScreeningDate,
+    queryShowtimeId,
     sessionUser,
     showToast,
     showtimes,
@@ -460,7 +492,7 @@ export function useBookingFlow({ showToast } = {}) {
         selectedPaymentMethod,
         selectedProvider,
         useQrPayment,
-        isQrPaymentConfirmed,
+        isQrPaymentConfirmed: false,
         paymentForm: {
           ownerName: paymentForm.ownerName,
           reference: paymentForm.reference,
@@ -523,31 +555,86 @@ export function useBookingFlow({ showToast } = {}) {
   const fnbTotal = selectedFnB.reduce((sum, item) => sum + item.price * item.quantity, 0);
   const discountAmount = Math.min(Number(voucherState.discountAmount || 0), ticketSubtotal + fnbTotal);
   const finalTotal = Math.max(ticketSubtotal + serviceFee + fnbTotal - discountAmount, 0);
-
-  const qrPaymentPayload = useMemo(() => {
-    return JSON.stringify({
-      type: "CINESKY_QR_PAYMENT",
-      provider: selectedProvider,
-      movieId: movie?.id || "",
-      movieTitle: movie?.title || "",
-      showtimeId: selectedShowtime?.id || "",
-      seats: selectedSeats,
-      fnb: selectedFnB,
-      discount: discountAmount,
-      promoCode: voucherState.code,
-      amount: finalTotal,
-      currency: "VND",
-    });
-  }, [discountAmount, finalTotal, movie, selectedProvider, selectedSeats, selectedShowtime, selectedFnB, voucherState.code]);
+  const selectedSeatsKey = selectedSeats.join("|");
 
   useEffect(() => {
     if (!useQrPayment) {
+      setPaymentSession(null);
+      setPaymentSessionError("");
       setPaymentQrDataUrl("");
       setIsQrPaymentConfirmed(false);
       return;
     }
+
+    if (!isAuthenticated || !movie?.id || !selectedShowtime?.id || selectedSeats.length === 0 || finalTotal <= 0) {
+      setPaymentSession(null);
+      setPaymentQrDataUrl("");
+      setIsQrPaymentConfirmed(false);
+      setPaymentSessionError(
+        isAuthenticated ? "Chọn suất chiếu và ghế trước khi tạo QR." : "Đăng nhập để tạo phiên thanh toán QR."
+      );
+      return;
+    }
+
+    let cancelled = false;
+    setPaymentSession(null);
+    setPaymentQrDataUrl("");
+    setIsQrPaymentConfirmed(false);
+    setPaymentSessionError("");
+
+    createMockPaymentSession({
+      amount: finalTotal,
+      provider: selectedProvider,
+      method: selectedPaymentMethod,
+      movieId: movie.id,
+      movieTitle: movie.title,
+      showtimeId: selectedShowtime.id,
+      screeningDate: selectedScreeningDate,
+      seatNumbers: selectedSeats,
+    })
+      .then((session) => {
+        if (!cancelled) {
+          setPaymentSession(session);
+        }
+      })
+      .catch((err) => {
+        if (!cancelled) {
+          setPaymentSession(null);
+          setPaymentSessionError(err.message || "Không thể tạo phiên thanh toán QR.");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    finalTotal,
+    isAuthenticated,
+    movie?.id,
+    movie?.title,
+    selectedPaymentMethod,
+    selectedProvider,
+    selectedScreeningDate,
+    selectedSeatsKey,
+    selectedShowtime?.id,
+    useQrPayment,
+  ]);
+
+  const qrPaymentUrl = useMemo(() => {
+    if (!paymentSession?.id || typeof window === "undefined") {
+      return "";
+    }
+
+    return `${window.location.origin}/payment/confirm/${paymentSession.id}`;
+  }, [paymentSession?.id]);
+
+  useEffect(() => {
+    if (!useQrPayment || !qrPaymentUrl) {
+      setPaymentQrDataUrl("");
+      return;
+    }
     let mounted = true;
-    QRCode.toDataURL(qrPaymentPayload, { errorCorrectionLevel: "M", margin: 1, width: 220, color: { dark: "#111827", light: "#ffffff" } })
+    QRCode.toDataURL(qrPaymentUrl, { errorCorrectionLevel: "M", margin: 1, width: 220, color: { dark: "#111827", light: "#ffffff" } })
       .then((url) => {
         if (mounted) setPaymentQrDataUrl(url);
       })
@@ -557,11 +644,45 @@ export function useBookingFlow({ showToast } = {}) {
     return () => {
       mounted = false;
     };
-  }, [qrPaymentPayload, useQrPayment]);
+  }, [qrPaymentUrl, useQrPayment]);
+
+  useEffect(() => {
+    if (!useQrPayment || !paymentSession?.id || isQrPaymentConfirmed) {
+      return undefined;
+    }
+
+    let mounted = true;
+    const checkPaymentStatus = async () => {
+      try {
+        const session = await getMockPaymentSession(paymentSession.id);
+        if (!mounted) return;
+        setPaymentSession(session);
+        setPaymentSessionError("");
+        if (session.status === "paid") {
+          setIsQrPaymentConfirmed(true);
+        } else if (session.status === "expired") {
+          setIsQrPaymentConfirmed(false);
+          setPaymentSessionError("Phiên QR đã hết hạn. Tắt/bật QR để tạo phiên mới.");
+        }
+      } catch (err) {
+        if (mounted) {
+          setPaymentSessionError(err.message || "Không thể kiểm tra trạng thái thanh toán.");
+        }
+      }
+    };
+
+    checkPaymentStatus();
+    const timer = window.setInterval(checkPaymentStatus, 2200);
+
+    return () => {
+      mounted = false;
+      window.clearInterval(timer);
+    };
+  }, [isQrPaymentConfirmed, paymentSession?.id, useQrPayment]);
 
   useEffect(() => {
     setIsQrPaymentConfirmed(false);
-  }, [selectedShowtimeId, selectedProvider, selectedSeats.length]);
+  }, [selectedShowtimeId, selectedProvider, selectedSeatsKey]);
 
   useEffect(() => {
     if (useQrPayment && isQrPaymentConfirmed && selectedCinemaName && selectedShowtimeId && selectedSeats.length > 0) {
@@ -756,7 +877,16 @@ export function useBookingFlow({ showToast } = {}) {
       return;
     }
     if (!isPaymentFormReady) {
-      setSubmitMessage({ type: "error", message: "Vui lòng hoàn thiện thông tin thanh toán trước khi xác nhận đặt vé." });
+      setSubmitMessage({
+        type: "error",
+        message: useQrPayment
+          ? "Vui lòng quét QR bằng điện thoại và bấm Đã thanh toán trước khi đặt vé."
+          : "Vui lòng hoàn thiện thông tin thanh toán trước khi xác nhận đặt vé.",
+      });
+      return;
+    }
+    if (useQrPayment && paymentSession?.status !== "paid") {
+      setSubmitMessage({ type: "error", message: "Hệ thống chưa ghi nhận thanh toán QR từ điện thoại." });
       return;
     }
     if (isPaymentExpired) {
@@ -782,7 +912,7 @@ export function useBookingFlow({ showToast } = {}) {
         promoCode: voucherState.code || paymentForm.promoCode,
         paymentMethod: selectedPaymentMethod,
         paymentProvider: selectedProvider,
-        paymentReference: useQrPayment ? `QR-${Date.now()}` : paymentForm.reference,
+        paymentReference: useQrPayment ? `QR-${paymentSession?.id}` : paymentForm.reference,
       });
       if (booking.membership) {
         updateStoredUser({ ...(getLatestSessionUser() || sessionUser), membership: booking.membership });
@@ -827,7 +957,7 @@ export function useBookingFlow({ showToast } = {}) {
   }, [
     selectedShowtime, selectedSeats, isAuthenticated, isPaymentFormReady, isPaymentExpired,
     selectedScreeningDate, selectedScreeningDateLabel, movie, selectedPaymentMethod, selectedProvider,
-    useQrPayment, paymentForm.reference, paymentForm.promoCode, voucherState.code, discountAmount, ticketSubtotal, fnbTotal, serviceFee, sessionUser, currentTime, navigate, showToast, finalTotal,
+    useQrPayment, paymentSession?.id, paymentSession?.status, paymentForm.reference, paymentForm.promoCode, voucherState.code, discountAmount, ticketSubtotal, fnbTotal, serviceFee, sessionUser, currentTime, navigate, showToast, finalTotal,
   ]);
 
   return {
@@ -836,7 +966,7 @@ export function useBookingFlow({ showToast } = {}) {
     selectedCinemaName, selectedShowtimeId, selectedScreeningDate,
     selectedSeats, selectedPaymentMethod, selectedProvider, providerSearch,
     paymentForm, voucherState, seatLock, useQrPayment, setUseQrPayment, isQrPaymentConfirmed, setIsQrPaymentConfirmed,
-    paymentQrDataUrl, visibleProviders, selectedFnB,
+    paymentQrDataUrl, paymentSession, paymentSessionError, visibleProviders, selectedFnB,
     isLoading, isHistoryLoading, errorMessage, submitMessage,
     isSubmitting, isDesktopViewport, isSummaryCollapsed, setIsSummaryCollapsed,
     isDesktopSummaryCollapsed, seatScale, setSeatScale, currentTime,

@@ -870,4 +870,32 @@ body:has(.admin-page) .nav-direct.active {
   }
 }
 
+.admin-checkin-status {
+  color: #166534 !important;
+  background: #dcfce7 !important;
+  border: 1px solid #86efac;
+  box-shadow: none !important;
+  font-weight: 900;
+}
+
+.admin-checkin-status--used {
+  color: #1d4ed8 !important;
+  background: #dbeafe !important;
+  border-color: #93c5fd;
+}
+
+.admin-checkin-status--cancelled {
+  color: #b91c1c !important;
+  background: #fee2e2 !important;
+  border-color: #fca5a5;
+}
+
+.admin-checkin-confirm:disabled {
+  color: #1f2937 !important;
+  background: #e5e7eb !important;
+  border: 1px solid #cbd5e1;
+  opacity: 1 !important;
+  font-weight: 900;
+}
+
 
