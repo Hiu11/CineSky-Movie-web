@@ -218,7 +218,7 @@ const updateUserMembership = async (user, ticketDelta = 0) => {
 const getServiceFeePerTicket = () =>
   Number(process.env.SERVICE_FEE_PER_TICKET) || DEFAULT_SERVICE_FEE_PER_TICKET;
 
-const verifyQrPaymentReference = (paymentReference = "", expectedAmount = 0) => {
+const verifyQrPaymentReference = async (paymentReference = "", expectedAmount = 0) => {
   const reference = String(paymentReference || "").trim();
 
   if (!reference.startsWith("QR-")) {
@@ -226,7 +226,7 @@ const verifyQrPaymentReference = (paymentReference = "", expectedAmount = 0) => 
   }
 
   const sessionId = reference.slice(3);
-  const session = getMockPaymentSession(sessionId);
+  const session = await getMockPaymentSession(sessionId);
 
   if (session.status !== "paid") {
     const error = new Error("Thanh toán QR chưa được xác nhận trên điện thoại.");
@@ -972,7 +972,7 @@ const bookingsController = {
           })
         : { code: "", discountAmount: 0 };
       const totalPrice = Math.max(ticketSubtotal + fnbTotal + serviceFee - voucher.discountAmount, 0);
-      verifyQrPaymentReference(paymentReference, totalPrice);
+      await verifyQrPaymentReference(paymentReference, totalPrice);
 
       const reservedShowtime = isAdminBooking
         ? showtime

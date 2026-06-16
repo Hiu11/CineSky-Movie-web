@@ -5,10 +5,10 @@ import {
 } from "../services/mockPayment.service.js";
 
 const paymentsController = {
-  createMockSession(req, res, next) {
+  async createMockSession(req, res, next) {
     try {
       const userId = req.authUser?._id?.toString?.() || req.authUser?.id || "";
-      const session = createMockPaymentSession({ ...req.body, userId });
+      const session = await createMockPaymentSession({ ...req.body, userId });
 
       return res.status(201).send({
         success: true,
@@ -20,9 +20,9 @@ const paymentsController = {
     }
   },
 
-  getMockSession(req, res, next) {
+  async getMockSession(req, res, next) {
     try {
-      const session = getMockPaymentSession(req.params.sessionId);
+      const session = await getMockPaymentSession(req.params.sessionId);
 
       return res.status(200).send({
         success: true,
@@ -34,9 +34,9 @@ const paymentsController = {
     }
   },
 
-  confirmMockSession(req, res, next) {
+  async confirmMockSession(req, res, next) {
     try {
-      const session = confirmMockPaymentSession(req.params.sessionId);
+      const session = await confirmMockPaymentSession(req.params.sessionId);
 
       return res.status(200).send({
         success: true,

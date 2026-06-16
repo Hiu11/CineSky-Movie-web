@@ -1,30 +1,34 @@
 import crypto from "crypto";
+import mongoose from "mongoose";
+import PaymentSessionModel from "../models/paymentSession.model.js";
 
 const SESSION_TTL_MS = 15 * 60 * 1000;
-const sessions = new Map();
 
 const toPublicSession = (session) => ({
-  id: session.id,
+  id: session.sessionId || session.id,
   status: session.status,
   amount: session.amount,
   provider: session.provider,
   method: session.method,
   movieTitle: session.movieTitle,
   seatNumbers: session.seatNumbers,
-  createdAt: session.createdAt,
-  expiresAt: session.expiresAt,
-  paidAt: session.paidAt || null,
+  createdAt: session.createdAt?.toISOString?.() || session.createdAt,
+  expiresAt: session.expiresAt?.toISOString?.() || session.expiresAt,
+  paidAt: session.paidAt?.toISOString?.() || session.paidAt || null,
 });
 
-const markExpiredIfNeeded = (session) => {
+const markExpiredIfNeeded = async (session) => {
   if (session?.status === "pending" && Date.now() > new Date(session.expiresAt).getTime()) {
     session.status = "expired";
+    await session.save();
   }
   return session;
 };
 
-const getSessionOrThrow = (sessionId) => {
-  const session = markExpiredIfNeeded(sessions.get(sessionId));
+const getSessionOrThrow = async (sessionId) => {
+  const session = await markExpiredIfNeeded(
+    await PaymentSessionModel.findOne({ sessionId: String(sessionId || "").trim() })
+  );
 
   if (!session) {
     const error = new Error("Phiên thanh toán không tồn tại.");
@@ -36,20 +40,7 @@ const getSessionOrThrow = (sessionId) => {
   return session;
 };
 
-const pruneExpiredSessions = () => {
-  const now = Date.now();
-
-  sessions.forEach((session, sessionId) => {
-    const expiredForTooLong = now - new Date(session.expiresAt).getTime() > SESSION_TTL_MS;
-    if (session.status === "expired" && expiredForTooLong) {
-      sessions.delete(sessionId);
-    }
-  });
-};
-
-export const createMockPaymentSession = (payload = {}) => {
-  pruneExpiredSessions();
-
+export const createMockPaymentSession = async (payload = {}) => {
   const amount = Number(payload.amount || 0);
   if (!Number.isFinite(amount) || amount <= 0) {
     const error = new Error("Số tiền thanh toán không hợp lệ.");
@@ -59,8 +50,9 @@ export const createMockPaymentSession = (payload = {}) => {
   }
 
   const now = new Date();
-  const session = {
-    id: crypto.randomUUID(),
+  const userId = mongoose.Types.ObjectId.isValid(payload.userId) ? payload.userId : null;
+  const session = await PaymentSessionModel.create({
+    sessionId: crypto.randomUUID(),
     status: "pending",
     amount,
     provider: String(payload.provider || "").trim() || "CineSky Pay",
@@ -70,20 +62,18 @@ export const createMockPaymentSession = (payload = {}) => {
     showtimeId: payload.showtimeId || "",
     screeningDate: payload.screeningDate || "",
     seatNumbers: Array.isArray(payload.seatNumbers) ? payload.seatNumbers : [],
-    userId: payload.userId || "",
-    createdAt: now.toISOString(),
-    expiresAt: new Date(now.getTime() + SESSION_TTL_MS).toISOString(),
+    userId,
+    expiresAt: new Date(now.getTime() + SESSION_TTL_MS),
     paidAt: null,
-  };
+  });
 
-  sessions.set(session.id, session);
   return toPublicSession(session);
 };
 
-export const getMockPaymentSession = (sessionId) => toPublicSession(getSessionOrThrow(sessionId));
+export const getMockPaymentSession = async (sessionId) => toPublicSession(await getSessionOrThrow(sessionId));
 
-export const confirmMockPaymentSession = (sessionId) => {
-  const session = getSessionOrThrow(sessionId);
+export const confirmMockPaymentSession = async (sessionId) => {
+  const session = await getSessionOrThrow(sessionId);
 
   if (session.status === "expired") {
     const error = new Error("Phiên thanh toán đã hết hạn.");
@@ -94,7 +84,8 @@ export const confirmMockPaymentSession = (sessionId) => {
 
   if (session.status !== "paid") {
     session.status = "paid";
-    session.paidAt = new Date().toISOString();
+    session.paidAt = new Date();
+    await session.save();
   }
 
   return toPublicSession(session);
