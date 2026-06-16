@@ -294,6 +294,8 @@ export const getAdminAnalytics = async (params = {}) => requestAdmin("analytics"
 
 export const getAdminActivity = async (params = {}) => requestAdmin("activity", params);
 
+export const getAdminPresence = async (params = {}) => requestAdmin("presence", params);
+
 export const getAdminUsers = async (params = {}) => requestAdmin("users", params);
 
 export const getAdminBookings = async (params = {}) => requestAdmin("bookings", params);

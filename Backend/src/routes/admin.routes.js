@@ -1,6 +1,7 @@
 import { Router } from "express";
 import adminController from "../controllers/admin.controller.js";
 import chatController from "../controllers/chat.controller.js";
+import presenceController from "../controllers/presence.controller.js";
 import { requireAuth, requireRole } from "../middlewares/auth.middleware.js";
 
 const adminRouter = Router();
@@ -10,6 +11,7 @@ adminRouter.use(requireAuth, requireRole("admin"));
 adminRouter.get("/overview", adminController.getDashboardOverview);
 adminRouter.get("/analytics", adminController.getDashboardAnalytics);
 adminRouter.get("/activity", adminController.getActivity);
+adminRouter.get("/presence", presenceController.getOnlineVisitors);
 adminRouter.get("/users", adminController.getUsers);
 adminRouter.get("/bookings", adminController.getBookings);
 adminRouter.get("/chats", chatController.getAdminConversations);

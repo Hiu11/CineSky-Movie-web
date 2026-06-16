@@ -11,6 +11,7 @@ import {
   getAdminDeletedMovies,
   getAdminFeedback,
   getAdminOverview,
+  getAdminPresence,
   getAdminPromotions,
   getAdminUsers,
   lookupAdminTicket,
@@ -207,6 +208,45 @@ export default function AdminPage() {
   }, []);
 
   useEffect(() => {
+    if (activeModule !== "presence") {
+      return undefined;
+    }
+
+    let isMounted = true;
+
+    const loadPresence = async () => {
+      try {
+        const presence = await getAdminPresence({ thresholdSeconds: 90, limit: 100 });
+
+        if (!isMounted) {
+          return;
+        }
+
+        setRecords((current) => ({
+          ...current,
+          presence: Array.isArray(presence?.visitors) ? presence.visitors.map((visitor) => ({
+            id: String(visitor.visitorId || visitor.id),
+            name: visitor.fullName || visitor.email || "Khách chưa đăng nhập",
+            status: visitor.role === "admin" ? "Admin online" : visitor.role === "user" ? "User online" : "Guest online",
+            time: `${visitor.secondsAgo ?? 0}s trước`,
+            value: `${visitor.currentPath || "/"} • ${visitor.email || visitor.ipAddress || "anonymous"}`,
+            statusTone: visitor.role === "admin" ? "success" : "warning",
+            lastSeenAt: visitor.lastSeenAt,
+          })) : [],
+        }));
+      } catch {}
+    };
+
+    loadPresence();
+    const interval = setInterval(loadPresence, 15000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(interval);
+    };
+  }, [activeModule]);
+
+  useEffect(() => {
     let isMounted = true;
 
     const loadAnalytics = async () => {
@@ -274,12 +314,13 @@ export default function AdminPage() {
 
     const loadAdminRecords = async () => {
       try {
-        const [users, bookings, activity, feedbackEntries, promotions] = await Promise.all([
+        const [users, bookings, activity, feedbackEntries, promotions, presence] = await Promise.all([
           getAdminUsers({ limit: 20 }),
           getAdminBookings({ limit: 500 }),
           getAdminActivity({ limit: 50 }).catch(() => []),
           getAdminFeedback({ limit: 100 }).catch(() => []),
           getAdminPromotions().catch(() => []),
+          getAdminPresence({ thresholdSeconds: 90, limit: 100 }).catch(() => null),
         ]);
 
         if (!isMounted) {
@@ -315,6 +356,15 @@ export default function AdminPage() {
             email: user.email || "",
             membership: user.membership || null,
           })) : current.users,
+          presence: Array.isArray(presence?.visitors) ? presence.visitors.map((visitor) => ({
+            id: String(visitor.visitorId || visitor.id),
+            name: visitor.fullName || visitor.email || "Khách chưa đăng nhập",
+            status: visitor.role === "admin" ? "Admin online" : visitor.role === "user" ? "User online" : "Guest online",
+            time: `${visitor.secondsAgo ?? 0}s trước`,
+            value: `${visitor.currentPath || "/"} • ${visitor.email || visitor.ipAddress || "anonymous"}`,
+            statusTone: visitor.role === "admin" ? "success" : "warning",
+            lastSeenAt: visitor.lastSeenAt,
+          })) : current.presence,
           showtimes: safeBookings.length > 0 ? safeBookings.map((booking, index) => ({
             id: `ST${String(index + 1).padStart(3, "0")}`,
             name: `${booking.movieTitle || "Phim"} - ${booking.roomName || "Phòng chiếu"}`,

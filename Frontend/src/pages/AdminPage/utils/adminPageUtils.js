@@ -13,6 +13,7 @@
   { key: "showtimes", label: "Suất chiếu", statusLabel: "Giờ chiếu" },
   { key: "cinemas", label: "Rạp / phòng", statusLabel: "Trạng thái" },
   { key: "users", label: "Người dùng", statusLabel: "Vai trò" },
+  { key: "presence", label: "Đang online", statusLabel: "Trạng thái" },
   { key: "orders", label: "Vé / đơn đặt", statusLabel: "Thanh toán" },
   { key: "payments", label: "Thanh toán", statusLabel: "Trạng thái" },
   { key: "checkin", label: "Check-in vé", statusLabel: "Trạng thái" },
@@ -69,6 +70,7 @@ export const adminNavGroups = [
     label: "Khách hàng",
     items: [
       { key: "users", label: "Người dùng" },
+      { key: "presence", label: "Đang online" },
       { key: "supportChat", label: "Chat hỗ trợ" },
       { key: "feedback", label: "Góp ý" },
     ],
@@ -132,6 +134,7 @@ export const initialData = {
     { id: "US002", name: "Trần Hoàng Long", status: "Admin", time: "04/05/2026", value: "12 thao tác" },
     { id: "US003", name: "Lê Hà My", status: "Member", time: "03/05/2026", value: "1 đơn" },
   ],
+  presence: [],
   orders: [
     { id: "OD001", name: "2 vé Song Hỷ Lâm Nguy", status: "Đã thanh toán", time: "05/05/2026", value: "180.000đ" },
     { id: "OD002", name: "4 vé Mưa Đỏ", status: "Chờ thanh toán", time: "05/05/2026", value: "360.000đ" },

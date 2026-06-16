@@ -28,6 +28,7 @@ import Favorites from "./pages/Favorites/Favorites";
 import ErrorBoundary from "./components/ErrorBoundary/ErrorBoundary";
 import AdminChatBox from "./components/AdminChatBox/AdminChatBox";
 import { clearAuthSession, normalizeAuthUser } from "./services/authService";
+import usePresenceHeartbeat from "./hooks/usePresenceHeartbeat";
 import "./App.css";
 
 const getInitialSessionUser = () => {
@@ -61,6 +62,8 @@ function AppContent() {
   const isAdminPage = location.pathname.startsWith("/admin");
   const isMovieDetailPage = location.pathname.startsWith("/movie/");
   const isShowtimesPage = location.pathname === "/showtimes";
+
+  usePresenceHeartbeat(location);
 
   useEffect(() => {
     if ("scrollRestoration" in window.history) {
