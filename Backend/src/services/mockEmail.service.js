@@ -135,7 +135,11 @@ const sendSmtpEmail = async ({ to, subject, text, html = "" }) => {
 };
 
 const buildBookingConfirmationHtml = ({ booking, movie, showtime, discount = null }) => {
-  const ticketCode = escapeHtml(booking.ticketCode || "");
+  const rawTicketCode = String(booking.ticketCode || "").trim().toUpperCase();
+  const ticketCode = escapeHtml(rawTicketCode);
+  const qrImageUrl = rawTicketCode
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=12&data=${encodeURIComponent(rawTicketCode)}`
+    : "";
   const movieTitle = escapeHtml(movie?.title || "CineSky");
   const displayDate = escapeHtml(booking.screeningDateLabel || showtime?.displayDate || "");
   const displayTime = escapeHtml(booking.displayTime || showtime?.displayTime || "");
@@ -164,6 +168,11 @@ const buildBookingConfirmationHtml = ({ booking, movie, showtime, discount = nul
     fnbItems.length ? ["Bắp nước", fnbItems.join("<br />")] : null,
     voucherCode ? ["Voucher", voucherCode] : null,
   ].filter(Boolean);
+  const infoCardRows = [];
+
+  for (let i = 0; i < infoRows.length; i += 2) {
+    infoCardRows.push(infoRows.slice(i, i + 2));
+  }
 
   return `<!doctype html>
 <html lang="vi">
@@ -207,7 +216,7 @@ const buildBookingConfirmationHtml = ({ booking, movie, showtime, discount = nul
                   <tr>
                     <td style="background:#f8fbff;padding:22px;">
                       <div style="font-size:12px;text-transform:uppercase;letter-spacing:1.8px;color:#2f7df6;font-weight:800;">Thông tin vé</div>
-                      <div style="margin-top:8px;font-size:24px;line-height:1.3;color:#172033;font-weight:800;">${movieTitle}</div>
+                      <div style="margin-top:8px;font-family:Georgia,'Times New Roman',serif;font-size:24px;line-height:1.3;color:#172033;font-weight:700;">${movieTitle}</div>
                     </td>
                     <td align="right" style="background:#f8fbff;padding:22px;">
                       <div style="display:inline-block;background:#ff6b35;color:#ffffff;border-radius:10px;padding:14px 18px;font-size:18px;font-weight:800;letter-spacing:0.8px;">${ticketCode}</div>
@@ -215,12 +224,25 @@ const buildBookingConfirmationHtml = ({ booking, movie, showtime, discount = nul
                   </tr>
                   <tr>
                     <td colspan="2" style="padding:6px 22px 22px;">
-                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
-                        ${infoRows
+                      <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:separate;border-spacing:0 12px;">
+                        ${infoCardRows
                           .map(
-                            ([label, value]) => `<tr>
-                              <td style="padding:13px 0;border-bottom:1px solid #edf2f7;color:#64748b;font-size:13px;">${label}</td>
-                              <td align="right" style="padding:13px 0;border-bottom:1px solid #edf2f7;color:#172033;font-size:14px;font-weight:700;">${value}</td>
+                            (row) => `<tr>
+                              ${row
+                                .map(
+                                  ([label, value], cellIndex) => `<td width="50%" valign="top" style="padding:${row.length === 1 ? "0" : cellIndex === 0 ? "0 6px 0 0" : "0 0 0 6px"};">
+                                    <div style="background:#ffffff;border:1px solid #e7edf6;border-radius:12px;padding:14px 16px;">
+                                      <div style="color:#718096;font-size:12px;line-height:1.4;">${label}</div>
+                                      <div style="margin-top:6px;color:#172033;font-size:14px;line-height:1.45;font-weight:700;">${value}</div>
+                                    </div>
+                                  </td>`
+                                )
+                                .join("")}
+                              ${
+                                row.length === 1
+                                  ? `<td width="50%" style="padding:0 0 0 6px;">&nbsp;</td>`
+                                  : ""
+                              }
                             </tr>`
                           )
                           .join("")}
@@ -230,6 +252,25 @@ const buildBookingConfirmationHtml = ({ booking, movie, showtime, discount = nul
                 </table>
               </td>
             </tr>
+
+            ${
+              qrImageUrl
+                ? `<tr>
+              <td style="padding:18px 30px 0;">
+                <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f8fbff;border:1px dashed #b8c8dc;border-radius:18px;">
+                  <tr>
+                    <td align="center" style="padding:24px 22px;">
+                      <div style="font-size:12px;text-transform:uppercase;letter-spacing:1.8px;color:#2f7df6;font-weight:800;">QR check-in</div>
+                      <div style="margin:8px 0 16px;color:#64748b;font-size:13px;line-height:1.5;">Đưa mã này cho nhân viên rạp để quét và xác nhận vé.</div>
+                      <img src="${qrImageUrl}" width="180" height="180" alt="QR check-in ${ticketCode}" style="display:block;width:180px;height:180px;border:10px solid #ffffff;border-radius:16px;box-shadow:0 10px 28px rgba(15,35,75,0.14);" />
+                      <div style="display:inline-block;margin-top:16px;background:#172033;color:#ffffff;border-radius:999px;padding:10px 16px;font-size:14px;font-weight:800;letter-spacing:0.8px;">${ticketCode}</div>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>`
+                : ""
+            }
 
             <tr>
               <td style="padding:22px 30px 0;">
@@ -270,7 +311,7 @@ const buildBookingConfirmationHtml = ({ booking, movie, showtime, discount = nul
           </table>
 
           <div style="max-width:680px;margin:18px auto 0;color:#7b8798;font-size:12px;line-height:1.6;text-align:center;">
-            Email này được gửi tự động từ CineSky. Nếu cần hỗ trợ, vui lòng phản hồi qua trang góp ý trong ứng dụng.
+            Email này được gửi tự động từ CineSky. Nếu cần hỗ trợ, vui lòng mở khung chat hỗ trợ trong ứng dụng CineSky.
           </div>
         </td>
       </tr>

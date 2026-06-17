@@ -1324,9 +1324,8 @@ export default function AdminPage() {
     }));
   };
 
-  const handleLookupTicket = async (event) => {
-    event?.preventDefault();
-    const code = ticketSearch.trim().toUpperCase();
+  const lookupTicketByCode = async (rawCode = "") => {
+    const code = String(rawCode).trim().toUpperCase();
 
     if (!code) {
       setTicketMessage("Nhập hoặc scan mã vé trước.");
@@ -1346,6 +1345,15 @@ export default function AdminPage() {
     } finally {
       setIsTicketChecking(false);
     }
+  };
+
+  const handleLookupTicket = async (event) => {
+    event?.preventDefault();
+    await lookupTicketByCode(ticketSearch);
+  };
+
+  const handleScanTicket = async (ticketCode) => {
+    await lookupTicketByCode(ticketCode);
   };
 
   const handleCheckInTicket = async () => {
@@ -1432,6 +1440,7 @@ export default function AdminPage() {
             handleCheckInTicket={handleCheckInTicket}
             handleLookupTicket={handleLookupTicket}
             isTicketChecking={isTicketChecking}
+            onScanTicket={handleScanTicket}
             setTicketSearch={setTicketSearch}
             ticketLookup={ticketLookup}
             ticketMessage={ticketMessage}

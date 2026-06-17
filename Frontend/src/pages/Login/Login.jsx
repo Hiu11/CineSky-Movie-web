@@ -45,7 +45,7 @@ export default function Login({ onLoginSuccess, showToast }) {
           message: `Signed in as ${user.fullName || user.name || user.email}.`,
         });
 
-        navigate("/", { replace: true });
+        window.location.replace("/");
         return;
       } catch {
         setStatus({

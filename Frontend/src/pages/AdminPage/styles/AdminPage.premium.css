@@ -147,6 +147,84 @@
   opacity: 0.55;
 }
 
+.admin-checkin-scanner {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.admin-checkin-scanner__actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+}
+
+.admin-checkin-scanner__actions button,
+.admin-checkin-scanner__actions select {
+  min-height: 44px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+  font-weight: 800;
+}
+
+.admin-checkin-scanner__actions button {
+  cursor: pointer;
+}
+
+.admin-checkin-scanner__actions select {
+  padding: 0 12px;
+}
+
+.admin-checkin-camera {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  border-radius: 18px;
+  background: #050816;
+  border: 1px solid rgba(247, 180, 0, 0.26);
+}
+
+.admin-checkin-camera video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.admin-checkin-camera__frame {
+  position: absolute;
+  inset: 16%;
+  border: 2px solid rgba(247, 180, 0, 0.9);
+  border-radius: 18px;
+  box-shadow: 0 0 0 999px rgba(2, 6, 23, 0.34);
+  pointer-events: none;
+}
+
+.admin-checkin-camera span {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  padding: 8px 11px;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.82);
+  color: #fde68a;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.admin-checkin-camera span.is-ready {
+  color: #bbf7d0;
+}
+
+.admin-checkin-scanner__message {
+  margin: 0;
+  color: rgba(226, 232, 240, 0.72);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
 .admin-checkin-message,
 .admin-checkin-empty {
   color: rgba(255, 255, 255, 0.68);
