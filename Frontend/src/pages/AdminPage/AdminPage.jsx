@@ -1356,6 +1356,25 @@ export default function AdminPage() {
     await lookupTicketByCode(ticketCode);
   };
 
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const queryTicketCode = new URLSearchParams(window.location.search).get("ticketCode");
+
+    if (!queryTicketCode) {
+      return;
+    }
+
+    const code = queryTicketCode.trim().toUpperCase();
+    setTicketSearch(code);
+
+    if (activeModule === "checkin") {
+      lookupTicketByCode(code);
+    }
+  }, [activeModule]);
+
   const handleCheckInTicket = async () => {
     const code = String(ticketLookup?.ticketCode || ticketSearch).trim().toUpperCase();
 

@@ -131,7 +131,8 @@ export const redirectToSocialLogin = (provider) => {
   }
 
   // Chuyển sang backend để giữ kín OAuth secret và xử lý redirect với Google/Facebook.
-  window.location.href = `${API_BASE_URL}/api/v1/auth/${provider}`;
+  const params = new URLSearchParams({ returnTo: window.location.origin });
+  window.location.href = `${API_BASE_URL}/api/v1/auth/${provider}?${params.toString()}`;
 };
 
 export const readSocialAuthSession = (encodedSession = "") => {

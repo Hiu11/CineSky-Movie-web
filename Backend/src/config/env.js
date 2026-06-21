@@ -22,6 +22,14 @@ const getEnvValue = (primaryKey, fallbackKey = "") =>
   getDotenvValue(primaryKey) ||
   (fallbackKey ? process.env[fallbackKey] || getDotenvValue(fallbackKey) : "");
 
+const getVercelUrl = () => {
+  const vercelUrl = process.env.VERCEL_PROJECT_PRODUCTION_URL || process.env.VERCEL_URL || "";
+  return vercelUrl ? `https://${vercelUrl.replace(/^https?:\/\//, "").replace(/\/+$/, "")}` : "";
+};
+
+const isLocalNetworkUrl = (value = "") =>
+  /^https?:\/\/(?:localhost|127\.0\.0\.1|0\.0\.0\.0|192\.168\.|10\.|172\.(?:1[6-9]|2\d|3[01])\.)/i.test(String(value));
+
 export const getMongoUri = () => getEnvValue("MONGODB_URI", "MONGO_URI");
 
 export const getJwtSecret = () => getEnvValue("JWT_SECRET");
@@ -41,12 +49,25 @@ export const getAdminPassword = () => getEnvValue("ADMIN_PASSWORD");
 export const getAdminFullName = () =>
   getEnvValue("ADMIN_FULL_NAME") || "CineSky Admin";
 
-export const getFrontendUrl = () =>
-  getEnvValue("FRONTEND_URL") || "http://localhost:3000";
+export const getFrontendUrl = () => {
+  const configuredUrl = getEnvValue("FRONTEND_URL");
 
-export const getBackendPublicUrl = () =>
-  getEnvValue("BACKEND_PUBLIC_URL") ||
-  `http://localhost:${getEnvValue("PORT") || "5000"}`;
+  if (process.env.VERCEL && isLocalNetworkUrl(configuredUrl)) {
+    return "https://cine-sky-fe.vercel.app";
+  }
+
+  return configuredUrl || "http://localhost:3000";
+};
+
+export const getBackendPublicUrl = () => {
+  const configuredUrl = getEnvValue("BACKEND_PUBLIC_URL");
+
+  if (configuredUrl && !(process.env.VERCEL && isLocalNetworkUrl(configuredUrl))) {
+    return configuredUrl;
+  }
+
+  return getVercelUrl() || `http://localhost:${getEnvValue("PORT") || "5000"}`;
+};
 
 export const getTmdbApiKey = () => getEnvValue("TMDB_API_KEY");
 
@@ -54,13 +75,29 @@ export const getGoogleClientId = () => getEnvValue("GOOGLE_CLIENT_ID");
 
 export const getGoogleClientSecret = () => getEnvValue("GOOGLE_CLIENT_SECRET");
 
-export const getGoogleRedirectUri = () => getEnvValue("GOOGLE_REDIRECT_URI");
+export const getGoogleRedirectUri = () => {
+  const configuredUri = getEnvValue("GOOGLE_REDIRECT_URI");
+
+  if (configuredUri && !(process.env.VERCEL && isLocalNetworkUrl(configuredUri))) {
+    return configuredUri;
+  }
+
+  return `${getBackendPublicUrl().replace(/\/+$/, "")}/api/v1/auth/google/callback`;
+};
 
 export const getFacebookClientId = () => getEnvValue("FACEBOOK_CLIENT_ID");
 
 export const getFacebookClientSecret = () => getEnvValue("FACEBOOK_CLIENT_SECRET");
 
-export const getFacebookRedirectUri = () => getEnvValue("FACEBOOK_REDIRECT_URI");
+export const getFacebookRedirectUri = () => {
+  const configuredUri = getEnvValue("FACEBOOK_REDIRECT_URI");
+
+  if (configuredUri && !(process.env.VERCEL && isLocalNetworkUrl(configuredUri))) {
+    return configuredUri;
+  }
+
+  return `${getBackendPublicUrl().replace(/\/+$/, "")}/api/v1/auth/facebook/callback`;
+};
 
 export const getOpenAiApiKey = () => getEnvValue("OPENAI_API_KEY");
 

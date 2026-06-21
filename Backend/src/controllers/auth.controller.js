@@ -139,6 +139,16 @@ const encodeRedirectPayload = (payload) =>
     .replace(/\//g, "_")
     .replace(/=+$/, "");
 
+const decodeRedirectPayload = (payload = "") => {
+  try {
+    const base64 = String(payload).replace(/-/g, "+").replace(/_/g, "/");
+    const paddedBase64 = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), "=");
+    return JSON.parse(Buffer.from(paddedBase64, "base64").toString("utf8"));
+  } catch {
+    return {};
+  }
+};
+
 const createOAuthRedirectPayload = (session = {}) => {
   const user = session.user || {};
   const avatar = String(user.avatar || "");
@@ -166,11 +176,42 @@ const getOAuthRedirectUri = (provider) => {
   return `${getBackendPublicUrl().replace(/\/+$/, "")}/api/v1/auth/${provider}/callback`;
 };
 
-const redirectWithAuthSession = (res, session) =>
-  res.redirect(`${getFrontendUrl()}/login?authSession=${encodeRedirectPayload(createOAuthRedirectPayload(session))}`);
+const isAllowedFrontendUrl = (value = "") => {
+  try {
+    const url = new URL(value);
+    const configuredOrigins = String(process.env.FRONTEND_URLS || process.env.FRONTEND_URL || "")
+      .split(",")
+      .map((origin) => origin.trim().replace(/\/+$/, ""))
+      .filter(Boolean);
+    const origin = url.origin;
 
-const redirectWithOAuthError = (res, message = "Social login failed") =>
-  res.redirect(`${getFrontendUrl()}/login?authError=${encodeURIComponent(message)}`);
+    return (
+      configuredOrigins.includes(origin) ||
+      origin === getFrontendUrl().replace(/\/+$/, "") ||
+      origin === "http://localhost:3000" ||
+      origin === "http://localhost:5173" ||
+      origin === "https://cine-sky-fe.vercel.app" ||
+      /^https:\/\/cine-sky-fe(?:-[a-z0-9-]+)?-[a-z0-9-]+\.vercel\.app$/i.test(origin) ||
+      /^https:\/\/cine-sky-[a-z0-9-]+-cine-sky-s-projects\.vercel\.app$/i.test(origin)
+    );
+  } catch {
+    return false;
+  }
+};
+
+const getOAuthReturnTo = (req) => {
+  const stateReturnTo = decodeRedirectPayload(req.query?.state || "").returnTo;
+  const queryReturnTo = req.query?.returnTo;
+  const candidate = String(stateReturnTo || queryReturnTo || "").trim();
+
+  return isAllowedFrontendUrl(candidate) ? candidate.replace(/\/+$/, "") : getFrontendUrl().replace(/\/+$/, "");
+};
+
+const redirectWithAuthSession = (req, res, session) =>
+  res.redirect(`${getOAuthReturnTo(req)}/login?authSession=${encodeRedirectPayload(createOAuthRedirectPayload(session))}`);
+
+const redirectWithOAuthError = (req, res, message = "Social login failed") =>
+  res.redirect(`${getOAuthReturnTo(req)}/login?authError=${encodeURIComponent(message)}`);
 
 const getOrCreateSocialUser = async ({ email, fullName, avatar }) => {
   const normalizedEmail = normalizeEmail(email);
@@ -440,7 +481,7 @@ const authController = {
     const clientId = getGoogleClientId();
 
     if (!clientId || !getGoogleClientSecret()) {
-      return redirectWithOAuthError(res, "Google login is not configured");
+      return redirectWithOAuthError(req, res, "Google login is not configured");
     }
 
     const params = new URLSearchParams({
@@ -449,6 +490,7 @@ const authController = {
       response_type: "code",
       scope: "openid email profile",
       prompt: "select_account",
+      state: encodeRedirectPayload({ returnTo: getOAuthReturnTo(req) }),
     });
 
     return res.redirect(`https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`);
@@ -459,7 +501,7 @@ const authController = {
       const { code = "" } = req.query || {};
 
       if (!code) {
-        return redirectWithOAuthError(res, "Google login was cancelled");
+        return redirectWithOAuthError(req, res, "Google login was cancelled");
       }
 
       // Đổi code một lần của Google lấy access token, rồi dùng token đó lấy profile.
@@ -500,9 +542,9 @@ const authController = {
         avatar: profile.picture,
       });
 
-      return redirectWithAuthSession(res, session);
+      return redirectWithAuthSession(req, res, session);
     } catch (error) {
-      return redirectWithOAuthError(res, error.message);
+      return redirectWithOAuthError(req, res, error.message);
     }
   },
 
@@ -510,7 +552,7 @@ const authController = {
     const clientId = getFacebookClientId();
 
     if (!clientId || !getFacebookClientSecret()) {
-      return redirectWithOAuthError(res, "Facebook login is not configured");
+      return redirectWithOAuthError(req, res, "Facebook login is not configured");
     }
 
     const params = new URLSearchParams({
@@ -518,6 +560,7 @@ const authController = {
       redirect_uri: getOAuthRedirectUri("facebook"),
       // App demo chưa được Meta duyệt quyền email, nên chỉ xin public_profile để tránh lỗi Invalid Scopes.
       scope: "public_profile",
+      state: encodeRedirectPayload({ returnTo: getOAuthReturnTo(req) }),
     });
 
     return res.redirect(`https://www.facebook.com/v19.0/dialog/oauth?${params.toString()}`);
@@ -528,7 +571,7 @@ const authController = {
       const { code = "" } = req.query || {};
 
       if (!code) {
-        return redirectWithOAuthError(res, "Facebook login was cancelled");
+        return redirectWithOAuthError(req, res, "Facebook login was cancelled");
       }
 
       // Đổi code một lần của Facebook lấy access token, rồi dùng token đó lấy profile.
@@ -569,9 +612,9 @@ const authController = {
         avatar: profile.picture?.data?.url,
       });
 
-      return redirectWithAuthSession(res, session);
+      return redirectWithAuthSession(req, res, session);
     } catch (error) {
-      return redirectWithOAuthError(res, error.message);
+      return redirectWithOAuthError(req, res, error.message);
     }
   },
 

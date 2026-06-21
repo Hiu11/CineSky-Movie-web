@@ -88,16 +88,24 @@ const TicketBarcode = ({ value, label }) => {
   );
 };
 
+const buildTicketQrPayload = (ticketCode = "") => {
+  const code = String(ticketCode || "CSKTICKET").trim().toUpperCase();
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+
+  return origin ? `${origin}/admin?module=checkin&ticketCode=${encodeURIComponent(code)}` : code;
+};
+
 const TicketQrCode = ({ value }) => {
   const canvasRef = useRef(null);
   const safeValue = String(value || "CSKTICKET").toUpperCase();
+  const qrValue = useMemo(() => buildTicketQrPayload(safeValue), [safeValue]);
 
   useEffect(() => {
     if (!canvasRef.current) {
       return;
     }
 
-    QRCode.toCanvas(canvasRef.current, safeValue, {
+    QRCode.toCanvas(canvasRef.current, qrValue, {
       width: 82,
       margin: 1,
       color: {
@@ -105,7 +113,7 @@ const TicketQrCode = ({ value }) => {
         light: "#f8fafc",
       },
     }).catch(() => {});
-  }, [safeValue]);
+  }, [qrValue]);
 
   return (
     <div className="history-ticket__qr" aria-label={`QR check-in vé ${safeValue}`}>

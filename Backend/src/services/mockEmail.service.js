@@ -1,5 +1,6 @@
 ﻿import net from "net";
 import tls from "tls";
+import { getFrontendUrl } from "../config/env.js";
 
 const sentMockEmails = [];
 
@@ -14,6 +15,13 @@ const escapeHtml = (value = "") =>
     .replace(/'/g, "&#039;");
 
 const formatList = (items = []) => items.filter(Boolean).join(", ");
+
+const buildTicketQrPayload = (ticketCode = "") => {
+  const code = String(ticketCode || "").trim().toUpperCase();
+  const frontendUrl = getFrontendUrl().replace(/\/+$/, "");
+
+  return code ? `${frontendUrl}/admin?module=checkin&ticketCode=${encodeURIComponent(code)}` : "";
+};
 
 const getSmtpConfig = () => ({
   host: process.env.SMTP_HOST || "",
@@ -137,8 +145,9 @@ const sendSmtpEmail = async ({ to, subject, text, html = "" }) => {
 const buildBookingConfirmationHtml = ({ booking, movie, showtime, discount = null }) => {
   const rawTicketCode = String(booking.ticketCode || "").trim().toUpperCase();
   const ticketCode = escapeHtml(rawTicketCode);
-  const qrImageUrl = rawTicketCode
-    ? `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=12&data=${encodeURIComponent(rawTicketCode)}`
+  const ticketQrPayload = buildTicketQrPayload(rawTicketCode);
+  const qrImageUrl = ticketQrPayload
+    ? `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=12&data=${encodeURIComponent(ticketQrPayload)}`
     : "";
   const movieTitle = escapeHtml(movie?.title || "CineSky");
   const displayDate = escapeHtml(booking.screeningDateLabel || showtime?.displayDate || "");

@@ -25,6 +25,17 @@ const normalizeScannedTicketCode = (value = "") => {
   }
 
   try {
+    const payload = JSON.parse(rawValue);
+    const payloadCode = payload?.ticketCode || payload?.code || payload?.ticket;
+
+    if (payloadCode) {
+      return String(payloadCode).trim().toUpperCase();
+    }
+  } catch {
+    // QR can be a plain ticket code, a URL, or a small JSON payload.
+  }
+
+  try {
     const url = new URL(rawValue);
     const queryCode = url.searchParams.get("ticketCode") || url.searchParams.get("code");
 
