@@ -67,6 +67,12 @@ button {
     padding-top: 190px;
 }
 
+.App--rent {
+    min-height: 100vh;
+    padding-top: 0;
+    background: #f4f5f7;
+}
+
 .App--immersive {
     padding-top: 0;
 }

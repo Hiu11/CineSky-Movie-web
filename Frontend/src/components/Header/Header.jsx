@@ -17,6 +17,7 @@ const navItems = [
   { to: "/?tab=now", label: "Phim đang chiếu", id: "now" },
   { to: "/?tab=soon", label: "Phim sắp chiếu", id: "soon" },
   { to: "/showtimes", label: "Lịch chiếu", id: "showtimes" },
+  { to: "/rent", label: "Thuê phim", id: "rent" },
   { to: "/filter", label: "Lọc phim", id: "filter" },
   { to: "/promotions", label: "Ưu đãi", id: "promotions" },
   { to: "/news", label: "Tin tức", id: "news" },
@@ -29,6 +30,7 @@ const navIconPaths = {
   now: "M8 5.5v13l11-6.5z",
   soon: "M12 4.5a7.5 7.5 0 1 0 0 15 7.5 7.5 0 0 0 0-15zm0 3v5l3.3 2",
   showtimes: "M7 4.5h10M6.5 8.5h11A1.5 1.5 0 0 1 19 10v7.5A1.5 1.5 0 0 1 17.5 19h-11A1.5 1.5 0 0 1 5 17.5V10A1.5 1.5 0 0 1 6.5 8.5zm2.5 3.5h2.5M9 15h6M14.5 12H15",
+  rent: "M7 5.5h10a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2zm2.2 3.2v6.6l5.6-3.3z",
   filter: "M4 7h10M18 7h2M4 12h2M10 12h10M4 17h8M16 17h4M14 5v4M8 10v4M14 15v4",
   promotions: "M5 6.5V12l7 7 6.5-6.5-7-7H5zm4 2.5h.01",
   news: "M5 5.5h12a2 2 0 0 1 2 2v11H7a2 2 0 0 1-2-2zm3 4h8M8 13h8M8 16h5",
@@ -53,9 +55,9 @@ const navGroups = [
     id: "movies",
     label: "Phim",
     title: "Lịch phim CineSky",
-    description: "Xem nhanh trang chủ, phim đang chiếu và phim sắp ra mắt.",
-    spotlight: "Đặt vé nhanh theo suất chiếu hôm nay",
-    items: navItems.filter((item) => ["home", "now", "soon", "showtimes"].includes(item.id)),
+    description: "Xem nhanh trang chủ, phim đang chiếu, phim sắp ra mắt và kho phim thuê.",
+    spotlight: "Đặt vé rạp hoặc thuê phim đã rời rạp",
+    items: navItems.filter((item) => ["home", "now", "soon", "showtimes", "rent"].includes(item.id)),
   },
   {
     id: "search",
@@ -391,7 +393,7 @@ export default function Header({
     saveRecentQuery(movie.title);
     setIsSearchOpen(false);
     setActiveSuggestionIndex(-1);
-    navigate(`/movie/${movie.id}?tab=${movie.status === "coming-soon" ? "soon" : "now"}`);
+    navigate(`/movie/${movie.id}?tab=${movie.status === "rental" ? "rent" : movie.status === "coming-soon" ? "soon" : "now"}`);
   };
 
   const handleRecentSearchClick = (value) => {
@@ -506,12 +508,14 @@ export default function Header({
                 <span
                   className={
                     "search-suggestion__status " +
-                    (movie.status === "coming-soon"
+                    (movie.status === "rental"
+                      ? "search-suggestion__status--rent"
+                      : movie.status === "coming-soon"
                       ? "search-suggestion__status--soon"
                       : "search-suggestion__status--now")
                   }
                 >
-                  {movie.status === "coming-soon" ? "Sắp chiếu" : "Đang chiếu"}
+                  {movie.status === "rental" ? "Phim thuê" : movie.status === "coming-soon" ? "Sắp chiếu" : "Đang chiếu"}
                 </span>
                 <span className="search-suggestion__content">
                   <strong>{movie.title}</strong>

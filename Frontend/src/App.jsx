@@ -16,6 +16,7 @@ import Booking from "./pages/Booking/Booking";
 import MovieDetail from "./pages/MovieDetail/MovieDetail";
 import BookingSuccess from "./pages/BookingSuccess/BookingSuccess";
 import PaymentConfirm from "./pages/PaymentConfirm/PaymentConfirm";
+import RentPayment from "./pages/RentPayment/RentPayment";
 import BookingHistory from "./pages/BookingHistory/BookingHistory";
 import Profile from "./pages/Profile/Profile";
 import Notifications from "./pages/Notifications/Notifications";
@@ -59,6 +60,7 @@ function AppContent() {
     location.pathname === "/forgot-password";
   const isBookingPage =
     location.pathname === "/booking" || location.pathname === "/booking/success";
+  const isRentPage = location.pathname.startsWith("/rent");
   const isAdminPage = location.pathname.startsWith("/admin");
   const isMovieDetailPage = location.pathname.startsWith("/movie/");
   const isShowtimesPage = location.pathname === "/showtimes";
@@ -198,13 +200,15 @@ function AppContent() {
 
   const appClassName = isAuthPage
     ? "App App--auth"
+    : isRentPage
+      ? "App App--rent"
     : isAdminPage
       ? "App App--admin"
       : "App App--site";
 
   return (
     <div className={appClassName}>
-      {!isAuthPage ? (
+      {!isAuthPage && !isRentPage ? (
         <Header
           isLoggedIn={isLoggedIn}
           user={user}
@@ -233,6 +237,9 @@ function AppContent() {
         <Route path="/booking" element={<Booking showToast={showToast} />} />
         <Route path="/booking/success" element={<BookingSuccess />} />
         <Route path="/payment/confirm/:sessionId" element={<PaymentConfirm />} />
+        <Route path="/rent" element={<RentPayment isLoggedIn={isLoggedIn} user={user} />} />
+        <Route path="/rent/:movieId" element={<RentPayment isLoggedIn={isLoggedIn} user={user} />} />
+        <Route path="/rent/pay" element={<RentPayment isLoggedIn={isLoggedIn} user={user} />} />
         <Route path="/history" element={<BookingHistory />} />
         <Route path="/profile" element={<Profile />} />
         <Route path="/notifications" element={isLoggedIn ? <Notifications /> : <Navigate to="/login" replace />} />
@@ -252,8 +259,8 @@ function AppContent() {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {!isAuthPage ? <Footer flushTop={isBookingPage || isAdminPage || isMovieDetailPage || isShowtimesPage} /> : null}
-      {(!isAuthPage && !isAdminPage && user?.role !== "admin") ? <AdminChatBox user={user} showToast={showToast} /> : null}
+      {!isAuthPage && !isRentPage ? <Footer flushTop={isBookingPage || isAdminPage || isMovieDetailPage || isShowtimesPage} /> : null}
+      {(!isAuthPage && !isRentPage && !isAdminPage && user?.role !== "admin") ? <AdminChatBox user={user} showToast={showToast} /> : null}
       <ToastViewport toasts={toasts} onDismiss={dismissToast} />
     </div>
   );
