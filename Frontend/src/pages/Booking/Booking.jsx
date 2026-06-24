@@ -94,12 +94,8 @@ export default function Booking({ showToast }) {
             setSelectedPaymentMethod={flow.setSelectedPaymentMethod}
             selectedProvider={flow.selectedProvider}
             setSelectedProvider={flow.setSelectedProvider}
-            providerSearch={flow.providerSearch}
-            setProviderSearch={flow.setProviderSearch}
-            visibleProviders={flow.visibleProviders}
             paymentForm={flow.paymentForm}
             onPaymentFieldChange={flow.handlePaymentFieldChange}
-            useQrPayment={flow.useQrPayment}
             setUseQrPayment={flow.setUseQrPayment}
             isQrPaymentConfirmed={flow.isQrPaymentConfirmed}
             setIsQrPaymentConfirmed={flow.setIsQrPaymentConfirmed}
@@ -111,7 +107,6 @@ export default function Booking({ showToast }) {
             paymentCountdownLabel={flow.paymentCountdownLabel}
             voucherState={flow.voucherState}
             finalTotal={flow.finalTotal}
-            formatCurrency={flow.formatCurrency}
           />
 
           <BookingHistoryPanel

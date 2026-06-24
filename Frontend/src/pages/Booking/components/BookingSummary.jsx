@@ -29,7 +29,7 @@ export default function BookingSummary({
         <aside className="booking-page__summary">
           <div className="booking-page__summary-header">
             <span className="booking-page__eyebrow">Tóm tắt đơn vé</span>
-            <h2>Xác nhận trước khi thanh toán</h2>
+            <h2>Thông tin thanh toán</h2>
           </div>
 
           <div className="booking-page__summary-grid">
@@ -60,24 +60,22 @@ export default function BookingSummary({
               <span>Thanh toán</span>
               <strong>{[paymentMethodLabel, selectedProvider].filter(Boolean).join(" • ")}</strong>
             </div>
-            {selectedFnB?.length > 0 && (
+            {selectedFnB?.length > 0 ? (
               <div className="booking-page__summary-row booking-page__summary-row--wide">
                 <span>Bắp nước</span>
-                <strong>
-                  {selectedFnB.map(i => `${i.quantity}x ${i.name}`).join(", ")}
-                </strong>
+                <strong>{selectedFnB.map((item) => `${item.quantity}x ${item.name}`).join(", ")}</strong>
               </div>
-            )}
+            ) : null}
             <div className="booking-page__summary-row">
               <span>Tiền vé</span>
               <strong>{formatCurrency(ticketSubtotal)} VND</strong>
             </div>
-            {selectedFnB?.length > 0 && (
+            {selectedFnB?.length > 0 ? (
               <div className="booking-page__summary-row">
                 <span>Tiền bắp nước</span>
                 <strong>{formatCurrency(fnbTotal)} VND</strong>
               </div>
-            )}
+            ) : null}
             <div className="booking-page__summary-row">
               <span>Phí dịch vụ</span>
               <strong>{formatCurrency(serviceFee)} VND</strong>
@@ -99,8 +97,7 @@ export default function BookingSummary({
           <div className="booking-page__policy-note">
             <strong>Lưu ý thanh toán</strong>
             <p>
-              Vé đã được thanh toán sẽ không hỗ trợ hoàn tiền hoặc đổi trả. Vui lòng
-              kiểm tra kỹ rạp, suất chiếu và ghế trước khi xác nhận giao dịch.
+              Vé đã thanh toán sẽ không hỗ trợ hoàn tiền hoặc đổi trả. Vui lòng kiểm tra kỹ rạp, suất chiếu và ghế trước khi xác nhận giao dịch.
             </p>
           </div>
 

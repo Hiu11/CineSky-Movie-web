@@ -161,17 +161,21 @@
 .booking-page__progress {
   margin-top: 18px;
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(210px, 1fr));
   gap: 14px;
   position: sticky;
   top: 216px;
   z-index: 5;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
 }
 
 .booking-page__progress-card {
   display: flex;
   align-items: center;
   gap: 14px;
+  min-width: 0;
   min-height: 86px;
   padding: 16px 18px;
   border-radius: 24px;
@@ -236,15 +240,23 @@
 .booking-page__progress-copy {
   display: grid;
   gap: 5px;
+  min-width: 0;
 }
 
 .booking-page__progress-copy strong {
   font-size: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .booking-page__progress-copy small {
   color: rgba(255, 255, 255, 0.66);
   line-height: 1.55;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
 }
 
 @keyframes booking-step-light-up {
@@ -1488,7 +1500,7 @@
   }
 
   .booking-page__progress {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(5, minmax(210px, 1fr));
     position: static;
   }
 
@@ -1545,7 +1557,7 @@
   }
 
   .booking-page__progress {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(5, minmax(168px, 1fr));
   }
 
   .booking-page__hero,
@@ -1822,9 +1834,10 @@
   }
 
   .booking-page__progress {
-    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    grid-template-columns: repeat(5, minmax(132px, 1fr)) !important;
     gap: 8px !important;
     margin-top: 12px !important;
+    overflow-x: auto !important;
   }
 
   .booking-page__progress-card {
@@ -2054,5 +2067,277 @@
     min-height: 42px !important;
     border-radius: 12px !important;
     font-size: 12px !important;
+  }
+}
+/* Galaxy-style payment refresh */
+.booking-pay {
+  background: #f8fafc !important;
+  color: #111827 !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  box-shadow: 0 20px 60px rgba(15, 23, 42, 0.08) !important;
+}
+
+.booking-pay__header,
+.booking-pay__detail-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.booking-pay__header h2 {
+  margin: 4px 0 0;
+  color: #111827;
+}
+
+.booking-pay__timer {
+  display: inline-flex;
+  min-width: 78px;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: #eef4ff;
+  color: #4778ff;
+  font-weight: 900;
+}
+
+.booking-pay__timer.is-expired {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.booking-pay__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+  gap: 18px;
+  margin-top: 20px;
+}
+
+.booking-pay__methods,
+.booking-pay__detail {
+  display: grid;
+  gap: 14px;
+  padding: 18px;
+  border-radius: 8px;
+  background: #ffffff;
+  border: 1px solid #edf0f5;
+}
+
+.booking-pay__method {
+  width: 100%;
+  min-height: 88px;
+  display: grid;
+  grid-template-columns: 26px 112px minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 16px 18px;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  color: #111827;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+.booking-pay__method:hover,
+.booking-pay__method.is-active {
+  border-color: #4778ff;
+  box-shadow: 0 0 0 1px #4778ff;
+}
+
+.booking-pay__radio {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid #d1d5db;
+  box-shadow: inset 0 0 0 5px #fff;
+}
+
+.booking-pay__method.is-active .booking-pay__radio {
+  border-color: #4778ff;
+  background: #4778ff;
+}
+
+.booking-pay__logos {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.booking-pay__logos img {
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.booking-pay__method-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.booking-pay__method-copy strong,
+.booking-pay__detail-title strong {
+  color: #111827;
+  font-size: 16px;
+}
+
+.booking-pay__method-copy small,
+.booking-pay__detail-title span,
+.booking-pay__note {
+  color: #6b7280;
+}
+
+.booking-pay__detail-title {
+  padding-bottom: 14px;
+  border-bottom: 1px solid #edf0f5;
+}
+
+.booking-pay__detail-title > span {
+  color: #4778ff;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.booking-pay__card-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.booking-pay__card-form label,
+.booking-pay__promo {
+  display: grid;
+  gap: 8px;
+}
+
+.booking-pay__card-form label:nth-child(-n + 2) {
+  grid-column: 1 / -1;
+}
+
+.booking-pay__card-form span,
+.booking-pay__promo span {
+  color: #6b7280;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.booking-pay__card-form input,
+.booking-pay__promo input {
+  width: 100%;
+  min-height: 46px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid #dfe3ea;
+  background: #fff;
+  color: #111827;
+  font: inherit;
+}
+
+.booking-pay__qr-box {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.booking-pay__qr-image,
+.booking-pay__qr-placeholder {
+  width: 190px;
+  aspect-ratio: 1;
+  border-radius: 8px;
+  background: #f3f4f6;
+  object-fit: contain;
+}
+
+.booking-pay__qr-placeholder {
+  display: grid;
+  place-items: center;
+  color: #6b7280;
+  font-weight: 800;
+}
+
+.booking-pay__qr-copy {
+  display: grid;
+  gap: 8px;
+}
+
+.booking-pay__qr-copy p {
+  margin: 0;
+  color: #4b5563;
+  line-height: 1.6;
+}
+
+.booking-pay__qr-state,
+.booking-pay__qr-link {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 34px;
+  align-items: center;
+  padding: 0 12px;
+  border-radius: 8px;
+  background: #fff4e8;
+  color: #d97706;
+  font-weight: 900;
+}
+
+.booking-pay__qr-state.is-paid {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.booking-pay__qr-link {
+  grid-column: 1 / -1;
+  background: #4778ff;
+  color: #fff;
+  justify-self: start;
+  text-decoration: none;
+}
+
+.booking-pay__error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #dc2626;
+  font-weight: 800;
+}
+
+.booking-pay__note {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+@media (max-width: 980px) {
+  .booking-pay__layout,
+  .booking-pay__qr-box {
+    grid-template-columns: 1fr;
+  }
+
+  .booking-pay__qr-image,
+  .booking-pay__qr-placeholder {
+    width: min(220px, 100%);
+  }
+}
+
+@media (max-width: 560px) {
+  .booking-pay__method {
+    grid-template-columns: 24px 76px minmax(0, 1fr);
+    padding: 14px;
+  }
+
+  .booking-pay__logos img {
+    width: 28px;
+    height: 28px;
+  }
+
+  .booking-pay__card-form {
+    grid-template-columns: 1fr;
   }
 }

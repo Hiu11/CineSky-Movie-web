@@ -22,6 +22,9 @@ export default function Login({ onLoginSuccess, showToast }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
+  const redirectTarget = typeof location.state?.from === "string" && location.state.from.startsWith("/")
+    ? location.state.from
+    : "/";
 
   useEffect(() => {
     const searchParams = new URLSearchParams(location.search);
@@ -100,7 +103,7 @@ export default function Login({ onLoginSuccess, showToast }) {
         message: `Signed in as ${user.fullName || user.name || user.email}.`,
       });
 
-      navigate("/", { replace: true });
+      navigate(redirectTarget, { replace: true });
     } catch (error) {
       showToast?.({
         type: "error",

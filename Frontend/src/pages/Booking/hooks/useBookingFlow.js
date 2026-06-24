@@ -1,6 +1,6 @@
 ﻿import { useCallback, useEffect, useMemo, useState } from "react";
 import QRCode from "qrcode";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import {
   createBooking,
   createMockPaymentSession,
@@ -29,14 +29,14 @@ export const PAYMENT_PROVIDERS = {
     "HDBank", "MSB", "SeABank", "SHB", "VIB", "Eximbank",
     "Nam A Bank", "ABBank", "PVcomBank", "BaoViet Bank",
   ],
-  card: ["Visa", "Mastercard", "JCB", "UnionPay", "Amex"],
-  wallet: ["VNPay QR", "MoMo", "ZaloPay", "ShopeePay"],
+  card: ["Thẻ tín dụng", "Visa", "Mastercard", "JCB", "UnionPay", "Amex"],
+  wallet: ["Momo", "Ví ZaloPay", "Ví ShopeePay", "VNPay QR"],
 };
 
 export const LOCALIZED_PAYMENT_METHODS = [
   { id: "bank", label: "ATM nội địa", helper: "Cổng ngân hàng VNPay" },
-  { id: "card", label: "Thẻ quốc tế", helper: "Visa, Mastercard, JCB" },
-  { id: "wallet", label: "Ví điện tử", helper: "VNPay QR, MoMo, ZaloPay" },
+  { id: "card", label: "Thẻ tín dụng", helper: "Visa, Mastercard, JCB" },
+  { id: "wallet", label: "Ví điện tử", helper: "Momo, ZaloPay, ShopeePay" },
 ];
 
 export const PAYMENT_SEARCH_PLACEHOLDERS = {
@@ -190,6 +190,7 @@ const getLatestSessionUser = () => {
 export function useBookingFlow({ showToast } = {}) {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const movieId = searchParams.get("movieId");
   const queryShowtimeId = searchParams.get("showtimeId");
   const queryScreeningDate = searchParams.get("date");
@@ -210,8 +211,8 @@ export function useBookingFlow({ showToast } = {}) {
   const [selectedSeats, setSelectedSeats] = useState([]);
   const [selectedCinemaName, setSelectedCinemaName] = useState("");
   const [selectedShowtimeId, setSelectedShowtimeId] = useState("");
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("bank");
-  const [selectedProvider, setSelectedProvider] = useState(PAYMENT_PROVIDERS.bank[0]);
+  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState("card");
+  const [selectedProvider, setSelectedProvider] = useState(PAYMENT_PROVIDERS.card[0]);
   const [providerSearch, setProviderSearch] = useState("");
 
   const [useQrPayment, setUseQrPayment] = useState(false);
@@ -293,6 +294,12 @@ export function useBookingFlow({ showToast } = {}) {
         setErrorMessage("");
         const data = await getMovieShowtimes(movieId);
         if (!mounted) return;
+        if (data.movie?.status === "rental") {
+          setMovie(null);
+          setShowtimes([]);
+          setErrorMessage("Phim này đã rời rạp và chỉ hỗ trợ thuê online.");
+          return;
+        }
         setMovie(data.movie);
         setShowtimes(applyShowtimePricing(applyCinemaTimeOffsets(data.showtimes || []), selectedScreeningDate));
         setSelectedCinemaName("");
@@ -472,8 +479,8 @@ export function useBookingFlow({ showToast } = {}) {
     const hasDraftContent =
       Boolean(selectedCinemaName || selectedShowtimeId || selectedSeats.length || selectedFnB.length || paymentForm.promoCode.trim()) ||
       Boolean(paymentForm.ownerName.trim() || paymentForm.reference.trim() || paymentForm.expiry.trim()) ||
-      selectedPaymentMethod !== "bank" ||
-      selectedProvider !== PAYMENT_PROVIDERS.bank[0] ||
+      selectedPaymentMethod !== "card" ||
+      selectedProvider !== PAYMENT_PROVIDERS.card[0] ||
       useQrPayment ||
       isQrPaymentConfirmed;
 
@@ -873,7 +880,12 @@ export function useBookingFlow({ showToast } = {}) {
     if (!isAuthenticated) {
       showToast?.({ type: "info", title: "Cần đăng nhập", message: "Vui lòng đăng nhập trước khi đặt vé." });
       setSubmitMessage({ type: "error", message: "Bạn cần đăng nhập trước khi xác nhận đặt vé." });
-      navigate("/login");
+      navigate("/login", {
+        state: {
+          from: `${location.pathname}${location.search}`,
+          message: "Vui lòng đăng nhập để hoàn tất đặt vé.",
+        },
+      });
       return;
     }
     if (!isPaymentFormReady) {
@@ -957,7 +969,7 @@ export function useBookingFlow({ showToast } = {}) {
   }, [
     selectedShowtime, selectedSeats, isAuthenticated, isPaymentFormReady, isPaymentExpired,
     selectedScreeningDate, selectedScreeningDateLabel, movie, selectedPaymentMethod, selectedProvider,
-    useQrPayment, paymentSession?.id, paymentSession?.status, paymentForm.reference, paymentForm.promoCode, voucherState.code, discountAmount, ticketSubtotal, fnbTotal, serviceFee, sessionUser, currentTime, navigate, showToast, finalTotal,
+    useQrPayment, paymentSession?.id, paymentSession?.status, paymentForm.reference, paymentForm.promoCode, voucherState.code, discountAmount, ticketSubtotal, fnbTotal, serviceFee, sessionUser, currentTime, navigate, location.pathname, location.search, showToast, finalTotal,
   ]);
 
   return {
