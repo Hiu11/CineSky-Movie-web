@@ -12,36 +12,14 @@ const PLAN_NAMES = {
   vip: "Gói CineSky VIP",
   bundle: "Gói Siêu Việt",
 };
-const VALID_PLANS = new Set(["movie", "vip", "bundle"]);
 
 const today = new Date();
 const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate());
 const formatDate = (date) => date.toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
 
-const normalizeMovieId = (id = "") => {
-  const value = String(id || "").trim();
-  const numericValue = Number(value);
-
-  return Number.isFinite(numericValue) && value !== "" ? String(numericValue) : value;
-};
-
-const toRentalCatalog = (movies = []) =>
-  movies.map((movie, index) => ({
-    ...movie,
-    id: `r${String(index + 1).padStart(3, "0")}`,
-    sourceMovieId: movie.id,
-    leftTheatersLabel: "Đã rời rạp",
-  }));
-
-const getInitialPlan = (searchParams) => {
-  const plan = searchParams.get("plan");
-  return VALID_PLANS.has(plan) ? plan : "bundle";
-};
-
 const buildRental = (movie, selectedPlan) => {
   const isVip = selectedPlan === "vip";
   const isSingleMovie = selectedPlan === "movie";
-
   return {
     title: movie?.title || RENTAL_MOVIES[0].title,
     poster: movie?.poster || RENTAL_MOVIES[0].poster,
@@ -58,6 +36,21 @@ const buildRental = (movie, selectedPlan) => {
 
 const getUserDisplayName = (user) =>
   user?.phone || user?.phoneNumber || user?.email || user?.fullName || user?.name || "tài khoản CineSky";
+
+const normalizeMovieId = (id = "") => {
+  const value = String(id || "").trim();
+  const numericValue = Number(value);
+
+  return Number.isFinite(numericValue) && value !== "" ? String(numericValue) : value;
+};
+
+const toRentalCatalog = (movies = []) =>
+  movies.map((movie, index) => ({
+    ...movie,
+    id: `r${String(index + 1).padStart(3, "0")}`,
+    sourceMovieId: movie.id,
+    leftTheatersLabel: "Đã rời rạp",
+  }));
 
 export default function RentPayment({ isLoggedIn = false, user = null }) {
   const { movieId } = useParams();
@@ -81,7 +74,7 @@ export default function RentPayment({ isLoggedIn = false, user = null }) {
   );
   const isUnavailableRental = Boolean(requestedMovieId && !movie);
 
-  const [selectedPlan, setSelectedPlan] = useState(() => getInitialPlan(searchParams));
+  const [selectedPlan, setSelectedPlan] = useState("bundle");
   const [selectedMethod, setSelectedMethod] = useState("card");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
@@ -97,11 +90,6 @@ export default function RentPayment({ isLoggedIn = false, user = null }) {
     from: `${location.pathname}${location.search}`,
     message: "Vui lòng đăng nhập để tiếp tục thanh toán thuê phim.",
   };
-
-  useEffect(() => {
-    const nextPlan = getInitialPlan(searchParams);
-    setSelectedPlan(nextPlan);
-  }, [searchParams]);
 
   useEffect(() => {
     let isMounted = true;
@@ -157,16 +145,9 @@ export default function RentPayment({ isLoggedIn = false, user = null }) {
     }).then(setQrDataUrl).catch(() => setQrDataUrl(""));
   }, [activeMethod.title, rental.title, rental.total, walletOpen]);
 
-  const choosePlan = (plan) => {
-    setSelectedPlan(plan);
-    if (isPay && movie) {
-      navigate(`/rent/pay?movieId=${movie.id}&plan=${plan}`, { replace: true });
-    }
-  };
-
   const continueToPay = () => {
     if (!movie) return;
-    navigate(`/rent/pay?movieId=${movie.id}&plan=${selectedPlan}`);
+    navigate(`/rent/pay?movieId=${movie.id}`);
   };
 
   const handlePayment = () => {
@@ -252,7 +233,7 @@ export default function RentPayment({ isLoggedIn = false, user = null }) {
                 key={item.id}
                 type="button"
                 className={item.id === movie.id ? "is-active" : ""}
-                onClick={() => navigate(`/rent/${item.id}?plan=${selectedPlan}`)}
+                onClick={() => navigate(`/rent/${item.id}`)}
               >
                 <img src={item.poster} alt={item.title} />
                 <span>{item.title}</span>
@@ -260,14 +241,14 @@ export default function RentPayment({ isLoggedIn = false, user = null }) {
             ))}
           </div>
 
-          <button className={"rent-select__movie" + (selectedPlan === "movie" ? " is-active" : "")} onClick={() => choosePlan("movie")}>
+          <button className={"rent-select__movie" + (selectedPlan === "movie" ? " is-active" : "")} onClick={() => setSelectedPlan("movie")}>
             <span>{rental.title}</span>
             <strong>{formatVnd(RENT_PRICE)}</strong>
           </button>
 
           <div className="rent-select__divider"><span>Tiết kiệm hơn với Combo</span></div>
 
-          <button className={"rent-select__combo" + (selectedPlan === "vip" ? " is-active" : "")} onClick={() => choosePlan("vip")}>
+          <button className={"rent-select__combo" + (selectedPlan === "vip" ? " is-active" : "")} onClick={() => setSelectedPlan("vip")}>
             <span className="rent-select__tag">Chỉ 179K!</span>
             <strong>{PLAN_NAMES.vip}</strong>
             <b>{formatVnd(199000)}</b>
@@ -278,7 +259,7 @@ export default function RentPayment({ isLoggedIn = false, user = null }) {
             </ul>
           </button>
 
-          <button className={"rent-select__combo" + (selectedPlan === "bundle" ? " is-active" : "")} onClick={() => choosePlan("bundle")}>
+          <button className={"rent-select__combo" + (selectedPlan === "bundle" ? " is-active" : "")} onClick={() => setSelectedPlan("bundle")}>
             <span className="rent-select__tag">+ 1 Vé CINESKY</span>
             <strong>{PLAN_NAMES.bundle}</strong>
             <b>{formatVnd(99000)}</b>
@@ -333,9 +314,9 @@ export default function RentPayment({ isLoggedIn = false, user = null }) {
                   </>
                 ) : (
                   <>
-                    <p>✓ Thời hạn 1 tháng, gia hạn tự động.</p>
-                    <p>✓ Đã bao gồm phim bạn đang chọn thuê.</p>
-                    <p>✓ Kho phim có sẵn với hơn 10.000 giờ nội dung đặc sắc cùng kho phim thuê Việt và Châu Á.</p>
+                    <p>✓ Thời hạn 1 tháng, gia hạn tự động</p>
+                    <p>✓ Đã bao gồm phim bạn đang chọn thuê</p>
+                    <p>✓ Kho phim có sẵn với hơn 10.000 giờ nội dung đặc sắc cùng kho phim thuê Việt và Châu Á</p>
                   </>
                 )}
               </div>
@@ -431,8 +412,8 @@ export default function RentPayment({ isLoggedIn = false, user = null }) {
               </div>
               <div className="rent-wallet__steps">
                 <p>Bước 1: Mở ứng dụng và đăng nhập {activeMethod.title}</p>
-                <p>Bước 2: Bấm chọn biểu tượng quét QR ở góc phải phía trên màn hình.</p>
-                <p>Bước 3: Bấm chọn "Xác nhận" để thanh toán.</p>
+                <p>Bước 2: Bấm chọn icon quét QR ở góc phải phía trên màn hình</p>
+                <p>Bước 3: Bấm chọn "Xác nhận" để thanh toán</p>
                 <div>Thời hạn thanh toán sẽ hết hạn sau <strong>{countdown}</strong></div>
                 <button type="button" className="rent-wallet__complete" onClick={handleCompletePayment}>
                   Tôi đã thanh toán
