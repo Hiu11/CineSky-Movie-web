@@ -1409,234 +1409,6 @@ const seedMovies = [
     },
   },
   {
-    legacyId: 18,
-    slug: "dao-pho-va-piano",
-    title: "ĐÀO, PHỞ VÀ PIANO",
-    poster: "/assets/images/Đào.jpg",
-    genres: [
-      "Lịch Sử",
-      "Tâm Lý"
-    ],
-    country: "Việt Nam",
-    director: "Phi Tiến Sơn",
-    duration: 100,
-    rating: "T13",
-    status: "now-showing",
-    statusOrder: 0,
-    catalogOrder: 20,
-    heroOrder: null,
-    showtimes: [
-      "09:30",
-      "12:00",
-      "14:30",
-      "17:00"
-    ],
-    releaseDate: "2024",
-    trailer: "https://www.youtube.com/embed/qn1t_biQigc",
-    description: "Lấy bối cảnh Hà Nội trong những năm đầu kháng chiến, Đào, Phở và Piano không kể lịch sử bằng những tuyến sự kiện hoành tráng, mà thông qua đời sống, tình yêu và phẩm giá của những con người bình thường giữa thời đại biến động. Từng khung hình, từng đối thoại và từng nhạc cụ xuất hiện đều gợi lên một không khí rất Hà Nội: thanh lịch, mong manh nhưng không hề yếu đuối. \n\nBộ phim chọn nhìn lịch sử từ mật độ con người, nơi cái đẹp vẫn tồn tại giữa mất mát, nơi tình yêu và nghệ thuật vẫn có thể song song cùng chiến tranh. Vì thế, tác phẩm để lại dư vị rất riêng: nhẹ nhàng mà ám ảnh, tiết chế mà thấm sâu, và rất hợp với những khán giả muốn tìm thấy cảm xúc hơn là chi tiết sự kiện.",
-    cast: [
-      {
-        name: "Doan Quoc Dam",
-        role: "Chien si tre"
-      },
-      {
-        name: "Cao Thi Thuy Linh",
-        role: "Nu chinh"
-      },
-      {
-        name: "Tuan Hung",
-        role: "Nhac cong"
-      },
-      {
-        name: "Trong Trinh",
-        role: "Vai phu noi bat"
-      }
-    ],
-    gallery: [
-      "/assets/images/Đào.jpg",
-      "https://img.youtube.com/vi/qn1t_biQigc/maxresdefault.jpg",
-      "https://img.youtube.com/vi/qn1t_biQigc/sddefault.jpg",
-      "https://img.youtube.com/vi/qn1t_biQigc/hqdefault.jpg"
-    ],
-    trailerFacts: [
-      {
-        label: "Trạng thái",
-        value: "Đang chiếu"
-      },
-      {
-        label: "Độ tuổi",
-        value: "T13"
-      },
-      {
-        label: "Suất nổi bật",
-        value: "4 suất"
-      },
-      {
-        label: "Xem nhanh",
-        value: "09:30 | 12:00 | 14:30"
-      }
-    ],
-    trailerPanel: {
-      label: "Thông tin nhanh",
-      title: "ĐÀO, PHỞ VÀ PIANO",
-      description: "Xem trailer trước khi chọn suất. Khu vực này tóm tắt nhanh trạng thái phát hành, độ tuổi và lịch chiếu nổi bật để bạn quyết định thuận tiện hơn."
-    },
-  },
-  {
-    legacyId: 19,
-    slug: "1990",
-    title: "1990",
-    poster: "/assets/images/1990.webp",
-    genres: [
-      "Tâm Lý",
-      "Hài",
-      "Gia Đình"
-    ],
-    country: "Việt Nam",
-    director: "Nhất Trung",
-    duration: 110,
-    rating: "T16",
-    status: "now-showing",
-    statusOrder: 0,
-    catalogOrder: 21,
-    heroOrder: null,
-    showtimes: [
-      "09:20",
-      "11:00",
-      "12:10",
-      "14:00",
-      "15:00",
-      "17:50",
-      "18:00",
-      "20:40",
-      "21:00"
-    ],
-    releaseDate: "2022",
-    trailer: "https://www.youtube.com/embed/0509zlM8QA8",
-    description: "Ba người phụ nữ cùng sinh năm 1990 và bước vào tuổi 30 với những nút thắt quen thuộc của đời sống hiện đại: tình yêu chẳng dễ gọi tên, sự nghiệp không ổn định như mong đợi và áp lực gia đình luôn hiện hữu trong từng quyết định. Mỗi nhân vật là một mẫu tâm lý khác nhau, nhưng đều gặp nhau ở nỗi lo mình đang chậm hơn người khác một nhịp trong cuộc sống trưởng thành. \n\nPhim sử dụng chất hài nhẹ, đối thoại đời thường và những tình huống dễ đồng cảm để mở ra một bài toán quen thuộc của thế hệ trẻ thành thị: làm sao để vừa sống cho mình, vừa không đánh mất những mối quan hệ quan trọng. Đây là một tác phẩm gần gũi, dễ xem, nhưng vẫn đủ thấm thật để khiến khán giả thấy một phần mình trong đó.",
-    cast: [
-      {
-        name: "Nha Phuong",
-        role: "Nha Van"
-      },
-      {
-        name: "Diem My 9x",
-        role: "Linh Lan"
-      },
-      {
-        name: "Ninh Duong Lan Ngoc",
-        role: "Jessica"
-      },
-      {
-        name: "Duc Phuc",
-        role: "Guest cameo"
-      }
-    ],
-    gallery: [
-      "/assets/images/1990.webp",
-      "https://img.youtube.com/vi/0509zlM8QA8/maxresdefault.jpg",
-      "https://img.youtube.com/vi/0509zlM8QA8/sddefault.jpg",
-      "https://img.youtube.com/vi/0509zlM8QA8/hqdefault.jpg"
-    ],
-    trailerFacts: [
-      {
-        label: "Trạng thái",
-        value: "Đang chiếu"
-      },
-      {
-        label: "Độ tuổi",
-        value: "T16"
-      },
-      {
-        label: "Suất nổi bật",
-        value: "5 suất"
-      },
-      {
-        label: "Xem nhanh",
-        value: "09:20 • 11:00 • 12:10"
-      }
-    ],
-    trailerPanel: {
-      label: "Thông tin nhanh",
-      title: "1990",
-      description: "Xem trailer trước khi chọn suất. Khu vực này tóm tắt nhanh trạng thái phát hành, độ tuổi và lịch chiếu nổi bật để bạn quyết định thuận tiện hơn."
-    },
-  },
-  {
-    legacyId: 20,
-    slug: "mat-biec",
-    title: "MẮT BIẾC",
-    poster: "/assets/images/Mắt biếc.jpg",
-    genres: [
-      "Lãng Mạn",
-      "Tâm Lý"
-    ],
-    country: "Việt Nam",
-    director: "Victor Vũ",
-    duration: 117,
-    rating: "T13",
-    status: "now-showing",
-    statusOrder: 0,
-    catalogOrder: 22,
-    heroOrder: null,
-    showtimes: [
-      "08:30",
-      "10:30",
-      "12:30",
-      "14:30"
-    ],
-    releaseDate: "2019",
-    trailer: "https://www.youtube.com/embed/ITlQ0oU7tDA",
-    description: "Mắt Biếc là câu chuyện thanh xuân thơm mùi làng quê, được kể bằng nhịp chậm và đầy chất thơ về mối tình đơn phương dai dẳng của Ngạn dành cho Hà Lan. Từ những năm tháng trẻ thơ đến lúc bước vào đời, tình cảm ấy vẫn ở đó, đôi khi trong trẻo, đôi khi đau đớn, nhưng luôn là sợi dây âm thầm chi phối mọi lựa chọn của nhân vật. \n\nTác phẩm nổi bật ở cách dùng hình ảnh, âm nhạc và khoảng lặng để tạo nên nỗi buồn tiếc nuối rất Việt Nam. Hơn cả một chuyện tình không thành, phim còn là ký ức về một thời người ta sống chậm hơn, yêu nhiều hơn và mang theo những điều không nói thành lời suốt cả cuộc đời.",
-    cast: [
-      {
-        name: "Tran Nghia",
-        role: "Ngan"
-      },
-      {
-        name: "Truc Anh",
-        role: "Ha Lan"
-      },
-      {
-        name: "Khanh Van",
-        role: "Tra Long"
-      },
-      {
-        name: "Trong Khang",
-        role: "Dung"
-      }
-    ],
-    gallery: [
-      "/assets/images/Mắt biếc.jpg",
-      "https://img.youtube.com/vi/ITlQ0oU7tDA/maxresdefault.jpg",
-      "https://img.youtube.com/vi/ITlQ0oU7tDA/sddefault.jpg",
-      "https://img.youtube.com/vi/ITlQ0oU7tDA/hqdefault.jpg"
-    ],
-    trailerFacts: [
-      {
-        label: "Trạng thái",
-        value: "Đang chiếu"
-      },
-      {
-        label: "Độ tuổi",
-        value: "T13"
-      },
-      {
-        label: "Suất nổi bật",
-        value: "4 suất"
-      },
-      {
-        label: "Xem nhanh",
-        value: "08:30 | 10:30 | 12:30"
-      }
-    ],
-    trailerPanel: {
-      label: "Thông tin nhanh",
-      title: "MẮT BIẾC",
-      description: "Xem trailer trước khi chọn suất. Khu vực này tóm tắt nhanh trạng thái phát hành, độ tuổi và lịch chiếu nổi bật để bạn quyết định thuận tiện hơn."
-    },
-  },
-  {
     legacyId: 21,
     slug: "beauty-and-the-beast",
     title: "BEAUTY AND THE BEAST",
@@ -1652,7 +1424,7 @@ const seedMovies = [
     rating: "P",
     status: "now-showing",
     statusOrder: 0,
-    catalogOrder: 23,
+    catalogOrder: 20,
     heroOrder: null,
     showtimes: [
       "09:00",
@@ -1722,7 +1494,7 @@ const seedMovies = [
     rating: "T16",
     status: "coming-soon",
     statusOrder: 1,
-    catalogOrder: 24,
+    catalogOrder: 21,
     heroOrder: null,
     showtimes: [],
     releaseDate: "08/05/2026",
@@ -1790,7 +1562,7 @@ const seedMovies = [
     rating: "T13",
     status: "coming-soon",
     statusOrder: 1,
-    catalogOrder: 25,
+    catalogOrder: 22,
     heroOrder: null,
     showtimes: [
       "09:30",
@@ -1860,7 +1632,7 @@ const seedMovies = [
     rating: "T16",
     status: "coming-soon",
     statusOrder: 1,
-    catalogOrder: 26,
+    catalogOrder: 23,
     heroOrder: null,
     showtimes: [],
     releaseDate: "15/05/2026",
@@ -1929,7 +1701,7 @@ const seedMovies = [
     rating: "P",
     status: "coming-soon",
     statusOrder: 1,
-    catalogOrder: 27,
+    catalogOrder: 24,
     heroOrder: null,
     showtimes: [],
     releaseDate: "26/06/2026",
@@ -1997,7 +1769,7 @@ const seedMovies = [
     rating: "NR",
     status: "coming-soon",
     statusOrder: 1,
-    catalogOrder: 28,
+    catalogOrder: 25,
     heroOrder: null,
     showtimes: [],
     releaseDate: "Thứ Sáu, 06/03/2026",
@@ -2062,7 +1834,7 @@ const seedMovies = [
     rating: "K",
     status: "coming-soon",
     statusOrder: 1,
-    catalogOrder: 29,
+    catalogOrder: 26,
     heroOrder: null,
     showtimes: [],
     releaseDate: "Thứ Ba, 17/02/2026",
@@ -2127,7 +1899,7 @@ const seedMovies = [
     rating: "C18",
     status: "coming-soon",
     statusOrder: 1,
-    catalogOrder: 30,
+    catalogOrder: 27,
     heroOrder: null,
     showtimes: [],
     releaseDate: "Thứ Sáu, 13/02/2026",
@@ -2191,7 +1963,7 @@ const seedMovies = [
     rating: "T18",
     status: "coming-soon",
     statusOrder: 1,
-    catalogOrder: 31,
+    catalogOrder: 28,
     heroOrder: 8,
     showtimes: [
       "Chưa có lịch"
@@ -2241,6 +2013,214 @@ const seedMovies = [
       label: "Thông tin nhanh",
       title: "ĐẠI TIỆC TRĂNG MÁU",
       description: "Phim hiện chưa có lịch chiếu khả dụng. Bạn vẫn có thể xem trailer, đọc mô tả và theo dõi trạng thái phát hành ngay trên trang chi tiết."
+    },
+  },
+  {
+    legacyId: 18,
+    slug: "dao-pho-va-piano",
+    title: "ĐÀO, PHỞ VÀ PIANO",
+    poster: "/assets/images/Đào.jpg",
+    genres: [
+      "Lịch Sử",
+      "Tâm Lý"
+    ],
+    country: "Việt Nam",
+    director: "Phi Tiến Sơn",
+    duration: 100,
+    rating: "T13",
+    status: "rental",
+    statusOrder: 2,
+    catalogOrder: 29,
+    heroOrder: null,
+    showtimes: [],
+    releaseDate: "2024",
+    trailer: "https://www.youtube.com/embed/qn1t_biQigc",
+    description: "Lấy bối cảnh Hà Nội trong những năm đầu kháng chiến, Đào, Phở và Piano không kể lịch sử bằng những tuyến sự kiện hoành tráng, mà thông qua đời sống, tình yêu và phẩm giá của những con người bình thường giữa thời đại biến động. Từng khung hình, từng đối thoại và từng nhạc cụ xuất hiện đều gợi lên một không khí rất Hà Nội: thanh lịch, mong manh nhưng không hề yếu đuối. \n\nBộ phim chọn nhìn lịch sử từ mật độ con người, nơi cái đẹp vẫn tồn tại giữa mất mát, nơi tình yêu và nghệ thuật vẫn có thể song song cùng chiến tranh. Vì thế, tác phẩm để lại dư vị rất riêng: nhẹ nhàng mà ám ảnh, tiết chế mà thấm sâu, và rất hợp với những khán giả muốn tìm thấy cảm xúc hơn là chi tiết sự kiện.",
+    cast: [
+      {
+        name: "Doan Quoc Dam",
+        role: "Chien si tre"
+      },
+      {
+        name: "Cao Thi Thuy Linh",
+        role: "Nu chinh"
+      },
+      {
+        name: "Tuan Hung",
+        role: "Nhac cong"
+      },
+      {
+        name: "Trong Trinh",
+        role: "Vai phu noi bat"
+      }
+    ],
+    gallery: [
+      "/assets/images/Đào.jpg",
+      "https://img.youtube.com/vi/qn1t_biQigc/maxresdefault.jpg",
+      "https://img.youtube.com/vi/qn1t_biQigc/sddefault.jpg",
+      "https://img.youtube.com/vi/qn1t_biQigc/hqdefault.jpg"
+    ],
+    trailerFacts: [
+      {
+        label: "Trạng thái",
+        value: "Phim thuê"
+      },
+      {
+        label: "Độ tuổi",
+        value: "T13"
+      },
+      {
+        label: "Suất nổi bật",
+        value: "Đã rời rạp"
+      },
+      {
+        label: "Xem nhanh",
+        value: "Thuê phim online"
+      }
+    ],
+    trailerPanel: {
+      label: "Thông tin nhanh",
+      title: "ĐÀO, PHỞ VÀ PIANO",
+      description: "Phim đã rời rạp và được chuyển sang kho thuê online. Bạn có thể xem trailer, đọc thông tin phim và thuê trực tiếp trên CineSky."
+    },
+  },
+  {
+    legacyId: 19,
+    slug: "1990",
+    title: "1990",
+    poster: "/assets/images/1990.webp",
+    genres: [
+      "Tâm Lý",
+      "Hài",
+      "Gia Đình"
+    ],
+    country: "Việt Nam",
+    director: "Nhất Trung",
+    duration: 110,
+    rating: "T16",
+    status: "rental",
+    statusOrder: 2,
+    catalogOrder: 30,
+    heroOrder: null,
+    showtimes: [],
+    releaseDate: "2022",
+    trailer: "https://www.youtube.com/embed/0509zlM8QA8",
+    description: "Ba người phụ nữ cùng sinh năm 1990 và bước vào tuổi 30 với những nút thắt quen thuộc của đời sống hiện đại: tình yêu chẳng dễ gọi tên, sự nghiệp không ổn định như mong đợi và áp lực gia đình luôn hiện hữu trong từng quyết định. Mỗi nhân vật là một mẫu tâm lý khác nhau, nhưng đều gặp nhau ở nỗi lo mình đang chậm hơn người khác một nhịp trong cuộc sống trưởng thành. \n\nPhim sử dụng chất hài nhẹ, đối thoại đời thường và những tình huống dễ đồng cảm để mở ra một bài toán quen thuộc của thế hệ trẻ thành thị: làm sao để vừa sống cho mình, vừa không đánh mất những mối quan hệ quan trọng. Đây là một tác phẩm gần gũi, dễ xem, nhưng vẫn đủ thấm thật để khiến khán giả thấy một phần mình trong đó.",
+    cast: [
+      {
+        name: "Nha Phuong",
+        role: "Nha Van"
+      },
+      {
+        name: "Diem My 9x",
+        role: "Linh Lan"
+      },
+      {
+        name: "Ninh Duong Lan Ngoc",
+        role: "Jessica"
+      },
+      {
+        name: "Duc Phuc",
+        role: "Guest cameo"
+      }
+    ],
+    gallery: [
+      "/assets/images/1990.webp",
+      "https://img.youtube.com/vi/0509zlM8QA8/maxresdefault.jpg",
+      "https://img.youtube.com/vi/0509zlM8QA8/sddefault.jpg",
+      "https://img.youtube.com/vi/0509zlM8QA8/hqdefault.jpg"
+    ],
+    trailerFacts: [
+      {
+        label: "Trạng thái",
+        value: "Phim thuê"
+      },
+      {
+        label: "Độ tuổi",
+        value: "T16"
+      },
+      {
+        label: "Suất nổi bật",
+        value: "Đã rời rạp"
+      },
+      {
+        label: "Xem nhanh",
+        value: "Thuê phim online"
+      }
+    ],
+    trailerPanel: {
+      label: "Thông tin nhanh",
+      title: "1990",
+      description: "Phim đã rời rạp và được chuyển sang kho thuê online. Bạn có thể xem trailer, đọc thông tin phim và thuê trực tiếp trên CineSky."
+    },
+  },
+  {
+    legacyId: 20,
+    slug: "mat-biec",
+    title: "MẮT BIẾC",
+    poster: "/assets/images/Mắt biếc.jpg",
+    genres: [
+      "Lãng Mạn",
+      "Tâm Lý"
+    ],
+    country: "Việt Nam",
+    director: "Victor Vũ",
+    duration: 117,
+    rating: "T13",
+    status: "rental",
+    statusOrder: 2,
+    catalogOrder: 31,
+    heroOrder: null,
+    showtimes: [],
+    releaseDate: "2019",
+    trailer: "https://www.youtube.com/embed/ITlQ0oU7tDA",
+    description: "Mắt Biếc là câu chuyện thanh xuân thơm mùi làng quê, được kể bằng nhịp chậm và đầy chất thơ về mối tình đơn phương dai dẳng của Ngạn dành cho Hà Lan. Từ những năm tháng trẻ thơ đến lúc bước vào đời, tình cảm ấy vẫn ở đó, đôi khi trong trẻo, đôi khi đau đớn, nhưng luôn là sợi dây âm thầm chi phối mọi lựa chọn của nhân vật. \n\nTác phẩm nổi bật ở cách dùng hình ảnh, âm nhạc và khoảng lặng để tạo nên nỗi buồn tiếc nuối rất Việt Nam. Hơn cả một chuyện tình không thành, phim còn là ký ức về một thời người ta sống chậm hơn, yêu nhiều hơn và mang theo những điều không nói thành lời suốt cả cuộc đời.",
+    cast: [
+      {
+        name: "Tran Nghia",
+        role: "Ngan"
+      },
+      {
+        name: "Truc Anh",
+        role: "Ha Lan"
+      },
+      {
+        name: "Khanh Van",
+        role: "Tra Long"
+      },
+      {
+        name: "Trong Khang",
+        role: "Dung"
+      }
+    ],
+    gallery: [
+      "/assets/images/Mắt biếc.jpg",
+      "https://img.youtube.com/vi/ITlQ0oU7tDA/maxresdefault.jpg",
+      "https://img.youtube.com/vi/ITlQ0oU7tDA/sddefault.jpg",
+      "https://img.youtube.com/vi/ITlQ0oU7tDA/hqdefault.jpg"
+    ],
+    trailerFacts: [
+      {
+        label: "Trạng thái",
+        value: "Phim thuê"
+      },
+      {
+        label: "Độ tuổi",
+        value: "T13"
+      },
+      {
+        label: "Suất nổi bật",
+        value: "Đã rời rạp"
+      },
+      {
+        label: "Xem nhanh",
+        value: "Thuê phim online"
+      }
+    ],
+    trailerPanel: {
+      label: "Thông tin nhanh",
+      title: "MẮT BIẾC",
+      description: "Phim đã rời rạp và được chuyển sang kho thuê online. Bạn có thể xem trailer, đọc thông tin phim và thuê trực tiếp trên CineSky."
     },
   }
 ];

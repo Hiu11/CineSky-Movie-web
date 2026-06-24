@@ -99,11 +99,26 @@ const buildFallbackCast = (movie) => [
 
 const buildTrailerFacts = (movie, timeMap = new Map()) => {
   const previewTimes = getMovieTimes(movie, timeMap).slice(0, 5);
+  const statusLabel = movie.status === "rental"
+    ? "Phim thuê"
+    : movie.status === "coming-soon"
+      ? "Sắp chiếu"
+      : "Đang chiếu";
+  const highlightLabel = movie.status === "rental"
+    ? "Đã rời rạp"
+    : previewTimes.length > 0
+      ? `${previewTimes.length} suất`
+      : "Đang cập nhật";
+  const quickLabel = movie.status === "rental"
+    ? "Thuê phim online"
+    : previewTimes.length > 0
+      ? previewTimes.slice(0, 3).join(" • ")
+      : "Chưa có lịch chiếu";
 
   return [
     {
       label: "Trạng thái",
-      value: movie.status === "coming-soon" ? "Sắp chiếu" : "Đang chiếu",
+      value: statusLabel,
     },
     {
       label: "Độ tuổi",
@@ -111,14 +126,11 @@ const buildTrailerFacts = (movie, timeMap = new Map()) => {
     },
     {
       label: "Suất nổi bật",
-      value: previewTimes.length > 0 ? `${previewTimes.length} suất` : "Đang cập nhật",
+      value: highlightLabel,
     },
     {
       label: "Xem nhanh",
-      value:
-        previewTimes.length > 0
-          ? previewTimes.slice(0, 3).join(" • ")
-          : "Chưa có lịch chiếu",
+      value: quickLabel,
     },
   ];
 };
@@ -130,7 +142,9 @@ const buildTrailerPanel = (movie, timeMap = new Map()) => {
     label: "Thông tin nhanh",
     title: movie.title,
     description:
-      previewTimes.length > 0
+      movie.status === "rental"
+        ? "Phim đã rời rạp và được chuyển sang kho thuê online. Bạn có thể xem trailer, đọc thông tin phim và thuê trực tiếp trên CineSky."
+        : previewTimes.length > 0
         ? "Xem trailer trước khi chọn suất. Khu vực này tóm tắt nhanh trạng thái phát hành, độ tuổi và lịch chiếu nổi bật để bạn quyết định thuận tiện hơn."
         : "Phim hiện chưa có lịch chiếu khả dụng. Bạn vẫn có thể xem trailer, đọc mô tả và theo dõi trạng thái phát hành ngay trên trang chi tiết.",
   };
@@ -233,6 +247,8 @@ const buildMovieFilter = (query) => {
 
   if (query.status && query.status !== "all") {
     filter.status = query.status;
+  } else if (!["1", "true", "yes"].includes(String(query.includeRental || "").toLowerCase())) {
+    filter.status = { $ne: "rental" };
   }
 
   if (query.search) {

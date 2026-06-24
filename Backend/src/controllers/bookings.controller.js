@@ -15,6 +15,7 @@ const POINTS_PER_TICKET = 100;
 const TICKET_ALPHABET = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const SEAT_LOCK_MINUTES = 10;
 const DEFAULT_SERVICE_FEE_PER_TICKET = 3000;
+const RENTAL_BOOKING_MESSAGE = "Phim này đã rời rạp và chỉ hỗ trợ thuê online.";
 const WEEKEND_SURCHARGE_RATE = 0.18;
 const HOLIDAY_SURCHARGE_RATE = 0.28;
 const FIXED_HOLIDAY_DATES = new Set(["01-01", "04-30", "05-01", "09-02", "12-24", "12-25"]);
@@ -685,7 +686,18 @@ const bookingsController = {
 
       await cleanupExpiredSeatLocks();
 
-      const showtime = await ShowtimeModel.findById(showtimeId);
+      const [movie, showtime] = await Promise.all([
+        MovieModel.findOne({ legacyId, deletedAt: null }),
+        ShowtimeModel.findById(showtimeId),
+      ]);
+
+      if (!movie) {
+        return res.status(404).send({ success: false, message: "Movie not found", data: null });
+      }
+
+      if (movie.status === "rental") {
+        return res.status(409).send({ success: false, message: RENTAL_BOOKING_MESSAGE, data: null });
+      }
 
       if (!showtime || showtime.movieLegacyId !== legacyId) {
         return res.status(404).send({ success: false, message: "Showtime not found", data: null });
@@ -913,6 +925,14 @@ const bookingsController = {
         return res.status(404).send({
           success: false,
           message: "Movie not found",
+          data: null,
+        });
+      }
+
+      if (movie.status === "rental") {
+        return res.status(409).send({
+          success: false,
+          message: RENTAL_BOOKING_MESSAGE,
           data: null,
         });
       }

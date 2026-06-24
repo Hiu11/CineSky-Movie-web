@@ -179,7 +179,7 @@ const buildTrailerFacts = (movie) => {
   return [
     {
       label: "Trạng thái",
-      value: movie.status === "coming-soon" ? "Sắp chiếu" : "Đang chiếu",
+      value: movie.status === "rental" ? "Phim thuê" : movie.status === "coming-soon" ? "Sắp chiếu" : "Đang chiếu",
     },
     {
       label: "Độ tuổi",

@@ -264,9 +264,35 @@ const ensureAdminSampleData = async () => {
     })
   );
 
-  await FavoriteModel.bulkWrite(
-    sampleUserDocs.flatMap((user, userIndex) =>
-      movies.slice(userIndex, userIndex + 3).map((movie) => ({
+  const duplicateFavorites = await FavoriteModel.aggregate([
+    {
+      $group: {
+        _id: { userId: "$userId", movieLegacyId: "$movieLegacyId" },
+        ids: { $push: "$_id" },
+        count: { $sum: 1 },
+      },
+    },
+    { $match: { count: { $gt: 1 } } },
+  ]);
+
+  if (duplicateFavorites.length > 0) {
+    await FavoriteModel.deleteMany({
+      _id: { $in: duplicateFavorites.flatMap((item) => item.ids.slice(1)) },
+    });
+  }
+
+  const favoriteSeedPairs = new Set();
+  const favoriteSeedWrites = sampleUserDocs.flatMap((user, userIndex) =>
+    movies.slice(userIndex, userIndex + 3).map((movie) => {
+      const pairKey = `${String(user._id)}:${Number(movie.legacyId)}`;
+
+      if (favoriteSeedPairs.has(pairKey)) {
+        return null;
+      }
+
+      favoriteSeedPairs.add(pairKey);
+
+      return {
         updateOne: {
           filter: { userId: user._id, movieLegacyId: movie.legacyId },
           update: {
@@ -280,9 +306,21 @@ const ensureAdminSampleData = async () => {
           },
           upsert: true,
         },
-      }))
-    )
-  );
+      };
+    })
+  ).filter(Boolean);
+
+  if (favoriteSeedWrites.length > 0) {
+    try {
+      await FavoriteModel.bulkWrite(favoriteSeedWrites, { ordered: false });
+    } catch (error) {
+      if (error?.code !== 11000) {
+        throw error;
+      }
+
+      console.warn("Skipped duplicate favorite seed entries");
+    }
+  }
 
   await FeedbackModel.bulkWrite(
     sampleUserDocs.map((user, index) => ({
@@ -341,7 +379,7 @@ const compactMovieCatalogOrder = async () => {
   await Promise.all(
     movies.map((movie, index) => {
       const nextCatalogOrder = index + 1;
-      const nextStatusOrder = movie.status === "coming-soon" ? 1 : 0;
+      const nextStatusOrder = movie.status === "rental" ? 2 : movie.status === "coming-soon" ? 1 : 0;
 
       if (
         Number(movie.catalogOrder) === nextCatalogOrder &&
@@ -361,6 +399,36 @@ const compactMovieCatalogOrder = async () => {
       );
     })
   );
+};
+
+const migrateFavoriteMovieLegacyIds = async () => {
+  for (const [oldId, newId] of movieLegacyIdMigrationMap.entries()) {
+    const favorites = await FavoriteModel.find({ movieLegacyId: oldId }).select("_id userId");
+
+    for (const favorite of favorites) {
+      const targetExists = await FavoriteModel.exists({ userId: favorite.userId, movieLegacyId: -newId });
+
+      if (targetExists) {
+        await FavoriteModel.deleteOne({ _id: favorite._id });
+      } else {
+        await FavoriteModel.updateOne({ _id: favorite._id }, { $set: { movieLegacyId: -newId } });
+      }
+    }
+  }
+
+  for (const newId of movieLegacyIdMigrationMap.values()) {
+    const favorites = await FavoriteModel.find({ movieLegacyId: -newId }).select("_id userId");
+
+    for (const favorite of favorites) {
+      const targetExists = await FavoriteModel.exists({ userId: favorite.userId, movieLegacyId: newId });
+
+      if (targetExists) {
+        await FavoriteModel.deleteOne({ _id: favorite._id });
+      } else {
+        await FavoriteModel.updateOne({ _id: favorite._id }, { $set: { movieLegacyId: newId } });
+      }
+    }
+  }
 };
 
 export const ensureMovieSeedData = async () => {
@@ -400,21 +468,22 @@ export const ensureMovieSeedData = async () => {
   );
 
   await compactMovieCatalogOrder();
+  await MovieModel.updateMany({ status: "rental", deletedAt: null }, { $set: { heroOrder: null, showtimes: [] } });
 
   await Promise.all(
     [...movieLegacyIdMigrationMap.entries()].flatMap(([oldId, newId]) => [
       ShowtimeModel.updateMany({ movieLegacyId: oldId }, { $set: { movieLegacyId: -newId } }),
       BookingModel.updateMany({ movieLegacyId: oldId }, { $set: { movieLegacyId: -newId } }),
-      FavoriteModel.updateMany({ movieLegacyId: oldId }, { $set: { movieLegacyId: -newId } }),
       ReviewModel.updateMany({ movieLegacyId: oldId }, { $set: { movieLegacyId: -newId } }),
     ])
   );
+
+  await migrateFavoriteMovieLegacyIds();
 
   await Promise.all(
     [...movieLegacyIdMigrationMap.values()].flatMap((newId) => [
       ShowtimeModel.updateMany({ movieLegacyId: -newId }, { $set: { movieLegacyId: newId } }),
       BookingModel.updateMany({ movieLegacyId: -newId }, { $set: { movieLegacyId: newId } }),
-      FavoriteModel.updateMany({ movieLegacyId: -newId }, { $set: { movieLegacyId: newId } }),
       ReviewModel.updateMany({ movieLegacyId: -newId }, { $set: { movieLegacyId: newId } }),
     ])
   );

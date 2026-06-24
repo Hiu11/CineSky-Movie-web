@@ -107,7 +107,7 @@ const movieSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["now-showing", "coming-soon"],
+      enum: ["now-showing", "coming-soon", "rental"],
       default: "now-showing",
     },
     statusOrder: {

@@ -201,7 +201,7 @@ export const buildAdminAnalyticsPayload = ({ bookings = [], movies = [], users =
         id: formatMovieId(movie.legacyId || movie.id),
         label: title,
         value: byMovie.get(title) || 0,
-        status: movie.status === "coming-soon" ? "Sắp chiếu" : "Đang chiếu",
+        status: movie.status === "rental" ? "Phim thuê" : movie.status === "coming-soon" ? "Sắp chiếu" : "Đang chiếu",
         genres: Array.isArray(movie.genres) ? movie.genres.join(", ") : "Chưa cập nhật",
         releaseDate: movie.releaseDate || "Chưa cập nhật",
       };
