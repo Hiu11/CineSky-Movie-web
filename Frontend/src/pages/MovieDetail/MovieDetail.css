@@ -319,6 +319,12 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.24);
 }
 
+.md-rent-btn {
+  border-color: rgba(71, 120, 255, 0.62) !important;
+  background: rgba(71, 120, 255, 0.14) !important;
+  color: #cfe0ff !important;
+}
+
 .md-secondary-btn.is-favorite:hover {
   border-color: rgba(251, 113, 133, 0.82);
   filter: saturate(1.08) brightness(1.04);

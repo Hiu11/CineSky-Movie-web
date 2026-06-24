@@ -230,7 +230,7 @@ export const getAdminStatusTone = (status = "") => {
     return "info";
   }
 
-  if (value.includes("member") || value.includes("user") || value.includes("mock")) {
+  if (value.includes("member") || value.includes("user") || value.includes("mock") || value.includes("thuê") || value.includes("rental")) {
     return "purple";
   }
 
@@ -695,7 +695,11 @@ export const buildAnalyticsData = ({ bookings = [], movies = [], users = [], fee
         id: movie.id,
         label: title,
         value: byMovie.get(title) || 0,
-        status: movie.status === "Coming soon" || movie.status === "coming-soon" ? "Sắp chiếu" : "Đang chiếu",
+        status: normalizeMovieStatusValue(movie.statusKey || movie.status) === "rental"
+          ? "Phim thuê"
+          : normalizeMovieStatusValue(movie.statusKey || movie.status) === "coming-soon"
+            ? "Sắp chiếu"
+            : "Đang chiếu",
         genres: Array.isArray(movie.genres) ? movie.genres.join(", ") : movie.value || "Chưa cập nhật",
         releaseDate: movie.releaseDate || movie.time || "Chưa cập nhật",
       };
@@ -742,11 +746,26 @@ export const joinKeyValueLines = (items = [], keyName = "label", valueName = "va
     ? items.map((item) => `${item?.[keyName] || ""}: ${item?.[valueName] || ""}`.trim()).join("\n")
     : "";
 
+export const normalizeMovieStatusValue = (status = "") => {
+  const value = String(status || "").trim().toLowerCase();
+
+  if (value === "rental" || value.includes("thuê")) {
+    return "rental";
+  }
+
+  if (value === "coming-soon" || value.includes("coming") || value.includes("sắp")) {
+    return "coming-soon";
+  }
+
+  return "now-showing";
+};
+
 export const mapMovieToRecord = (movie, index = null) => ({
   ...movie,
   id: String(movie.id),
   name: movie.title,
-  status: movie.status === "coming-soon" ? "Coming soon" : "Now showing",
+  statusKey: normalizeMovieStatusValue(movie.status),
+  status: movie.status === "rental" ? "Phim thuê" : movie.status === "coming-soon" ? "Coming soon" : "Now showing",
   time: movie.releaseDate || movie.release || "Not updated",
   value: `${movie.rating || "P"} • ${movie.duration || 0} min • ${(movie.genres || []).join(", ")}`,
   catalogOrder: Number.isInteger(index) ? index + 1 : movie.catalogOrder,
@@ -824,7 +843,7 @@ export const mapMovieToForm = (movie) => ({
   director: movie.director || "",
   duration: String(movie.duration || ""),
   rating: movie.rating || "P",
-  status: movie.status || "now-showing",
+  status: normalizeMovieStatusValue(movie.statusKey || movie.status),
   releaseDate: movie.releaseDate || movie.release || "",
   trailer: movie.trailer || "",
   description: movie.description || "",
@@ -885,16 +904,26 @@ export const validateMovieForm = (form, movies = [], editingId = "") => {
 
   const otherMovies = movies.filter((movie) => movie.id !== editingId);
   const nowShowingCount = otherMovies.filter((movie) =>
-    movie.status === "Now showing" || movie.status === "now-showing"
+    normalizeMovieStatusValue(movie.statusKey || movie.status) === "now-showing"
+  ).length;
+  const theatricalCount = otherMovies.filter((movie) =>
+    normalizeMovieStatusValue(movie.statusKey || movie.status) !== "rental"
   ).length;
   const totalMovieCount = otherMovies.length;
   const catalogOrder = Number(form.catalogOrder);
   const isComingSoon = form.status === "coming-soon";
-  const minCatalogOrder = isComingSoon ? nowShowingCount + 1 : 1;
-  const maxCatalogOrder = isComingSoon ? totalMovieCount + 1 : nowShowingCount + 1;
+  const isRental = form.status === "rental";
+  const minCatalogOrder = isRental ? theatricalCount + 1 : isComingSoon ? nowShowingCount + 1 : 1;
+  const maxCatalogOrder = isRental
+    ? totalMovieCount + 1
+    : isComingSoon
+      ? theatricalCount + 1
+      : nowShowingCount + 1;
 
   if (!Number.isFinite(catalogOrder) || catalogOrder < minCatalogOrder || catalogOrder > maxCatalogOrder) {
-    return isComingSoon
+    return isRental
+      ? `Phim thuê phải nằm sau phim đang chiếu và sắp chiếu. Vui lòng nhập thứ tự từ ${minCatalogOrder} đến ${maxCatalogOrder}.`
+      : isComingSoon
       ? `Phim sắp chiếu phải nằm sau phim đang chiếu. Vui lòng nhập thứ tự từ ${minCatalogOrder} đến ${maxCatalogOrder}.`
       : `Phim đang chiếu chỉ được nhập thứ tự từ 1 đến ${maxCatalogOrder}.`;
   }

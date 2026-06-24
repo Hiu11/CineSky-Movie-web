@@ -280,7 +280,7 @@ export default function AdminPage() {
 
     const loadMovies = async () => {
       try {
-        const movies = await getMovies({ limit: 500 }).catch(() => []);
+        const movies = await getMovies({ limit: 500, includeRental: "1" }).catch(() => []);
         const deletedMovies = await getAdminDeletedMovies().catch(() => []);
 
         if (!isMounted) {
@@ -483,13 +483,15 @@ export default function AdminPage() {
   const activeRecords = useMemo(() => records[activeModule] || [], [activeModule, records]);
   const movieOrderHints = useMemo(() => {
     const nowShowingMovies = records.movies.filter((movie) =>
-      movie.status === "Now showing" || movie.status === "now-showing"
+      movie.statusKey === "now-showing" || movie.status === "Now showing" || movie.status === "now-showing"
     );
+    const theatricalMovies = records.movies.filter((movie) => movie.statusKey !== "rental" && movie.status !== "Phim thuê" && movie.status !== "rental");
 
     return {
       nextMovieId: getNextMovieId([...records.movies, ...records.trash]),
       nowShowingCatalogOrder: getNextMovieOrder(nowShowingMovies, "catalogOrder"),
-      comingSoonCatalogOrder: getNextMovieOrder(records.movies, "catalogOrder"),
+      comingSoonCatalogOrder: getNextMovieOrder(theatricalMovies, "catalogOrder"),
+      rentalCatalogOrder: getNextMovieOrder(records.movies, "catalogOrder"),
       heroOrder: getNextMovieOrder(
         records.movies.filter((movie) => movie.heroOrder !== null && movie.heroOrder !== undefined),
         "heroOrder"
@@ -842,7 +844,7 @@ export default function AdminPage() {
         }
 
         const nextRecord = mapMovieToRecord(savedMovie);
-        const refreshedMovies = await getMovies({ limit: 500 })
+        const refreshedMovies = await getMovies({ limit: 500, includeRental: "1" })
           .then((movies) => (Array.isArray(movies) ? movies.map(mapMovieToRecord) : null))
           .catch(() => null);
         localStorage.removeItem(getDraftKey("movies"));

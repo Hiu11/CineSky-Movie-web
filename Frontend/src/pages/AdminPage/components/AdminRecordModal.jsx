@@ -195,14 +195,23 @@ export default function AdminRecordModal({
                       </select>
                       <select value={form.status} onChange={(event) => {
                         const nextStatus = event.target.value;
-                        const nextCatalogOrder = nextStatus === "coming-soon"
-                          ? movieOrderHints.comingSoonCatalogOrder
-                          : movieOrderHints.nowShowingCatalogOrder;
+                        const nextCatalogOrder = nextStatus === "rental"
+                          ? movieOrderHints.rentalCatalogOrder
+                          : nextStatus === "coming-soon"
+                            ? movieOrderHints.comingSoonCatalogOrder
+                            : movieOrderHints.nowShowingCatalogOrder;
 
-                        setForm({ ...form, status: nextStatus, catalogOrder: nextCatalogOrder || form.catalogOrder });
+                        setForm({
+                          ...form,
+                          status: nextStatus,
+                          catalogOrder: nextCatalogOrder || form.catalogOrder,
+                          heroOrder: nextStatus === "rental" ? "" : form.heroOrder,
+                          showtimes: nextStatus === "rental" ? "" : form.showtimes,
+                        });
                       }}>
                         <option value="now-showing">Đang chiếu</option>
                         <option value="coming-soon">Sắp chiếu</option>
+                        <option value="rental">Phim thuê</option>
                       </select>
                     </div>
                     <section className="admin-cast-editor admin-field--wide">

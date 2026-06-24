@@ -242,6 +242,7 @@ export default function MovieDetail() {
   }, [movie?.id]);
 
   const isComingSoon = movie?.status === "coming-soon";
+  const isRental = movie?.status === "rental";
 
   const quickFacts = useMemo(
     () =>
@@ -321,7 +322,7 @@ export default function MovieDetail() {
   };
 
   const handleOpenRelatedMovie = (item) => {
-    navigate(`/movie/${item.id}?tab=${item.status === "coming-soon" ? "soon" : "now"}`);
+    navigate(`/movie/${item.id}?tab=${item.status === "rental" ? "rent" : item.status === "coming-soon" ? "soon" : "now"}`);
   };
 
   const handleToggleFavorite = async () => {
@@ -435,7 +436,7 @@ export default function MovieDetail() {
         <div className="md-content-panel is-ready">
           <div className="md-detail-copy">
           <div className="md-topline">
-            <span className="md-status-chip">{isComingSoon ? "Sắp chiếu" : "Đang chiếu"}</span>
+            <span className="md-status-chip">{isRental ? "Phim thuê" : isComingSoon ? "Sắp chiếu" : "Đang chiếu"}</span>
             <span className={`md-rating-chip ${movie.ratingClass}`}>{movie.rating}</span>
           </div>
 
@@ -463,10 +464,10 @@ export default function MovieDetail() {
             <button
               type="button"
               className="md-primary-btn"
-              onClick={() => navigate(`/booking?movieId=${movie.id}`)}
+              onClick={() => isRental ? navigate(`/rent?movieId=${movie.id}`) : navigate(`/booking?movieId=${movie.id}`)}
               disabled={isComingSoon}
             >
-              {isComingSoon ? "Chưa mở đặt vé" : "Đặt vé ngay"}
+              {isRental ? "Thuê phim" : isComingSoon ? "Chưa mở đặt vé" : "Đặt vé ngay"}
             </button>
             <button type="button" className="md-secondary-btn" onClick={handleScrollToTrailer}>
               Xem trailer
@@ -484,7 +485,7 @@ export default function MovieDetail() {
           <aside className="md-highlight-card">
             <div>
               <span className="md-highlight-card__label">Lịch chiếu nhanh</span>
-              <strong>{isComingSoon ? "Đang cập nhật" : `${previewTimes.length} suất nổi bật`}</strong>
+              <strong>{isRental ? "Đã rời rạp" : isComingSoon ? "Đang cập nhật" : `${previewTimes.length} suất nổi bật`}</strong>
             </div>
             <div className="md-highlight-card__times">
               {previewTimes.length > 0 ? (
@@ -552,7 +553,11 @@ export default function MovieDetail() {
             </div>
 
             <div className="md-trailer-sideActions">
-              {!isComingSoon ? (
+              {isRental ? (
+                <button type="button" className="md-primary-btn" onClick={() => navigate(`/rent?movieId=${movie.id}`)}>
+                  Thuê phim
+                </button>
+              ) : !isComingSoon ? (
                 <button type="button" className="md-primary-btn" onClick={() => navigate(`/booking?movieId=${movie.id}`)}>
                   Đặt vé ngay
                 </button>

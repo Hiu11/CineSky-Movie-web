@@ -309,25 +309,30 @@ const clampOrder = (value, fallback = 1) =>
   Math.max(1, Math.floor(Number(value) || fallback));
 
 const getMovieStatusOrder = (status = "now-showing") =>
-  status === "coming-soon" ? 1 : 0;
+  status === "rental" ? 2 : status === "coming-soon" ? 1 : 0;
 
 const getMovieOrderContext = async (excludeLegacyId = null) => {
   const excludeFilter = excludeLegacyId === null ? {} : { legacyId: { $ne: Number(excludeLegacyId) } };
-  const [nowShowingCount, comingSoonCount] = await Promise.all([
+  const [nowShowingCount, comingSoonCount, rentalCount] = await Promise.all([
     MovieModel.countDocuments({ deletedAt: null, status: "now-showing", ...excludeFilter }),
     MovieModel.countDocuments({ deletedAt: null, status: "coming-soon", ...excludeFilter }),
+    MovieModel.countDocuments({ deletedAt: null, status: "rental", ...excludeFilter }),
   ]);
 
   return {
     nowShowingCount,
     comingSoonCount,
-    totalCount: nowShowingCount + comingSoonCount,
+    rentalCount,
+    theatricalCount: nowShowingCount + comingSoonCount,
+    totalCount: nowShowingCount + comingSoonCount + rentalCount,
   };
 };
 
 const getDefaultCatalogOrderForStatus = (status, context) =>
-  status === "coming-soon"
+  status === "rental"
     ? context.totalCount + 1
+    : status === "coming-soon"
+      ? context.theatricalCount + 1
     : context.nowShowingCount + 1;
 
 const getCurrentCatalogOrderRank = async (legacyId) => {
@@ -342,12 +347,22 @@ const getCurrentCatalogOrderRank = async (legacyId) => {
 
 const validateCatalogOrderForStatus = (status, order, context) => {
   const nextOrder = clampOrder(order);
-  const minOrder = status === "coming-soon" ? context.nowShowingCount + 1 : 1;
-  const maxOrder = status === "coming-soon"
+  const minOrder = status === "rental"
+    ? context.theatricalCount + 1
+    : status === "coming-soon"
+      ? context.nowShowingCount + 1
+      : 1;
+  const maxOrder = status === "rental"
     ? context.totalCount + 1
-    : context.nowShowingCount + 1;
+    : status === "coming-soon"
+      ? context.theatricalCount + 1
+      : context.nowShowingCount + 1;
 
   if (nextOrder < minOrder || nextOrder > maxOrder) {
+    if (status === "rental") {
+      return `Phim thuê phải nằm sau phim đang chiếu và sắp chiếu. Vui lòng nhập thứ tự từ ${minOrder} đến ${maxOrder}.`;
+    }
+
     return status === "coming-soon"
       ? `Phim sắp chiếu phải nằm sau phim đang chiếu. Vui lòng nhập thứ tự từ ${minOrder} đến ${maxOrder}.`
       : `Phim đang chiếu chỉ được nhập thứ tự từ 1 đến ${maxOrder}.`;
@@ -460,11 +475,21 @@ const compactMovieOrder = async (field) => {
   );
 
   await Promise.all(
-    movies.map((movie, index) =>
-      Number(movie[field]) === index + 1
+    movies.map((movie, index) => {
+      const nextUpdate = {};
+
+      if (Number(movie[field]) !== index + 1) {
+        nextUpdate[field] = index + 1;
+      }
+
+      if (field === "catalogOrder" && Number(movie.statusOrder) !== getMovieStatusOrder(movie.status)) {
+        nextUpdate.statusOrder = getMovieStatusOrder(movie.status);
+      }
+
+      return Object.keys(nextUpdate).length === 0
         ? null
-        : MovieModel.updateOne({ _id: movie._id }, { $set: { [field]: index + 1 } })
-    )
+        : MovieModel.updateOne({ _id: movie._id }, { $set: nextUpdate });
+    })
   );
 };
 
@@ -757,6 +782,7 @@ const serializeAdminMovie = (movie) => ({
 const buildMoviePayload = (body = {}) => {
   const title = String(body.title || body.name || "").trim();
   const slug = slugify(body.slug || title);
+  const status = ["now-showing", "coming-soon", "rental"].includes(body.status) ? body.status : "now-showing";
   const catalogOrder =
     body.catalogOrder === "" || body.catalogOrder === null || body.catalogOrder === undefined
       ? null
@@ -776,11 +802,11 @@ const buildMoviePayload = (body = {}) => {
     director: String(body.director || "").trim(),
     duration: Math.max(Number(body.duration) || 0, 0),
     rating: String(body.rating || "P").trim().toUpperCase(),
-    status: ["now-showing", "coming-soon"].includes(body.status) ? body.status : "now-showing",
-    statusOrder: getMovieStatusOrder(body.status),
+    status,
+    statusOrder: getMovieStatusOrder(status),
     catalogOrder: Number.isFinite(catalogOrder) && catalogOrder > 0 ? clampOrder(catalogOrder) : null,
-    heroOrder: Number.isFinite(heroOrder) ? heroOrder : null,
-    showtimes: normalizeStringList(body.showtimes),
+    heroOrder: status === "rental" ? null : Number.isFinite(heroOrder) ? heroOrder : null,
+    showtimes: status === "rental" ? [] : normalizeStringList(body.showtimes),
     releaseDate: String(body.releaseDate || body.release || "").trim(),
     trailer: normalizeYoutubeTrailer(body.trailer),
     description: String(body.description || "").trim(),
