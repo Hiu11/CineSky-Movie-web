@@ -3,7 +3,7 @@
   top: 0;
   left: 0;
   width: 100%;
-  z-index: 1800;
+  z-index: 9000;
   background: transparent;
   border-bottom: none;
   box-shadow: none;
@@ -938,7 +938,7 @@
 }
 
 .main-header {
-  z-index: 1000;
+  z-index: 9000;
 }
 
 .header-page-transition {
@@ -1191,7 +1191,7 @@ body.is-page-transitioning .App > :not(.main-header):not(.toast-viewport):not(.f
 
 .nav-dropdown__panel {
   position: absolute;
-  z-index: 80;
+  z-index: 9100;
   top: calc(100% + 8px);
   left: 50%;
   width: max-content;

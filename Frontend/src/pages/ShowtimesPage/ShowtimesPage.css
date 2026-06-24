@@ -95,7 +95,7 @@
 
 .showtimes-toolbar {
   position: relative;
-  z-index: 3200;
+  z-index: 20;
   max-width: 1240px;
   margin: 0 auto 18px;
   padding: 18px;
@@ -176,7 +176,7 @@
 }
 
 .showtimes-filter-select.is-open {
-  z-index: 3300;
+  z-index: 30;
 }
 
 .showtimes-filter-select__label {
@@ -227,7 +227,7 @@
 
 .showtimes-filter-select__menu {
   position: absolute;
-  z-index: 3400;
+  z-index: 40;
   top: calc(100% + 8px);
   left: 0;
   width: 100%;
