@@ -156,9 +156,16 @@ export default function RentPayment({ isLoggedIn = false, user = null }) {
     }).then(setQrDataUrl).catch(() => setQrDataUrl(""));
   }, [activeMethod.title, rental.title, rental.total, walletOpen]);
 
+  const choosePlan = (plan) => {
+    setSelectedPlan(plan);
+    if (isPay && movie) {
+      navigate(`/rent/pay?movieId=${movie.id}&plan=${plan}`, { replace: true });
+    }
+  };
+
   const continueToPay = () => {
     if (!movie) return;
-    navigate(`/rent/pay?movieId=${movie.id}`);
+    navigate(`/rent/pay?movieId=${movie.id}&plan=${selectedPlan}`);
   };
 
   const handlePayment = () => {
@@ -244,7 +251,7 @@ export default function RentPayment({ isLoggedIn = false, user = null }) {
                 key={item.id}
                 type="button"
                 className={item.id === movie.id ? "is-active" : ""}
-                onClick={() => navigate(`/rent/${item.id}`)}
+                onClick={() => navigate(`/rent/${item.id}?plan=${selectedPlan}`)}
               >
                 <img src={item.poster} alt={item.title} />
                 <span>{item.title}</span>
@@ -252,14 +259,14 @@ export default function RentPayment({ isLoggedIn = false, user = null }) {
             ))}
           </div>
 
-          <button className={"rent-select__movie" + (selectedPlan === "movie" ? " is-active" : "")} onClick={() => setSelectedPlan("movie")}>
+          <button className={"rent-select__movie" + (selectedPlan === "movie" ? " is-active" : "")} onClick={() => choosePlan("movie")}>
             <span>{rental.title}</span>
             <strong>{formatVnd(RENT_PRICE)}</strong>
           </button>
 
           <div className="rent-select__divider"><span>Tiết kiệm hơn với Combo</span></div>
 
-          <button className={"rent-select__combo" + (selectedPlan === "vip" ? " is-active" : "")} onClick={() => setSelectedPlan("vip")}>
+          <button className={"rent-select__combo" + (selectedPlan === "vip" ? " is-active" : "")} onClick={() => choosePlan("vip")}>
             <span className="rent-select__tag">Chỉ 179K!</span>
             <strong>{PLAN_NAMES.vip}</strong>
             <b>{formatVnd(199000)}</b>
@@ -270,7 +277,7 @@ export default function RentPayment({ isLoggedIn = false, user = null }) {
             </ul>
           </button>
 
-          <button className={"rent-select__combo" + (selectedPlan === "bundle" ? " is-active" : "")} onClick={() => setSelectedPlan("bundle")}>
+          <button className={"rent-select__combo" + (selectedPlan === "bundle" ? " is-active" : "")} onClick={() => choosePlan("bundle")}>
             <span className="rent-select__tag">+ 1 Vé CINESKY</span>
             <strong>{PLAN_NAMES.bundle}</strong>
             <b>{formatVnd(99000)}</b>
