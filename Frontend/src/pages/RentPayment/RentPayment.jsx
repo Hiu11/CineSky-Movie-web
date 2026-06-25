@@ -332,9 +332,9 @@ export default function RentPayment({ isLoggedIn = false, user = null }) {
                   </>
                 ) : (
                   <>
-                    <p>✓ Thời hạn 1 tháng, gia hạn tự động</p>
-                    <p>✓ Đã bao gồm phim bạn đang chọn thuê</p>
-                    <p>✓ Kho phim có sẵn với hơn 10.000 giờ nội dung đặc sắc cùng kho phim thuê Việt và Châu Á</p>
+                    <p>✓ Thời hạn 1 tháng, gia hạn tự động.</p>
+                    <p>✓ Đã bao gồm phim bạn đang chọn thuê.</p>
+                    <p>✓ Kho phim có sẵn với hơn 10.000 giờ nội dung đặc sắc cùng kho phim thuê Việt và Châu Á.</p>
                   </>
                 )}
               </div>
@@ -430,8 +430,8 @@ export default function RentPayment({ isLoggedIn = false, user = null }) {
               </div>
               <div className="rent-wallet__steps">
                 <p>Bước 1: Mở ứng dụng và đăng nhập {activeMethod.title}</p>
-                <p>Bước 2: Bấm chọn icon quét QR ở góc phải phía trên màn hình</p>
-                <p>Bước 3: Bấm chọn "Xác nhận" để thanh toán</p>
+                <p>Bước 2: Bấm chọn biểu tượng quét QR ở góc phải phía trên màn hình.</p>
+                <p>Bước 3: Bấm chọn "Xác nhận" để thanh toán.</p>
                 <div>Thời hạn thanh toán sẽ hết hạn sau <strong>{countdown}</strong></div>
                 <button type="button" className="rent-wallet__complete" onClick={handleCompletePayment}>
                   Tôi đã thanh toán
