@@ -12,10 +12,16 @@ const PLAN_NAMES = {
   vip: "Gói CineSky VIP",
   bundle: "Gói Siêu Việt",
 };
+const VALID_PLANS = new Set(["movie", "vip", "bundle"]);
 
 const today = new Date();
 const nextMonth = new Date(today.getFullYear(), today.getMonth() + 1, today.getDate());
 const formatDate = (date) => date.toLocaleDateString("vi-VN", { timeZone: "Asia/Ho_Chi_Minh" });
+
+const getInitialPlan = (searchParams) => {
+  const plan = searchParams.get("plan");
+  return VALID_PLANS.has(plan) ? plan : "bundle";
+};
 
 const buildRental = (movie, selectedPlan) => {
   const isVip = selectedPlan === "vip";
@@ -74,7 +80,7 @@ export default function RentPayment({ isLoggedIn = false, user = null }) {
   );
   const isUnavailableRental = Boolean(requestedMovieId && !movie);
 
-  const [selectedPlan, setSelectedPlan] = useState("bundle");
+  const [selectedPlan, setSelectedPlan] = useState(() => getInitialPlan(searchParams));
   const [selectedMethod, setSelectedMethod] = useState("card");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [walletOpen, setWalletOpen] = useState(false);
@@ -90,6 +96,11 @@ export default function RentPayment({ isLoggedIn = false, user = null }) {
     from: `${location.pathname}${location.search}`,
     message: "Vui lòng đăng nhập để tiếp tục thanh toán thuê phim.",
   };
+
+  useEffect(() => {
+    const nextPlan = getInitialPlan(searchParams);
+    setSelectedPlan(nextPlan);
+  }, [searchParams]);
 
   useEffect(() => {
     let isMounted = true;
