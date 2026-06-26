@@ -111,9 +111,9 @@ export const getMovieById = async (movieId) => {
   return normalizeMoviePayload(await parseResponse(response));
 };
 
-export const getMovieShowtimes = async (movieId) => {
+export const getMovieShowtimes = async (movieId, params = {}) => {
   const response = await fetch(
-    `${API_BASE_URL}/api/v1/movies/${movieId}/showtimes`,
+    `${API_BASE_URL}/api/v1/movies/${movieId}/showtimes${buildQueryString(params)}`,
     { cache: "no-store" }
   );
   return parseResponse(response);

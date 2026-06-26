@@ -10,11 +10,9 @@ const getDefaultApiBaseUrl = () => {
     return "http://localhost:5000";
   }
 
-  if (hostname.endsWith(".vercel.app")) {
-    return "https://cine-sky-be.vercel.app";
-  }
-
-  return `${protocol}//${hostname}:5000`;
+  // If not localhost, it must be a deployed environment (Vercel or custom domain).
+  // Always default to the Vercel backend unless explicitly overridden by ENV vars.
+  return "https://cine-sky-be.vercel.app";
 };
 
 export const API_BASE_URL =

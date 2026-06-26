@@ -65,12 +65,14 @@ const buildDateOptions = () => {
   return Array.from({ length: DATE_RANGE_DAYS }, (_, index) => {
     const iso = addDaysToIso(todayIso, index);
     const date = new Date(`${iso}T12:00:00+07:00`);
+    const day = new Intl.DateTimeFormat("vi-VN", { weekday: "short", timeZone: "Asia/Ho_Chi_Minh" }).format(date);
+    const label = new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", timeZone: "Asia/Ho_Chi_Minh" }).format(date);
 
     return {
       iso,
-      day: new Intl.DateTimeFormat("vi-VN", { weekday: "short", timeZone: "Asia/Ho_Chi_Minh" }).format(date),
-      label: new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", timeZone: "Asia/Ho_Chi_Minh" }).format(date),
-      title: index === 0 ? "Hôm nay" : index === 1 ? "Ngày mai" : "Chọn ngày",
+      day,
+      label,
+      title: index === 0 ? "Hôm nay" : index === 1 ? "Ngày mai" : day,
     };
   });
 };
@@ -90,8 +92,10 @@ const getTimeMinutes = (timeLabel = "") => {
 };
 
 const isUpcomingShowtime = (dateIso = "", timeLabel = "", currentDateTime = getCurrentVietnamDateTime()) => {
-  if (dateIso !== currentDateTime.iso) {
-    return dateIso > currentDateTime.iso;
+  const showtimeDate = String(dateIso || "");
+
+  if (showtimeDate !== currentDateTime.iso) {
+    return showtimeDate > currentDateTime.iso;
   }
 
   return getTimeMinutes(timeLabel) > currentDateTime.minutes;
@@ -114,6 +118,23 @@ const getSeatStatus = (showtime) => {
 };
 
 const formatCurrency = (value) => `${Number(value || 0).toLocaleString("vi-VN")} VND`;
+
+const formatDateLabel = (dateIso = "") => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateIso))) {
+    return "";
+  }
+
+  const date = new Date(`${dateIso}T12:00:00+07:00`);
+  return new Intl.DateTimeFormat("vi-VN", { day: "2-digit", month: "2-digit", timeZone: "Asia/Ho_Chi_Minh" }).format(date);
+};
+
+const formatShowtimeSummary = (showtime = {}, selectedDate = "") => {
+  const shiftedDateLabel = showtime.displayDate && showtime.displayDate !== selectedDate
+    ? ` (${formatDateLabel(showtime.displayDate)})`
+    : "";
+
+  return `${showtime.displayTime || "--:--"}${shiftedDateLabel}`;
+};
 
 const getMoviePriorityScore = (movie = {}, index = 0) => {
   if (Number.isFinite(movie.heroOrder)) {
@@ -357,7 +378,8 @@ const FilterSelect = ({ id, label, value, options, isOpen, onToggle, onSelect })
 
 export default function ShowtimesPage({ searchQuery = "" }) {
   const navigate = useNavigate();
-  const dateOptions = useMemo(() => buildDateOptions(), []);
+  const [currentDateTime, setCurrentDateTime] = useState(() => getCurrentVietnamDateTime());
+  const dateOptions = useMemo(() => buildDateOptions(), [currentDateTime.iso]);
   const [selectedDate, setSelectedDate] = useState(dateOptions[0]?.iso || "");
   const [selectedCinema, setSelectedCinema] = useState("all");
   const [selectedGenre, setSelectedGenre] = useState("all");
@@ -367,11 +389,10 @@ export default function ShowtimesPage({ searchQuery = "" }) {
   const [items, setItems] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
-  const [currentDateTime, setCurrentDateTime] = useState(() => getCurrentVietnamDateTime());
-  const hasLoadedShowtimesRef = useRef(false);
   const filtersRef = useRef(null);
   const isPeakDate = isPeakScreeningDate(selectedDate);
   const priceMeta = getScreeningPriceMeta(selectedDate);
+  const selectedDateOption = dateOptions.find((option) => option.iso === selectedDate) || dateOptions[0] || null;
 
   useEffect(() => {
     const timer = window.setInterval(() => {
@@ -380,6 +401,12 @@ export default function ShowtimesPage({ searchQuery = "" }) {
 
     return () => window.clearInterval(timer);
   }, []);
+
+  useEffect(() => {
+    if (dateOptions.length > 0 && !dateOptions.some((option) => option.iso === selectedDate)) {
+      setSelectedDate(dateOptions[0].iso);
+    }
+  }, [dateOptions, selectedDate]);
 
   useEffect(() => {
     const handlePointerDown = (event) => {
@@ -407,15 +434,13 @@ export default function ShowtimesPage({ searchQuery = "" }) {
 
     const loadShowtimes = async () => {
       try {
-        if (!hasLoadedShowtimesRef.current) {
-          setIsLoading(true);
-        }
+        setIsLoading(true);
         setErrorMessage("");
 
         const movies = await getMovies({ status: "now-showing" });
         const visibleMovies = sortMoviesByHomePriority(Array.isArray(movies) ? movies : []);
         const payloads = await Promise.allSettled(
-          visibleMovies.map((movie) => getMovieShowtimes(movie.id))
+          visibleMovies.map((movie) => getMovieShowtimes(movie.id, { date: selectedDate }))
         );
 
         if (!mounted) {
@@ -430,7 +455,12 @@ export default function ShowtimesPage({ searchQuery = "" }) {
 
             const showtimeLimit = getShowtimeDisplayLimit(visibleMovies[index], index, isPeakDate);
             const normalizedShowtimes = applyShowtimePricing(
-              applyCinemaTimeOffsets(Array.isArray(result.value?.showtimes) ? result.value.showtimes : []),
+              applyCinemaTimeOffsets(
+                (Array.isArray(result.value?.showtimes) ? result.value.showtimes : []).map((showtime) => ({
+                  ...showtime,
+                  displayDate: selectedDate,
+                }))
+              ),
               selectedDate
             );
 
@@ -441,6 +471,10 @@ export default function ShowtimesPage({ searchQuery = "" }) {
           })
           .filter((item) => item && item.showtimes.length > 0);
 
+        if (nextItems.length === 0 && visibleMovies.length > 0 && payloads.every((result) => result.status !== "fulfilled")) {
+          throw new Error("Không thể tải lịch chiếu cho các phim đang chiếu.");
+        }
+
         setItems(nextItems);
       } catch (error) {
         if (mounted) {
@@ -449,7 +483,6 @@ export default function ShowtimesPage({ searchQuery = "" }) {
         }
       } finally {
         if (mounted) {
-          hasLoadedShowtimesRef.current = true;
           setIsLoading(false);
         }
       }
@@ -475,6 +508,18 @@ export default function ShowtimesPage({ searchQuery = "" }) {
     });
     return Array.from(set).sort((a, b) => a.localeCompare(b, "vi"));
   }, [items]);
+
+  useEffect(() => {
+    if (selectedCinema !== "all" && !cinemaOptions.includes(selectedCinema)) {
+      setSelectedCinema("all");
+    }
+  }, [cinemaOptions, selectedCinema]);
+
+  useEffect(() => {
+    if (selectedGenre !== "all" && !genreOptions.includes(selectedGenre)) {
+      setSelectedGenre("all");
+    }
+  }, [genreOptions, selectedGenre]);
 
   const normalizedQuery = normalizeText(searchQuery.trim());
   const activeSlot = timeSlots.find((slot) => slot.id === selectedSlot) || timeSlots[0];
@@ -513,8 +558,9 @@ export default function ShowtimesPage({ searchQuery = "" }) {
           const hour = getHour(showtime.displayTime);
           const matchesCinema = selectedCinema === "all" || showtime.cinemaName === selectedCinema;
           const matchesSlot = selectedSlot === "all" || (hour >= activeSlot.from && hour < activeSlot.to);
-          const hasSeats = Number(showtime.availableSeatCount ?? 0) > 0;
-          const isUpcoming = isUpcomingShowtime(selectedDate, showtime.displayTime, currentDateTime);
+          const totalSeats = showtime?.seats?.length || 0;
+          const hasSeats = Number(showtime.availableSeatCount ?? totalSeats) > 0;
+          const isUpcoming = isUpcomingShowtime(showtime.displayDate || selectedDate, showtime.displayTime, currentDateTime);
 
           return matchesCinema && matchesSlot && isUpcoming && (!availableOnly || hasSeats);
         });
@@ -548,14 +594,24 @@ export default function ShowtimesPage({ searchQuery = "" }) {
         cinema.showtimes.map((showtime) => ({ movie: item.movie, showtime }))
       )
     )
-    .filter((item) => isUpcomingShowtime(selectedDate, item.showtime.displayTime, currentDateTime))
-    .sort((a, b) => a.showtime.displayTime.localeCompare(b.showtime.displayTime))[0];
+    .filter((item) => isUpcomingShowtime(item.showtime.displayDate || selectedDate, item.showtime.displayTime, currentDateTime))
+    .sort((a, b) =>
+      String(a.showtime.displayDate || selectedDate).localeCompare(String(b.showtime.displayDate || selectedDate)) ||
+      a.showtime.displayTime.localeCompare(b.showtime.displayTime)
+    )[0];
+  const mostScheduledMovie = filteredItems
+    .slice()
+    .sort((a, b) =>
+      b.showtimeCount - a.showtimeCount ||
+      b.heatScore - a.heatScore ||
+      String(a.movie.title || "").localeCompare(String(b.movie.title || ""), "vi")
+    )[0]?.movie;
 
   const handleBook = (movieId, showtime) => {
     const params = new URLSearchParams({
       movieId,
       showtimeId: String(showtime.id),
-      date: selectedDate,
+      date: showtime.displayDate || selectedDate,
     });
 
     navigate(`/booking?${params.toString()}`);
@@ -578,7 +634,7 @@ export default function ShowtimesPage({ searchQuery = "" }) {
       <section className="showtimes-hero">
         <div className="showtimes-hero__copy">
           <span className="showtimes-kicker">Lịch chiếu CineSky</span>
-          <h1>Suất chiếu hôm nay</h1>
+          <h1>Suất chiếu {selectedDateOption?.title?.toLowerCase() || "hôm nay"}</h1>
           <p>Chọn nhanh ngày, rạp và khung giờ phù hợp rồi đi thẳng đến bước đặt ghế.</p>
         </div>
 
@@ -659,11 +715,11 @@ export default function ShowtimesPage({ searchQuery = "" }) {
         <section className="showtimes-smart-row" aria-label="Gợi ý nhanh">
           <div>
             <span>Suất gần nhất</span>
-            <strong>{nearestShowtime ? `${nearestShowtime.showtime.displayTime} • ${nearestShowtime.movie.title}` : "Đang cập nhật"}</strong>
+            <strong>{nearestShowtime ? `${formatShowtimeSummary(nearestShowtime.showtime, selectedDate)} • ${nearestShowtime.movie.title}` : "Đang cập nhật"}</strong>
           </div>
           <div>
             <span>Phim nhiều suất</span>
-            <strong>{hotMovie?.title || "Đang cập nhật"}</strong>
+            <strong>{mostScheduledMovie?.title || hotMovie?.title || "Đang cập nhật"}</strong>
           </div>
           <div>
             <span>Gợi ý sau 19:00</span>
@@ -740,7 +796,7 @@ export default function ShowtimesPage({ searchQuery = "" }) {
                               disabled={isSoldOut}
                               title={isSoldOut ? "Suất chiếu đã hết vé" : "Đặt vé suất này"}
                             >
-                              <strong>{showtime.displayTime}</strong>
+                              <strong>{formatShowtimeSummary(showtime, selectedDate)}</strong>
                               <span>{showtime.roomName}</span>
                               <small>{seatStatus.label}</small>
                               <em>

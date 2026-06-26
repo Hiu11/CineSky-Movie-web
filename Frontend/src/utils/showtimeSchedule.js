@@ -37,6 +37,17 @@ const hashText = (value = "") =>
     .split("")
     .reduce((hash, char) => hash + char.charCodeAt(0), 0);
 
+const addDaysToIso = (dateIso = "", days = 0) => {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(dateIso))) {
+    return dateIso;
+  }
+
+  const [year, month, day] = String(dateIso).split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day + days, 12));
+
+  return `${date.getUTCFullYear()}-${String(date.getUTCMonth() + 1).padStart(2, "0")}-${String(date.getUTCDate()).padStart(2, "0")}`;
+};
+
 const getCinemaOffsetMinutes = (cinemaName = "") => {
   const normalizedCinema = normalizeText(cinemaName);
   const rule = cinemaOffsetRules.find((item) => normalizedCinema.includes(item.keyword));
@@ -48,27 +59,33 @@ const getCinemaOffsetMinutes = (cinemaName = "") => {
   return [5, 10, 15, 20][hashText(cinemaName) % 4];
 };
 
-const shiftTimeLabel = (timeLabel = "", offsetMinutes = 0) => {
+const shiftTimeMeta = (timeLabel = "", offsetMinutes = 0) => {
   if (!/^\d{2}:\d{2}$/.test(String(timeLabel))) {
-    return timeLabel;
+    return { timeLabel, dayOffset: 0 };
   }
 
   const [hour, minute] = String(timeLabel).split(":").map(Number);
-  const totalMinutes = (hour * 60 + minute + offsetMinutes + 24 * 60) % (24 * 60);
+  const rawMinutes = hour * 60 + minute + offsetMinutes;
+  const totalMinutes = (rawMinutes + 24 * 60) % (24 * 60);
   const nextHour = Math.floor(totalMinutes / 60);
   const nextMinute = totalMinutes % 60;
 
-  return `${String(nextHour).padStart(2, "0")}:${String(nextMinute).padStart(2, "0")}`;
+  return {
+    timeLabel: `${String(nextHour).padStart(2, "0")}:${String(nextMinute).padStart(2, "0")}`,
+    dayOffset: Math.floor(rawMinutes / (24 * 60)),
+  };
 };
 
 export const applyCinemaTimeOffsets = (showtimes = []) =>
   showtimes.map((showtime) => {
     const offsetMinutes = getCinemaOffsetMinutes(showtime.cinemaName);
+    const shifted = shiftTimeMeta(showtime.displayTime, offsetMinutes);
 
     return {
       ...showtime,
       originalDisplayTime: showtime.originalDisplayTime || showtime.displayTime,
-      displayTime: shiftTimeLabel(showtime.displayTime, offsetMinutes),
+      displayTime: shifted.timeLabel,
+      displayDate: shifted.dayOffset ? addDaysToIso(showtime.displayDate, shifted.dayOffset) : showtime.displayDate,
       scheduleOffsetMinutes: offsetMinutes,
     };
   });
@@ -95,11 +112,11 @@ export const getScreeningPriceMeta = (dateIso = "") => {
   const isHoliday = fixedHolidayDates.has(dateIso.slice(5)) || seasonalHolidayDates.has(dateIso);
 
   if (isHoliday) {
-    return { multiplier: 1 + HOLIDAY_SURCHARGE_RATE, label: "Giá ngày lễ" };
+    return { multiplier: 1 + HOLIDAY_SURCHARGE_RATE, label: "Gi\u00e1 ng\u00e0y l\u1ec5" };
   }
 
   if (isWeekend) {
-    return { multiplier: 1 + WEEKEND_SURCHARGE_RATE, label: "Giá cuối tuần" };
+    return { multiplier: 1 + WEEKEND_SURCHARGE_RATE, label: "Gi\u00e1 cu\u1ed1i tu\u1ea7n" };
   }
 
   return { multiplier: 1, label: "" };
