@@ -19,6 +19,12 @@ const seatLockSchema = new mongoose.Schema(
       required: true,
       index: true,
     },
+    screeningDate: {
+      type: String,
+      default: "",
+      trim: true,
+      index: true,
+    },
     seatNumbers: {
       type: [String],
       default: [],

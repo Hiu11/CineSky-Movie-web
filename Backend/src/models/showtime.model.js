@@ -58,6 +58,11 @@ const showtimeSchema = new mongoose.Schema(
       type: [String],
       default: [],
     },
+    bookedSeatKeys: {
+      type: [String],
+      default: [],
+      index: true,
+    },
   },
   {
     timestamps: true,

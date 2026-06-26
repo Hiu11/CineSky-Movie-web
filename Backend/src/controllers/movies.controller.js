@@ -1,5 +1,6 @@
 ﻿import GenreModel from "../models/genre.model.js";
 import { createShowtimesFromMovies } from "../data/seedShowtimes.js";
+import BookingModel from "../models/booking.model.js";
 import MovieModel from "../models/movie.model.js";
 import ReviewModel from "../models/review.model.js";
 import SeatLockModel from "../models/seatLock.model.js";
@@ -27,6 +28,20 @@ const ratingDescriptionMap = {
 };
 
 const isValidDisplayTime = (timeLabel) => /^\d{2}:\d{2}$/.test(String(timeLabel));
+const isValidScreeningDate = (dateLabel) => /^\d{4}-\d{2}-\d{2}$/.test(String(dateLabel || ""));
+
+const getBookedSeatsFromKeys = (showtime, screeningDate = "") => {
+  const prefix = `${screeningDate}:`;
+
+  if (!screeningDate || !Array.isArray(showtime?.bookedSeatKeys)) {
+    return [];
+  }
+
+  return showtime.bookedSeatKeys
+    .filter((key) => String(key).startsWith(prefix))
+    .map((key) => String(key).slice(prefix.length))
+    .filter(Boolean);
+};
 
 const createTimeMap = (showtimes = []) => {
   const timeMap = new Map();
@@ -218,9 +233,12 @@ const serializeMovieDetail = (movie, timeMap = new Map()) => {
   };
 };
 
-const serializeShowtime = (showtime, lockedSeatMap = new Map()) => {
+const serializeShowtime = (showtime, lockedSeatMap = new Map(), bookedSeatMap = new Map(), screeningDate = "") => {
   const lockedSeats = lockedSeatMap.get(String(showtime._id)) || [];
-  const unavailableSeats = [...new Set([...(showtime.bookedSeats || []), ...lockedSeats])];
+  const bookedSeats = screeningDate
+    ? [...new Set([...(bookedSeatMap.get(String(showtime._id)) || []), ...getBookedSeatsFromKeys(showtime, screeningDate)])]
+    : showtime.bookedSeats || [];
+  const unavailableSeats = [...new Set([...bookedSeats, ...lockedSeats])];
 
   return {
   id: showtime._id,
@@ -233,7 +251,7 @@ const serializeShowtime = (showtime, lockedSeatMap = new Map()) => {
   price: showtime.price,
   seats: showtime.seats,
   bookedSeats: unavailableSeats,
-  soldSeats: showtime.bookedSeats,
+  soldSeats: bookedSeats,
   lockedSeats,
   availableSeatCount: Math.max(
     showtime.seats.length - unavailableSeats.length,
@@ -397,6 +415,7 @@ const moviesController = {
   getMovieShowtimes: async (req, res) => {
     try {
       const legacyId = Number(req.params.id);
+      const screeningDate = isValidScreeningDate(req.query?.date) ? String(req.query.date) : "";
 
       if (Number.isNaN(legacyId)) {
         return res.status(400).send({
@@ -466,13 +485,29 @@ const moviesController = {
       }
 
       await SeatLockModel.deleteMany({ expiresAt: { $lte: new Date() } });
-      const activeLocks = await SeatLockModel.find({
-        showtimeId: { $in: showtimes.map((showtime) => showtime._id) },
-        expiresAt: { $gt: new Date() },
-      });
+      const showtimeIds = showtimes.map((showtime) => showtime._id);
+      const [activeLocks, activeBookings] = await Promise.all([
+        SeatLockModel.find({
+          showtimeId: { $in: showtimeIds },
+          ...(screeningDate ? { screeningDate } : {}),
+          expiresAt: { $gt: new Date() },
+        }),
+        screeningDate
+          ? BookingModel.find({
+              showtimeId: { $in: showtimeIds },
+              screeningDate,
+              status: { $nin: ["cancelled", "expired"] },
+            }).select("showtimeId seatNumbers")
+          : [],
+      ]);
       const lockedSeatMap = activeLocks.reduce((map, lock) => {
         const key = String(lock.showtimeId);
         map.set(key, [...(map.get(key) || []), ...(lock.seatNumbers || [])]);
+        return map;
+      }, new Map());
+      const bookedSeatMap = activeBookings.reduce((map, booking) => {
+        const key = String(booking.showtimeId);
+        map.set(key, [...(map.get(key) || []), ...(booking.seatNumbers || [])]);
         return map;
       }, new Map());
 
@@ -486,7 +521,7 @@ const moviesController = {
             poster: movie.poster,
             status: movie.status,
           },
-          showtimes: showtimes.map((showtime) => serializeShowtime(showtime, lockedSeatMap)),
+          showtimes: showtimes.map((showtime) => serializeShowtime(showtime, lockedSeatMap, bookedSeatMap, screeningDate)),
         },
       });
     } catch (error) {

@@ -53,7 +53,6 @@ const presenceSchema = new mongoose.Schema(
     lastSeenAt: {
       type: Date,
       default: Date.now,
-      index: true,
     },
   },
   {

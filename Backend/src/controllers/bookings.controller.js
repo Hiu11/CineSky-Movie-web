@@ -92,8 +92,26 @@ const cinemaOffsetRules = [
   { pattern: /dien bien phu/i, minutes: 20 },
 ];
 
-const getCinemaOffsetMinutes = (cinemaName = "") =>
-  cinemaOffsetRules.find((rule) => rule.pattern.test(String(cinemaName)))?.minutes || 0;
+const normalizeText = (value = "") =>
+  String(value)
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+const hashText = (value = "") =>
+  normalizeText(value)
+    .split("")
+    .reduce((hash, char) => hash + char.charCodeAt(0), 0);
+
+const getCinemaOffsetMinutes = (cinemaName = "") => {
+  const rule = cinemaOffsetRules.find((item) => item.pattern.test(String(cinemaName)));
+
+  if (rule) {
+    return rule.minutes;
+  }
+
+  return [5, 10, 15, 20][hashText(cinemaName) % 4];
+};
 
 const shiftTimeLabel = (timeLabel = "", offsetMinutes = 0) => {
   if (!/^\d{2}:\d{2}$/.test(String(timeLabel))) {
@@ -246,6 +264,32 @@ const verifyQrPaymentReference = async (paymentReference = "", expectedAmount = 
 
 const cleanupExpiredSeatLocks = () =>
   SeatLockModel.deleteMany({ expiresAt: { $lte: new Date() } });
+
+const normalizeScreeningDate = (screeningDate = "", fallbackDate = "") => {
+  const normalizedDate = String(screeningDate || "").trim();
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) {
+    return normalizedDate;
+  }
+
+  return /^\d{4}-\d{2}-\d{2}$/.test(String(fallbackDate || "")) ? String(fallbackDate) : "";
+};
+
+const buildSeatReservationKey = (screeningDate = "", seatNumber = "") =>
+  `${String(screeningDate || "").trim()}:${String(seatNumber || "").trim()}`;
+
+const getBookedSeatsFromReservationKeys = (showtime, screeningDate = "") => {
+  const prefix = `${screeningDate}:`;
+
+  if (!screeningDate || !Array.isArray(showtime?.bookedSeatKeys)) {
+    return [];
+  }
+
+  return showtime.bookedSeatKeys
+    .filter((key) => String(key).startsWith(prefix))
+    .map((key) => String(key).slice(prefix.length))
+    .filter(Boolean);
+};
 
 const normalizePromoCode = (value = "") =>
   String(value).trim().toUpperCase().replace(/\s+/g, "");
@@ -669,7 +713,7 @@ const serializeBooking = (booking, showtime, movie) => ({
 const bookingsController = {
   lockSeats: async (req, res) => {
     try {
-      const { movieId, showtimeId, seatNumbers = [] } = req.body || {};
+      const { movieId, showtimeId, screeningDate = "", seatNumbers = [] } = req.body || {};
       const legacyId = Number(movieId);
 
       if (!req.authUser?._id) {
@@ -703,18 +747,40 @@ const bookingsController = {
         return res.status(404).send({ success: false, message: "Showtime not found", data: null });
       }
 
+      const normalizedScreeningDate = normalizeScreeningDate(screeningDate, showtime.displayDate);
+      const requestedDisplayTime = getShowtimeAdjustedDisplayTime(showtime) || showtime.displayTime;
+      const requestedScreeningStart = buildScreeningDateTime(
+        normalizedScreeningDate || showtime.displayDate,
+        requestedDisplayTime
+      );
+
+      if (requestedScreeningStart && requestedScreeningStart.getTime() <= Date.now()) {
+        return res.status(409).send({ success: false, message: "This showtime has already started. Please choose another showtime.", data: null });
+      }
+
       const invalidSeat = seatNumbers.find((seat) => !showtime.seats.includes(seat));
       if (invalidSeat) {
         return res.status(400).send({ success: false, message: `Seat ${invalidSeat} is invalid`, data: null });
       }
 
-      const bookedSeat = seatNumbers.find((seat) => showtime.bookedSeats.includes(seat));
+      const existingBookings = await BookingModel.find({
+        showtimeId,
+        screeningDate: normalizedScreeningDate,
+        status: { $nin: ["cancelled", "expired"] },
+        seatNumbers: { $in: seatNumbers },
+      }).select("seatNumbers");
+      const reservedSeats = getBookedSeatsFromReservationKeys(showtime, normalizedScreeningDate);
+      const bookedSeat = seatNumbers.find((seat) =>
+        reservedSeats.includes(seat) ||
+        existingBookings.some((booking) => booking.seatNumbers.includes(seat))
+      );
       if (bookedSeat) {
         return res.status(409).send({ success: false, message: `Seat ${bookedSeat} has already been booked`, data: null });
       }
 
       const activeLocks = await SeatLockModel.find({
         showtimeId,
+        screeningDate: normalizedScreeningDate,
         expiresAt: { $gt: new Date() },
         userId: { $ne: req.authUser._id },
         seatNumbers: { $in: seatNumbers },
@@ -728,7 +794,7 @@ const bookingsController = {
       const expiresAt = new Date(Date.now() + SEAT_LOCK_MINUTES * 60000);
       const lock = await SeatLockModel.findOneAndUpdate(
         { userId: req.authUser._id, showtimeId },
-        { movieLegacyId: legacyId, seatNumbers, expiresAt },
+        { movieLegacyId: legacyId, screeningDate: normalizedScreeningDate, seatNumbers, expiresAt },
         { new: true, upsert: true, setDefaultsOnInsert: true }
       );
 
@@ -738,6 +804,7 @@ const bookingsController = {
         data: {
           id: lock._id,
           showtimeId: lock.showtimeId,
+          screeningDate: lock.screeningDate,
           seatNumbers: lock.seatNumbers,
           expiresAt: lock.expiresAt,
           holdSeconds: SEAT_LOCK_MINUTES * 60,
@@ -946,9 +1013,10 @@ const bookingsController = {
       }
 
       const requestedDisplayTime = getShowtimeAdjustedDisplayTime(showtime) || showtime.displayTime;
+      const normalizedScreeningDate = normalizeScreeningDate(screeningDate, showtime.displayDate);
 
       const requestedScreeningStart = buildScreeningDateTime(
-        String(screeningDate).trim() || showtime.displayDate,
+        normalizedScreeningDate || showtime.displayDate,
         requestedDisplayTime
       );
 
@@ -971,7 +1039,23 @@ const bookingsController = {
         });
       }
 
-      const effectiveTicketPrice = getEffectiveTicketPrice(showtime.price, String(screeningDate).trim() || showtime.displayDate);
+      const existingBookings = await BookingModel.find({
+        showtimeId,
+        screeningDate: normalizedScreeningDate,
+        status: { $nin: ["cancelled", "expired"] },
+        seatNumbers: { $in: seatNumbers },
+      }).select("seatNumbers");
+      const alreadyBookedSeat = seatNumbers.find((seat) => existingBookings.some((booking) => booking.seatNumbers.includes(seat)));
+
+      if (alreadyBookedSeat) {
+        return res.status(409).send({
+          success: false,
+          message: "One or more selected seats have already been booked",
+          data: null,
+        });
+      }
+
+      const effectiveTicketPrice = getEffectiveTicketPrice(showtime.price, normalizedScreeningDate || showtime.displayDate);
       const ticketSubtotal = effectiveTicketPrice * seatNumbers.length;
       const safeFnbItems = Array.isArray(fnbItems) ? fnbItems : [];
       const fnbTotal = safeFnbItems.reduce(
@@ -988,12 +1072,13 @@ const bookingsController = {
             user: authUser,
             movie,
             fnbItems: safeFnbItems,
-            screeningDate,
+            screeningDate: normalizedScreeningDate,
           })
         : { code: "", discountAmount: 0 };
       const totalPrice = Math.max(ticketSubtotal + fnbTotal + serviceFee - voucher.discountAmount, 0);
       await verifyQrPaymentReference(paymentReference, totalPrice);
 
+      const seatReservationKeys = seatNumbers.map((seat) => buildSeatReservationKey(normalizedScreeningDate, seat));
       const reservedShowtime = isAdminBooking
         ? showtime
         : await ShowtimeModel.findOneAndUpdate(
@@ -1001,10 +1086,10 @@ const bookingsController = {
               _id: showtime._id,
               movieLegacyId: legacyId,
               seats: { $all: seatNumbers },
-              bookedSeats: { $nin: seatNumbers },
+              bookedSeatKeys: { $nin: seatReservationKeys },
             },
             {
-              $addToSet: { bookedSeats: { $each: seatNumbers } },
+              $addToSet: { bookedSeatKeys: { $each: seatReservationKeys } },
             },
             { new: true }
           );
@@ -1025,6 +1110,7 @@ const bookingsController = {
         const seatLock = await SeatLockModel.findOne({
           userId: authUser._id,
           showtimeId: reservedShowtime._id,
+          screeningDate: normalizedScreeningDate,
           expiresAt: { $gt: new Date() },
         });
 
@@ -1033,7 +1119,7 @@ const bookingsController = {
         if (!hasSeatLock) {
           await ShowtimeModel.updateOne(
             { _id: reservedShowtime._id },
-            { $pull: { bookedSeats: { $in: seatNumbers } } }
+            { $pull: { bookedSeatKeys: { $in: seatReservationKeys } } }
           );
 
           return res.status(409).send({
@@ -1053,7 +1139,7 @@ const bookingsController = {
           customerEmail,
           movieLegacyId: legacyId,
           showtimeId: reservedShowtime._id,
-          screeningDate: String(screeningDate).trim(),
+          screeningDate: normalizedScreeningDate,
           screeningDateLabel: String(screeningDateLabel).trim(),
           displayTime: requestedDisplayTime,
           seatNumbers,
@@ -1073,7 +1159,7 @@ const bookingsController = {
         if (!isAdminBooking) {
           await ShowtimeModel.updateOne(
             { _id: reservedShowtime._id },
-            { $pull: { bookedSeats: { $in: seatNumbers } } }
+            { $pull: { bookedSeatKeys: { $in: seatReservationKeys } } }
           );
         }
         throw error;
@@ -1122,7 +1208,7 @@ const bookingsController = {
           if (!isAdminBooking) {
             await ShowtimeModel.updateOne(
               { _id: reservedShowtime._id },
-              { $pull: { bookedSeats: { $in: seatNumbers } } }
+              { $pull: { bookedSeatKeys: { $in: seatReservationKeys } } }
             );
           }
 
@@ -1137,7 +1223,7 @@ const bookingsController = {
       }
 
       const membership = await updateUserMembership(authUser, seatNumbers.length);
-      await SeatLockModel.deleteOne({ userId: authUser._id, showtimeId: reservedShowtime._id });
+      await SeatLockModel.deleteOne({ userId: authUser._id, showtimeId: reservedShowtime._id, screeningDate: normalizedScreeningDate });
       await createBookingNotifications({ authUser, booking, movie, showtime: reservedShowtime });
       const emailDelivery = await sendBookingConfirmationEmail({
         to: customerEmail,
@@ -1233,10 +1319,14 @@ const bookingsController = {
         });
       }
 
-      if (!booking.isTestBooking) {
+      const seatReservationKeys = (booking.seatNumbers || []).map((seat) =>
+        buildSeatReservationKey(booking.screeningDate || showtime?.displayDate || "", seat)
+      );
+
+      if (!booking.isTestBooking && seatReservationKeys.length > 0) {
         await ShowtimeModel.updateOne(
           { _id: booking.showtimeId },
-          { $pull: { bookedSeats: { $in: booking.seatNumbers } } }
+          { $pull: { bookedSeatKeys: { $in: seatReservationKeys } } }
         );
       }
 
