@@ -1,4 +1,5 @@
-﻿import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { API_BASE_URL } from "../../config/api";
 import lottie from "lottie-web";
 import jellyfishChatAnimation from "../../assets/animations/JellyFish.json";
 import { askMovieAi, getChatConversation, sendChatMessage, startChatConversation } from "../../services/chatService";
@@ -266,11 +267,12 @@ const requestBrowserNotification = () => {
 };
 
 export default function AdminChatBox({ user, showToast }) {
+  const [avatarCacheBuster] = useState(() => Date.now());
   const storageKey = getChatStorageKey(user?.id);
   const storedContact = readStoredContact(storageKey);
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState(() => (user?.id ? readStoredMessages(storageKey) : initialMessages));
-  const [conversationId, setConversationId] = useState(() => (user?.id ? readStoredConversationId(storageKey) : ""));
+  const [messages, setMessages] = useState(() => readStoredMessages(storageKey));
+  const [conversationId, setConversationId] = useState(() => readStoredConversationId(storageKey));
   const [draft, setDraft] = useState("");
   const [composerMode, setComposerMode] = useState("ai");
   const [handoff, setHandoff] = useState({ requested: false, category: "other", pendingText: "" });
@@ -360,31 +362,20 @@ export default function AdminChatBox({ user, showToast }) {
   const hasContact = Boolean(contact.fullName.trim() && contact.email.trim());
 
   useEffect(() => {
-    if (!user?.id) {
-      setMessages(initialMessages);
-      setConversationId("");
-      setHandoff({ requested: false, category: "other", pendingText: "" });
-      setComposerMode("ai");
-      setDraft("");
-      setUnreadCount(0);
-      setContact({ fullName: "", email: "" });
-      return;
-    }
-
-    const nextStorageKey = getChatStorageKey(user.id);
+    const nextStorageKey = getChatStorageKey(user?.id);
     setMessages(readStoredMessages(nextStorageKey));
     setConversationId(readStoredConversationId(nextStorageKey));
     setContact((current) => ({
-      fullName: current.fullName || user?.fullName || user?.name || "",
-      email: current.email || user?.email || "",
+      fullName: user?.fullName || user?.name || current.fullName || "",
+      email: user?.email || current.email || "",
     }));
   }, [user?.id, user?.fullName, user?.name, user?.email]);
 
   useEffect(() => {
-    if (typeof window !== "undefined" && user?.id) {
+    if (typeof window !== "undefined") {
       localStorage.setItem(storageKey, JSON.stringify({ messages, conversationId, contact }));
     }
-  }, [contact, conversationId, messages, storageKey, user?.id]);
+  }, [contact, conversationId, messages, storageKey]);
 
   useEffect(() => {
     if (isOpen) {
@@ -730,7 +721,7 @@ export default function AdminChatBox({ user, showToast }) {
               <div key={message.id} className={`admin-chat__message-row admin-chat__message-row--${message.sender}`}>
                 {message.sender === "admin" && (
                   <img 
-                    src={`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/v1/auth/users/admin/avatar`} 
+                    src={`${API_BASE_URL}/api/v1/auth/users/admin/avatar?v=${avatarCacheBuster}`} 
                     alt="Admin" 
                     className="admin-chat__avatar admin-chat__avatar--admin" 
                   />
@@ -813,7 +804,7 @@ export default function AdminChatBox({ user, showToast }) {
                 </div>
                 {message.sender === "user" && (
                   <img 
-                    src={user?.avatar || (user?.id ? `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/v1/auth/users/${user.id}/avatar` : `https://api.dicebear.com/7.x/notionists/svg?seed=${contact.fullName || contact.email || "Guest"}&backgroundColor=f2c14e`)} 
+                    src={user?.avatar || (user?.id ? `${API_BASE_URL}/api/v1/auth/users/${user.id}/avatar?v=${avatarCacheBuster}` : `https://api.dicebear.com/7.x/notionists/svg?seed=${contact.fullName || contact.email || "Guest"}&backgroundColor=f2c14e`)} 
                     alt="User" 
                     className="admin-chat__avatar admin-chat__avatar--user" 
                   />
@@ -837,9 +828,14 @@ export default function AdminChatBox({ user, showToast }) {
                 aria-label="Email liên hệ"
                 type="email"
               />
-              <button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Đang chuyển..." : "Gửi tới admin"}
-              </button>
+              <div className="admin-chat__handoff-actions" style={{ display: 'flex', gap: '8px' }}>
+                <button type="button" onClick={() => setHandoff({ requested: false, category: "other", pendingText: "" })} disabled={isSubmitting} style={{ background: 'rgba(255, 255, 255, 0.1)', color: '#fff' }}>
+                  Hủy
+                </button>
+                <button type="submit" disabled={isSubmitting} style={{ flex: 1 }}>
+                  {isSubmitting ? "Đang chuyển..." : "Gửi tới admin"}
+                </button>
+              </div>
             </form>
           ) : (
             <form className="admin-chat__composer" onSubmit={handleSubmitMessage}>

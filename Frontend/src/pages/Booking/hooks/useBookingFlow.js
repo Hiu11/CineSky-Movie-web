@@ -292,7 +292,7 @@ export function useBookingFlow({ showToast } = {}) {
       try {
         setIsLoading(true);
         setErrorMessage("");
-        const data = await getMovieShowtimes(movieId);
+        const data = await getMovieShowtimes(movieId, { date: selectedScreeningDate });
         if (!mounted) return;
         if (data.movie?.status === "rental") {
           setMovie(null);
@@ -301,10 +301,10 @@ export function useBookingFlow({ showToast } = {}) {
           return;
         }
         setMovie(data.movie);
-        setShowtimes(applyShowtimePricing(applyCinemaTimeOffsets(data.showtimes || []), selectedScreeningDate));
-        setSelectedCinemaName("");
-        setSelectedShowtimeId("");
-        setSelectedSeats([]);
+        setShowtimes(applyShowtimePricing(
+          applyCinemaTimeOffsets((data.showtimes || []).map((showtime) => ({ ...showtime, displayDate: selectedScreeningDate }))),
+          selectedScreeningDate
+        ));
       } catch (err) {
         if (mounted) {
           setMovie(null);
@@ -324,7 +324,7 @@ export function useBookingFlow({ showToast } = {}) {
     return () => {
       mounted = false;
     };
-  }, [movieId]);
+  }, [movieId, selectedScreeningDate]);
 
   useEffect(() => {
     setShowtimes((prev) => applyShowtimePricing(prev, selectedScreeningDate));
@@ -720,6 +720,7 @@ export function useBookingFlow({ showToast } = {}) {
       lockBookingSeats({
         movieId: movie.id,
         showtimeId: selectedShowtime.id,
+        screeningDate: selectedScreeningDate,
         seatNumbers: selectedSeats,
       })
         .then((lock) => {
@@ -741,7 +742,7 @@ export function useBookingFlow({ showToast } = {}) {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [isAuthenticated, movie?.id, selectedSeats, selectedShowtime?.id]);
+  }, [isAuthenticated, movie?.id, selectedScreeningDate, selectedSeats, selectedShowtime?.id]);
 
   useEffect(() => {
     const promoCode = paymentForm.promoCode.trim();
@@ -835,6 +836,7 @@ export function useBookingFlow({ showToast } = {}) {
     setSelectedCinemaName(name);
     setSelectedShowtimeId("");
     setSelectedSeats([]);
+    setSelectedFnB([]);
     setSubmitMessage({ type: "", message: "" });
   }, []);
 
@@ -842,6 +844,7 @@ export function useBookingFlow({ showToast } = {}) {
     setSelectedScreeningDate(val);
     setSelectedShowtimeId("");
     setSelectedSeats([]);
+    setSelectedFnB([]);
     setSubmitMessage({ type: "", message: "" });
   }, []);
 
@@ -931,7 +934,12 @@ export function useBookingFlow({ showToast } = {}) {
       }
       setShowtimes((prev) => prev.map((st) =>
         String(st.id) === String(selectedShowtime.id)
-          ? { ...st, bookedSeats: [...new Set([...(st.bookedSeats || []), ...selectedSeats])] }
+          ? {
+              ...st,
+              bookedSeats: [...new Set([...(st.bookedSeats || []), ...selectedSeats])],
+              soldSeats: [...new Set([...(st.soldSeats || []), ...selectedSeats])],
+              availableSeatCount: Math.max(Number(st.availableSeatCount ?? st.seats?.length ?? 0) - selectedSeats.length, 0),
+            }
           : st
       ));
       const receipt = {

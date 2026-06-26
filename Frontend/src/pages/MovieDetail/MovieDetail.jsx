@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
   addMyFavorite,
@@ -751,7 +751,7 @@ export default function MovieDetail() {
                   <div className="md-related-card__body">
                     <strong>{item.title}</strong>
                     <span className="md-related-card__cta">Xem thêm</span>
-                    <span>{[item.genre, `${item.duration} phút`].filter(Boolean).join(" • ")}</span>
+                    <span>{[item.genres?.[0], `${item.duration} phút`].filter(Boolean).join(" • ")}</span>
                   </div>
                 </button>
               ))}

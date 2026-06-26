@@ -1,4 +1,7 @@
-﻿const getAdminMessageStatus = (message) => {
+import React, { useState } from "react";
+import { API_BASE_URL } from "../../../config/api";
+
+const getAdminMessageStatus = (message) => {
   if (message.status === "sending") {
     return "Đang gửi";
   }
@@ -17,6 +20,8 @@ export default function AdminSupportChatView({
   onSendMessage,
   setChatDraft,
 }) {
+  const [adminAvatarCacheBuster] = useState(() => Date.now());
+
   return (
     <section className="admin-chatdesk">
       <aside className="admin-chatdesk__list">
@@ -33,7 +38,7 @@ export default function AdminSupportChatView({
               onClick={() => onSelectChat(chat)}
             >
               <img 
-                src={chat.userId ? `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/v1/auth/users/${chat.userId}/avatar?v=${new Date(chat.updatedAt).getTime()}` : `https://api.dicebear.com/7.x/notionists/svg?seed=${chat.fullName || chat.email || "Guest"}&backgroundColor=f2c14e`} 
+                src={chat.userId ? `${API_BASE_URL}/api/v1/auth/users/${chat.userId}/avatar?v=${new Date(chat.updatedAt).getTime()}` : `https://api.dicebear.com/7.x/notionists/svg?seed=${chat.fullName || chat.email || "Guest"}&backgroundColor=f2c14e`} 
                 alt="User" 
                 className="admin-chatdesk__avatar" 
               />
@@ -53,7 +58,7 @@ export default function AdminSupportChatView({
           <>
             <header className="admin-chatdesk__room-head">
               <img 
-                src={activeChat.userId ? `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/v1/auth/users/${activeChat.userId}/avatar?v=${new Date(activeChat.updatedAt).getTime()}` : `https://api.dicebear.com/7.x/notionists/svg?seed=${activeChat.fullName || activeChat.email || "Guest"}&backgroundColor=f2c14e`} 
+                src={activeChat.userId ? `${API_BASE_URL}/api/v1/auth/users/${activeChat.userId}/avatar?v=${new Date(activeChat.updatedAt).getTime()}` : `https://api.dicebear.com/7.x/notionists/svg?seed=${activeChat.fullName || activeChat.email || "Guest"}&backgroundColor=f2c14e`} 
                 alt="User" 
                 className="admin-chatdesk__avatar" 
               />
@@ -69,7 +74,7 @@ export default function AdminSupportChatView({
                   <div key={message.id} className={`admin-chatdesk__message-row admin-chatdesk__message-row--${isAdmin ? "admin" : "user"}`}>
                     {!isAdmin && (
                       <img 
-                        src={activeChat.userId ? `${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/v1/auth/users/${activeChat.userId}/avatar?v=${new Date(activeChat.updatedAt).getTime()}` : `https://api.dicebear.com/7.x/notionists/svg?seed=${message.authorName || activeChat.fullName || activeChat.email || "Guest"}&backgroundColor=f2c14e`} 
+                        src={activeChat.userId ? `${API_BASE_URL}/api/v1/auth/users/${activeChat.userId}/avatar?v=${new Date(activeChat.updatedAt).getTime()}` : `https://api.dicebear.com/7.x/notionists/svg?seed=${message.authorName || activeChat.fullName || activeChat.email || "Guest"}&backgroundColor=f2c14e`} 
                         alt="User" 
                         className="admin-chatdesk__avatar admin-chatdesk__avatar--small" 
                       />
@@ -82,7 +87,7 @@ export default function AdminSupportChatView({
                     </div>
                     {isAdmin && (
                       <img 
-                        src={`${import.meta.env.VITE_API_URL || "http://localhost:5000"}/api/v1/auth/users/admin/avatar`} 
+                        src={`${API_BASE_URL}/api/v1/auth/users/admin/avatar?v=${adminAvatarCacheBuster}`} 
                         alt="Admin" 
                         className="admin-chatdesk__avatar admin-chatdesk__avatar--small" 
                       />
