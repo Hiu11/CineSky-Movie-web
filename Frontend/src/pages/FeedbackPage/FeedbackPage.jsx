@@ -4,12 +4,10 @@ import { normalizeAuthUser } from "../../services/authService";
 import {
   createFeedbackEntry,
   getAdminFeedbackEntries,
-  getFeedbackEntries,
   getFeedbackEntriesPage,
   updateAdminFeedbackEntry,
 } from "../../services/feedbackService";
 import "./FeedbackPage.css";
-import DynamicLottie from "../../components/DynamicLottie/DynamicLottie";
 
 const feedbackFilmPosters = [
   "/assets/images/khe-uoc-ban-dau.jpg",
