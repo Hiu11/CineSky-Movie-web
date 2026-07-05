@@ -429,7 +429,12 @@ export default function MovieDetail() {
       <section className="md-shell">
         <div className="md-poster-panel">
           <div className="md-posterWrap">
-            <img className="md-poster" src={movie.poster} alt={movie.title} />
+            <img 
+              className="md-poster" 
+              src={movie.poster} 
+              alt={movie.title} 
+              onError={(e) => { e.target.onerror = null; e.target.src = "/assets/images/logo.svg"; }} 
+            />
           </div>
         </div>
 
@@ -586,7 +591,11 @@ export default function MovieDetail() {
             <div className="md-gallery-grid md-carousel-track">
               {galleryItems.map((item, index) => (
                 <article key={item + index} className="md-gallery-card">
-                  <img src={item} alt={`${movie.title} still ${index + 1}`} />
+                  <img 
+                    src={item} 
+                    alt={`${movie.title} still ${index + 1}`} 
+                    onError={(e) => { e.target.onerror = null; e.target.src = "/assets/images/logo.svg"; }} 
+                  />
                 </article>
               ))}
             </div>
@@ -747,7 +756,11 @@ export default function MovieDetail() {
                   className="md-related-card"
                   onClick={() => handleOpenRelatedMovie(item)}
                 >
-                  <img src={item.poster} alt={item.title} />
+                  <img 
+                    src={item.poster} 
+                    alt={item.title} 
+                    onError={(e) => { e.target.onerror = null; e.target.src = "/assets/images/logo.svg"; }} 
+                  />
                   <div className="md-related-card__body">
                     <strong>{item.title}</strong>
                     <span className="md-related-card__cta">Xem thêm</span>
