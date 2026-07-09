@@ -893,9 +893,9 @@ export default function AdminPage() {
       }
 
       const confirmed = await askConfirm({
-        title: editingId ? "Luu thay doi uu dai" : "Them uu dai moi",
-        message: editingId ? "Xac nhan luu thay doi uu dai nay?" : "Xac nhan them uu dai moi?",
-        confirmText: editingId ? "Luu thay doi" : "Them uu dai",
+        title: editingId ? "Lưu thay đổi ưu đãi" : "Thêm ưu đãi mới",
+        message: editingId ? "Xác nhận lưu thay đổi ưu đãi này?" : "Xác nhận thêm ưu đãi mới?",
+        confirmText: editingId ? "Lưu thay đổi" : "Thêm ưu đãi",
       });
 
       if (!confirmed) {
@@ -932,21 +932,21 @@ export default function AdminPage() {
         setSelectedDetail(nextRecord);
         setFormError("");
       } catch (error) {
-        setFormError(error.message || "Khong the luu uu dai.");
+        setFormError(error.message || "Không thể lưu ưu đãi.");
       }
 
       return;
     }
 
     if (!form.name.trim() || !form.status.trim() || !form.time.trim()) {
-      setFormError("Please enter name, status, and time.");
+      setFormError("Vui lòng nhập tên, trạng thái và thời gian.");
       return;
     }
 
     const nextRecord = {
       ...form,
       id: editingId || form.id.trim() || `${activeModule.slice(0, 2).toUpperCase()}${Date.now().toString().slice(-4)}`,
-      value: form.value.trim() || "Not updated",
+      value: form.value.trim() || "Chưa cập nhật",
     };
 
     setRecords((current) => ({
@@ -1066,7 +1066,7 @@ export default function AdminPage() {
         }
         setFormError("");
       } catch (error) {
-        setFormError(error.message || "Khong the tat uu dai.");
+        setFormError(error.message || "Không thể tắt ưu đãi.");
       }
 
       return;

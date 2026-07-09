@@ -129,7 +129,7 @@ export default function AdminRecordModal({
                   </div>
                   {isCrudMode ? (
                     <button type="button" className="admin-form-back" onClick={closeCrudMode}>
-                      Back danh sách
+                      Quay lại danh sách
                     </button>
                   ) : null}
                 </div>
@@ -298,7 +298,7 @@ export default function AdminRecordModal({
                             {item}
                             <button type="button" onClick={() => handleRemoveShowtime(index)} aria-label={`Remove showtime ${item}`}>x</button>
                           </span>
-                        )) : <small>No quick showtimes yet.</small>}
+                        )) : <small>Chưa có suất chiếu nhanh.</small>}
                       </div>
                     </section>
                     <div className="admin-form-grid">
@@ -321,15 +321,15 @@ export default function AdminRecordModal({
                         <option value="ticket">Ticket</option>
                       </select>
                       <select value={form.tier} onChange={(event) => setForm({ ...form, tier: event.target.value })}>
-                        <option value="">No tier</option>
+                        <option value="">Không giới hạn hạng</option>
                         <option value="Silver">Silver</option>
                         <option value="Gold">Gold</option>
                         <option value="Diamond">Diamond</option>
                       </select>
                     </div>
-                    <input required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="Ten uu dai" />
+                    <input required value={form.title} onChange={(event) => setForm({ ...form, title: event.target.value })} placeholder="Tên ưu đãi" />
                     <div className="admin-form-grid">
-                      <input required value={form.tag} onChange={(event) => setForm({ ...form, tag: event.target.value })} placeholder="Nhan hien thi" />
+                      <input required value={form.tag} onChange={(event) => setForm({ ...form, tag: event.target.value })} placeholder="Nhãn hiển thị" />
                       <input value={form.value} onChange={(event) => setForm({ ...form, value: event.target.value })} placeholder="Giá trị hiển thị, ví dụ Giảm 30K" />
                     </div>
                     <div className="admin-form-grid">
