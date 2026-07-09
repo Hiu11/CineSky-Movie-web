@@ -1,9 +1,9 @@
 .profile-page {
   width: min(1320px, calc(100% - 48px));
   margin: 0 auto;
-  padding: 40px 0 100px;
+  padding: 18px 0 100px;
   display: grid;
-  gap: 32px;
+  gap: 20px;
   position: relative;
   z-index: 1;
 }
@@ -727,8 +727,8 @@ select.profile-input option {
 @media (max-width: 760px) {
   .profile-page {
     width: min(100%, calc(100% - 32px));
-    padding: 24px 0 56px;
-    gap: 24px;
+    padding: 12px 0 56px;
+    gap: 16px;
   }
 
   .profile-hero,
@@ -818,7 +818,7 @@ select.profile-input option {
 @media (max-width: 760px) {
   .profile-page {
     width: 100% !important;
-    padding: 18px 22px 42px !important;
+    padding: 10px 22px 42px !important;
     gap: 16px !important;
   }
 
@@ -1092,10 +1092,11 @@ select.profile-input option {
 
 .profile-dashboard-layout {
   min-height: 100vh;
-  padding: 120px 5% 80px;
+  padding: 84px 5% 80px;
   color: #f8fafc;
   display: grid;
   grid-template-columns: 280px 1fr;
+  align-items: start;
   gap: 32px;
   max-width: 1440px;
   margin: 0 auto;
@@ -1117,8 +1118,11 @@ select.profile-input option {
   -webkit-backdrop-filter: blur(20px);
   backdrop-filter: blur(20px);
   height: fit-content;
+  align-self: start;
+  margin-top: 0;
+  transform: translateY(-88px);
   position: sticky;
-  top: 120px;
+  top: 84px;
 }
 
 .sidebar-identity {
@@ -1227,6 +1231,7 @@ select.profile-input option {
 .dashboard-main-content {
   display: flex;
   flex-direction: column;
+  align-self: start;
   min-height: 600px;
 }
 
@@ -1236,7 +1241,7 @@ select.profile-input option {
   to   { opacity: 1; transform: translateY(0); }
 }
 
-.dashboard-header { margin-bottom: 32px; }
+.dashboard-header { margin-bottom: 12px; }
 .dashboard-header h1 { font-size: 32px; margin: 0 0 8px; }
 .dashboard-header p  { color: rgba(255,255,255,0.6); margin: 0; font-size: 15px; }
 
@@ -1574,7 +1579,7 @@ select.profile-input option {
 @media (max-width: 1024px) {
   .profile-dashboard-layout {
     grid-template-columns: 1fr;
-    padding: 100px 16px 60px;
+    padding: 72px 16px 60px;
   }
   .dashboard-sidebar {
     position: static;
@@ -1582,6 +1587,8 @@ select.profile-input option {
     align-items: center;
     gap: 12px;
     padding: 16px 20px;
+    margin-top: 0;
+    transform: none;
     border-radius: 20px;
   }
   .sidebar-identity {
@@ -1608,7 +1615,7 @@ select.profile-input option {
 }
 
 @media (max-width: 640px) {
-  .profile-dashboard-layout { padding: 80px 12px 48px; }
+  .profile-dashboard-layout { padding: 58px 12px 48px; }
   .dashboard-stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
   .stat-glass-panel { flex-direction: column; text-align: center; padding: 16px 12px; gap: 12px; border-radius: 16px; }
   .stat-icon { width: 44px; height: 44px; border-radius: 12px; }

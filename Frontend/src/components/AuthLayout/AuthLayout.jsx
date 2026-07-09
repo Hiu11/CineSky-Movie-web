@@ -291,8 +291,7 @@ export default function AuthLayout({
           </button>
 
           <Link to="/" className="auth-page__brand" aria-label="Back to home">
-            <span className="auth-page__brand-mark">Cine</span>
-            <span className="auth-page__brand-name">Sky</span>
+            <img src="/assets/images/cinesky-wordmark-ai.png" alt="CineSky" />
           </Link>
 
           <p className="auth-page__eyebrow">Movie booking and streaming experience</p>

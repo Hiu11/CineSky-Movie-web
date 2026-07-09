@@ -208,7 +208,7 @@ function AppContent() {
 
   return (
     <div className={appClassName}>
-      {!isAuthPage && !isRentPage ? (
+      {!isAuthPage ? (
         <Header
           isLoggedIn={isLoggedIn}
           user={user}
@@ -259,8 +259,8 @@ function AppContent() {
         <Route path="*" element={<NotFound />} />
       </Routes>
 
-      {!isAuthPage && !isRentPage ? <Footer flushTop={isBookingPage || isAdminPage || isMovieDetailPage || isShowtimesPage} /> : null}
-      {(!isAuthPage && !isRentPage && !isAdminPage && user?.role !== "admin") ? <AdminChatBox user={user} showToast={showToast} /> : null}
+      {!isAuthPage ? <Footer flushTop={isBookingPage || isAdminPage || isMovieDetailPage || isShowtimesPage} /> : null}
+      {(!isAuthPage && !isAdminPage && user?.role !== "admin") ? <AdminChatBox user={user} showToast={showToast} /> : null}
       <ToastViewport toasts={toasts} onDismiss={dismissToast} />
     </div>
   );

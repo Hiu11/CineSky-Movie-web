@@ -319,13 +319,6 @@ export default function Profile() {
         {/* DASHBOARD TAB */}
         {activeTab === 'dashboard' && (
           <div className="tab-fade-in">
-            <header className="dashboard-header">
-               <div>
-                 <h1>Không gian cá nhân</h1>
-                 <p>Theo dõi tiến trình thành viên và khám phá các đặc quyền riêng.</p>
-               </div>
-            </header>
-
             <div className="dashboard-hero-glass">
               <div className="profile-rewards-copy">
                 <span>CineSky Rewards</span>
@@ -459,13 +452,6 @@ export default function Profile() {
         {/* HISTORY & POINTS TAB */}
         {activeTab === 'history' && (
           <div className="tab-fade-in">
-             <header className="dashboard-header">
-               <div>
-                 <h1>Lịch sử & Điểm thưởng</h1>
-                 <p>Theo dõi mọi giao dịch và điểm tích lũy của bạn.</p>
-               </div>
-            </header>
-            
             <div className="history-split-grid">
                {/* PAYMENT HISTORY */}
                <div className="glass-panel-section">
@@ -538,13 +524,6 @@ export default function Profile() {
         {/* SETTINGS TAB */}
         {activeTab === 'settings' && (
           <div className="tab-fade-in">
-             <header className="dashboard-header">
-               <div>
-                 <h1>Cài đặt tài khoản</h1>
-                 <p>Quản lý thông tin cá nhân và bảo mật.</p>
-               </div>
-            </header>
-
             <form className="glass-form-panel" onSubmit={handleProfileSubmit}>
                <div className="form-grid">
                   <div className="form-group">

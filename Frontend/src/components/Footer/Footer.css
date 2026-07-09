@@ -23,6 +23,19 @@
   border-bottom: 1px solid #3a3f5a;
 }
 
+.footer-logo-link {
+  display: inline-block;
+  margin-bottom: 8px;
+  text-decoration: none;
+}
+
+.footer-logo-image {
+  display: block;
+  width: min(220px, 100%);
+  height: auto;
+  filter: drop-shadow(0 10px 22px rgba(247, 180, 0, 0.14));
+}
+
 .brand-slogan {
   color: var(--primary-gold);
   font-size: 18px;

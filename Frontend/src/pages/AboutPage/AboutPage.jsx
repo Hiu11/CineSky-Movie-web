@@ -203,45 +203,59 @@ const AboutPage = () => {
       </div>
 
 
-      <section className="about-hero">
-        <div className="about-hero__content">
-          <span className="about-kicker">Về rạp CineSky</span>
-          <h1>CineSky là rạp phim đô thị dành cho những buổi hẹn xem phim gọn, nhanh và có nhiều ưu đãi thành viên.</h1>
+      <section className="about-hero about-hero--panel">
+        <img
+          src="/assets/images/Celestial_Pipa_Sunset_4K_Wallpaper.png"
+          alt=""
+          className="about-hero-panel__bg"
+        />
+        <div className="about-hero-panel__wash" aria-hidden="true" />
 
-
-          <div className="about-film-reel" aria-label="Poster phim CineSky chuyển động">
-          </div>
+        <div className="about-hero-panel__content">
+          <span>Về rạp CineSky</span>
+          <h1>CineSky</h1>
+          <p>
+            Không gian điện ảnh hiện đại cho những buổi hẹn xem phim gọn,
+            nhanh và giàu cảm xúc, từ lịch chiếu đến ưu đãi thành viên.
+          </p>
 
           <div className="about-hero__actions">
             <Link to="/?tab=now" className="about-solid-link">
-              Xem phim đang chiếu
+              Xem lịch chiếu
             </Link>
             <Link to="/promotions" className="about-ghost-link">
               Xem ưu đãi
             </Link>
-            <Link to="/news" className="about-ghost-link">
-              Tin tức điện ảnh
-            </Link>
           </div>
         </div>
 
-        <div className="about-hero__panel">
-          <div className="about-highlight-card">
-            <span className="about-highlight-card__label">Trải nghiệm tại CineSky</span>
-            <p>
-              Hãy tưởng tượng CineSky như một rạp phim thật: khách xem lịch chiếu online, chọn ghế trước, mua combo,
-              nhận ưu đãi theo hạng thành viên và đến rạp chỉ để tận hưởng bộ phim.
-            </p>
-
-            <div className="about-creator-facts">
-              {cinemaHighlights.map((item) => (
-                <div key={item.label} className="about-creator-fact">
-                  <span>{item.label}</span>
-                  <strong>{item.value}</strong>
-                </div>
-              ))}
-            </div>
-          </div>
+        <div
+          className="about-hero-panel__cards"
+          style={{
+            "--about-panel-count": 5,
+            "--about-panel-image": "url('/assets/images/Celestial_Pipa_Sunset_4K_Wallpaper.png')",
+          }}
+        >
+          {[
+            { label: "Rạp phim", title: "Không gian đô thị" },
+            { label: "Lịch chiếu", title: "Chọn suất nhanh" },
+            { label: "Đặt vé", title: "Giữ ghế online" },
+            { label: "Ưu đãi", title: "Combo thành viên" },
+            { label: "Trải nghiệm", title: "Tận hưởng bộ phim" },
+          ].map((item, index) => (
+            <Link
+              key={item.label}
+              to={index === 3 ? "/promotions" : "/?tab=now"}
+              className="about-hero-panel__card"
+              style={{
+                "--panel-y": `${[-24, 28, -18, 24, -14][index]}px`,
+                "--panel-bg-position": `${(index / 4) * 100}% center`,
+              }}
+            >
+              <span>{item.label}</span>
+              <strong>{item.title}</strong>
+            </Link>
+          ))}
         </div>
       </section>
 

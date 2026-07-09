@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import MovieCard from "../../components/MovieCard/MovieCard";
 import { getMovies } from "../../services/movieService";
@@ -408,6 +408,7 @@ const HomePage = ({ searchQuery = "" }) => {
   const [heroArtworkMap, setHeroArtworkMap] = useState({});
   const [activeFaqIndex, setActiveFaqIndex] = useState(0);
   const [catalogPage, setCatalogPage] = useState(1);
+  const [activeOverviewIdx, setActiveOverviewIdx] = useState(0);
 
   useEffect(() => {
     let isMounted = true;
@@ -630,43 +631,60 @@ const HomePage = ({ searchQuery = "" }) => {
       label: "PHIM ĐANG CHIẾU",
       title: `${nowShowingMovies.length} phim đang mở bán`,
       description: "Xem nhanh các suất chiếu nổi bật và truy cập danh sách phim đang hoạt động trong ngày.",
-      meta: "Lấy trực tiếp từ tab lịch chiếu hiện tại",
       to: "/?tab=now",
       cta: "Xem lịch chiếu",
+      image: "/assets/images/Golden_Dragon_Sovereign.png",
+      imagePos: "48% 28%",
     },
     {
       label: "PHIM SẮP CHIẾU",
       title: `${comingSoonMovies.length} phim chuẩn bị ra mắt`,
       description: "Theo dõi các tựa phim sẽ lên rạp để chuẩn bị kế hoạch đặt vé sớm.",
-      meta: "Phù hợp để preview chiến dịch truyền thông",
       to: "/?tab=soon",
       cta: "Xem phim sắp chiếu",
+      image: "/assets/images/Emerald_Lotus_Goddess.png",
+      imagePos: "46% 26%",
     },
     {
       label: "LỌC PHIM",
       title: `${topGenres.length} nhóm thể loại nổi bật`,
       description: "Đi tới bộ lọc để phân loại theo thể loại, quốc gia và độ tuổi phù hợp.",
-      meta: "Tóm tắt từ trang lọc phim",
       to: "/filter",
       cta: "Mở bộ lọc",
+      image: "/assets/images/Violet_Moon_Empress.png",
+      imagePos: "48% 24%",
     },
     {
       label: "GIỚI THIỆU",
       title: "Định hướng của CineSky",
       description: "Nêu nhanh mục tiêu xây dựng trải nghiệm xem phim hiện đại, trực quan và dễ dùng.",
-      meta: "Rút gọn từ trang giới thiệu",
       to: "/about",
       cta: "Tìm hiểu thêm",
+      image: "/assets/images/Celestial_Pipa_Sunset_4K_Wallpaper.png",
+      imagePos: "48% 28%",
     },
     {
       label: "GÓP Ý",
       title: "Kênh tiếp nhận phản hồi",
       description: "Mời người dùng để lại đánh giá trải nghiệm để nhóm cải thiện giao diện và dịch vụ.",
-      meta: "Liên kết tới biểu mẫu góp ý",
       to: "/feedback",
       cta: "Gửi góp ý",
+      image: "/assets/images/Azure_Dragon_Sword_Saint.png",
+      imagePos: "48% 22%",
+    },
+    {
+      label: "ƯU ĐÃI",
+      title: "Khuyến mãi đang chờ bạn",
+      description: "Xem các ưu đãi độc quyền, mã giảm giá và chương trình khuyến mãi theo mùa.",
+      to: "/promotions",
+      cta: "Xem ưu đãi",
+      image: "/assets/images/Moonlit_Celestial_Dancer_PinkBlue_4K_Wallpaper.png",
+      imagePos: "50% 24%",
     },
   ];
+  const visibleOverviewCards = overviewCards.slice(0, 5);
+  const activeOverviewCard = visibleOverviewCards[activeOverviewIdx] || visibleOverviewCards[0];
+  const overviewGridCards = overviewCards.slice(0, 6);
 
   const featuredMovieTab = featuredMovie?.status === "coming-soon" ? "soon" : "now";
   const heroReleaseYear = extractReleaseYear(featuredMovie?.release || "");
@@ -686,6 +704,7 @@ const HomePage = ({ searchQuery = "" }) => {
 
   if (tabParam === "now" || tabParam === "soon") {
     const isComingSoonTab = tabParam === "soon";
+    const catalogHeroCards = catalogFilmMovies.slice(0, 6);
 
     return (
       <main className="homepage-wrapper homepage-shell homepage-shell--catalog">
@@ -701,8 +720,11 @@ const HomePage = ({ searchQuery = "" }) => {
           </div>
         </div>
 
-        <section className="home-catalog-hero">
-          <div className="home-catalog-hero__content">
+        <section
+          className="home-catalog-hero home-catalog-hero--overview"
+          style={{ "--catalog-hero-bg": `url("${toBackgroundUrl(catalogHeroCards[0]?.poster || "/assets/images/Celestial_Pipa_Sunset_4K_Wallpaper.png")}")` }}
+        >
+          <div className="home-catalog-hero__content home-catalog-hero__content--overview">
             <span className="home-kicker">
               {isComingSoonTab ? "Bộ sưu tập phim sắp ra mắt" : "Danh sách phim đang mở bán"}
             </span>
@@ -729,7 +751,25 @@ const HomePage = ({ searchQuery = "" }) => {
             </div>
           </div>
 
-          <div className="home-catalog-hero__links">
+          <div className="home-catalog-overview-panels" aria-label="Catalog highlights">
+            {catalogHeroCards.map((movie, index) => (
+              <Link
+                key={movie.id}
+                to={`/movie/${movie.id}?tab=${isComingSoonTab ? "soon" : "now"}`}
+                className="home-catalog-overview-panel"
+                style={{
+                  "--panel-y": `${[-24, 20, -18, 24, -14, 18][index] || 0}px`,
+                  "--catalog-card-image": `url("${toBackgroundUrl(movie.poster)}")`,
+                }}
+              >
+                <span>{isComingSoonTab ? "Sắp chiếu" : "Đang chiếu"}</span>
+                <strong>{movie.title}</strong>
+                <small>{movie.genre}</small>
+              </Link>
+            ))}
+          </div>
+
+          <div className="home-catalog-hero__links home-catalog-hero__links--overview">
             <Link to="/" className="home-ghost-link">
               Về trang chủ tổng quan
             </Link>
@@ -955,23 +995,102 @@ const HomePage = ({ searchQuery = "" }) => {
         </section>
       ) : null}
 
-      <section className="home-section" data-reveal>
-        <div className="home-section__header">
-          <div>
-            <h2>Tổng quan</h2>
+      <section className="home-overview-section" data-reveal>
+        <div className="home-overview-section__header">
+          <span className="home-kicker">Tổng quan</span>
+          <h2>Tổng quan CineSky</h2>
+          <p>Trải nghiệm điện ảnh hiện đại — từ lịch chiếu, bộ lọc đến ưu đãi độc quyền</p>
+        </div>
+
+        <div className="home-overview-compare-stage">
+          <img
+            src="/assets/images/Celestial_Pipa_Sunset_4K_Wallpaper.png"
+            alt=""
+            className="home-overview-compare-stage__bg"
+          />
+          <div className="home-overview-compare-stage__wash" aria-hidden="true" />
+
+          <div className="home-overview-compare-copy">
+            <span>Tổng quan</span>
+            <img
+              src="/assets/images/cinesky-wordmark-ai.png"
+              alt="CineSky"
+              className="home-ai-wordmark"
+            />
+            <p>
+              Một góc nhìn tổng hợp về phim đang chiếu, phim sắp ra mắt,
+              bộ lọc nội dung và các trải nghiệm chính của CineSky.
+            </p>
+            <Link to="/filter" className="home-solid-link">
+              Khám phá phim
+            </Link>
+          </div>
+
+          <div className="home-overview-compare-panels">
+            {overviewGridCards.map((card, index) => (
+              <Link
+                key={card.label}
+                to={card.to}
+                className="home-overview-compare-panel"
+                style={{
+                  "--panel-y": `${[-28, 20, -22, 26, -18, 18][index] || 0}px`,
+                  "--compare-card-image": `url("${card.image}")`,
+                  "--compare-card-pos": card.imagePos || "center",
+                }}
+              >
+                <span>{card.label}</span>
+                <strong>{card.title}</strong>
+                <small>{card.description}</small>
+              </Link>
+            ))}
           </div>
         </div>
 
-        <div className="home-overview-grid">
-          {overviewCards.map((card) => (
-            <Link key={card.label} to={card.to} className="home-overview-card">
-              <span className="home-overview-card__label">{card.label}</span>
-              <h3>{card.title}</h3>
-              <p>{card.description}</p>
-              <small>{card.meta}</small>
-              <span className="home-overview-card__cta">{card.cta}</span>
+        <div
+          className="home-overview-wrap"
+          style={{
+            "--overview-panel-count": visibleOverviewCards.length,
+            "--overview-panel-image": "url('/assets/images/Celestial_Pipa_Sunset_4K_Wallpaper.png')",
+          }}
+        >
+
+          {/* Left: content pane — updates on hover */}
+          <div className="home-overview-content-pane">
+            <span className="home-overview-content-pane__label">
+              {activeOverviewCard.label}
+            </span>
+            <h3 className="home-overview-content-pane__title">
+              {activeOverviewCard.title}
+            </h3>
+            <p className="home-overview-content-pane__desc">
+              {activeOverviewCard.description}
+            </p>
+            <Link
+              to={activeOverviewCard.to}
+              className="home-solid-link"
+            >
+              {activeOverviewCard.cta}
             </Link>
-          ))}
+          </div>
+
+          {/* Right: 5 panels sharing one sliced image */}
+          <div className="home-overview-panels">
+            {visibleOverviewCards.map((card, index) => (
+              <button
+                key={card.label}
+                type="button"
+                className={`home-overview-panel${index === activeOverviewIdx ? " is-active" : ""}`}
+                style={{
+                  "--panel-index": index,
+                  "--panel-bg-position": `${(index / Math.max(visibleOverviewCards.length - 1, 1)) * 100}% center`,
+                }}
+                onMouseEnter={() => setActiveOverviewIdx(index)}
+                aria-label={card.label}
+              >
+                <div className="home-overview-panel__shine" aria-hidden="true" />
+              </button>
+            ))}
+          </div>
         </div>
       </section>
 
@@ -1159,59 +1278,234 @@ const HomePage = ({ searchQuery = "" }) => {
         </div>
       </section>
 
-      <section className="home-section home-section--insights">
+      <section className="home-section home-section--insights" data-reveal>
         <div className="home-section__header">
           <div>
             <h2>Khám phá CineSky</h2>
           </div>
         </div>
 
-        <div className="home-insight-grid" data-reveal>
-        <article className="home-insight-card">
-          <span className="home-kicker">Giới thiệu</span>
-          <h2>CineSky hướng tới trải nghiệm xem phim hiện đại và dễ tiếp cận</h2>
-          <p>
-            Phần này rút gọn tinh thần từ trang Giới thiệu: tập trung vào trải nghiệm điện ảnh chân thực, giao diện rõ ràng
-            và hành trình đặt vé đơn giản cho người dùng trẻ.
-          </p>
-          <Link to="/about" className="home-inline-link">
-            Xem trang giới thiệu
-          </Link>
-        </article>
+        <div className="home-insight-stage">
+          <img
+            src="/assets/images/Azure_Dragon_Sword_Saint.png"
+            alt=""
+            className="home-insight-stage__bg"
+          />
+          <div className="home-insight-stage__bg-overlay" aria-hidden="true" />
 
-        <article className="home-insight-card">
-          <span className="home-kicker">Lọc phim</span>
-          <h2>Thể loại và quốc gia đang xuất hiện nhiều trong dữ liệu</h2>
-          <div className="home-chip-group">
-            {topGenres.map((genre) => (
-              <span key={genre.label} className="home-chip">
-                {genre.label} · {genre.count}
-              </span>
-            ))}
-          </div>
-          <div className="home-chip-group">
-            {topCountries.map((country) => (
-              <span key={country.label} className="home-chip home-chip--muted">
-                {country.label} · {country.count}
-              </span>
-            ))}
-          </div>
-          <Link to="/filter" className="home-inline-link">
-            Đi tới trang lọc phim
-          </Link>
-        </article>
+          <div className="home-insight-panels">
+            <Link
+              to="/about"
+              className="home-insight-panel"
+              style={{ "--panel-index": 0, "--insight-card-image": "url('/assets/images/Golden_Dragon_Sovereign.png')", "--insight-card-pos": "48% 28%" }}
+            >
+              <span className="home-insight-panel__label">GIỚI THIỆU</span>
+              <div className="home-insight-panel__content">
+                <h3 className="home-insight-panel__title">Nền tảng điện ảnh hiện đại cho thế hệ trẻ</h3>
+                <p className="home-insight-panel__desc">Giao diện trực quan, tốc độ nhanh và hành trình đặt vé mượt mà từ đầu đến cuối.</p>
+                <div className="home-insight-panel__tags">
+                  <span className="home-insight-tag">UI/UX</span>
+                  <span className="home-insight-tag">Điện ảnh</span>
+                  <span className="home-insight-tag">Đặt vé</span>
+                </div>
+                <span className="home-insight-panel__cta">Khám phá ngay →</span>
+              </div>
+              <div className="home-insight-panel__shine" aria-hidden="true" />
+            </Link>
 
-        <article className="home-insight-card home-insight-card--accent">
-          <span className="home-kicker">Góp ý</span>
-          <h2>Phản hồi của người dùng là phần không thể thiếu trong bài</h2>
-          <p>
-            Trang Góp ý được tóm tắt tại đây như một điểm chạm cuối của luồng trải nghiệm: sau khi xem thông tin, người dùng
-            có thể gửi nhận xét để nhóm cải thiện giao diện và dịch vụ.
-          </p>
-          <Link to="/feedback" className="home-solid-link">
-            Mở biểu mẫu góp ý
-          </Link>
-        </article>
+            <Link
+              to="/filter"
+              className="home-insight-panel"
+              style={{ "--panel-index": 1, "--insight-card-image": "url('/assets/images/Emerald_Lotus_Goddess.png')", "--insight-card-pos": "46% 26%" }}
+            >
+              <span className="home-insight-panel__label">LỌC PHIM</span>
+              <div className="home-insight-panel__content">
+                <h3 className="home-insight-panel__title">Tìm đúng phim bạn muốn xem</h3>
+                <div className="home-insight-panel__stats">
+                  <div className="home-insight-stat">
+                    <strong>{nowShowingMovies.length}</strong>
+                    <span>đang chiếu</span>
+                  </div>
+                  <div className="home-insight-stat">
+                    <strong>{comingSoonMovies.length}</strong>
+                    <span>sắp ra mắt</span>
+                  </div>
+                  <div className="home-insight-stat">
+                    <strong>{topGenres.length}</strong>
+                    <span>thể loại</span>
+                  </div>
+                </div>
+                <p className="home-insight-panel__desc">Lọc theo thể loại, quốc gia, độ tuổi và suất chiếu — tất cả trong một bước.</p>
+                <span className="home-insight-panel__cta">Mở bộ lọc →</span>
+              </div>
+              <div className="home-insight-panel__shine" aria-hidden="true" />
+            </Link>
+
+            <Link
+              to="/feedback"
+              className="home-insight-panel"
+              style={{ "--panel-index": 2, "--insight-card-image": "url('/assets/images/Violet_Moon_Empress.png')", "--insight-card-pos": "48% 24%" }}
+            >
+              <span className="home-insight-panel__label">GÓP Ý</span>
+              <div className="home-insight-panel__content">
+                <h3 className="home-insight-panel__title">Tiếng nói của bạn định hình CineSky</h3>
+                <p className="home-insight-panel__desc">Mỗi phản hồi giúp chúng tôi cải thiện giao diện, tính năng và trải nghiệm dịch vụ.</p>
+                <div className="home-insight-panel__tags">
+                  <span className="home-insight-tag home-insight-tag--gold">⭐ Đánh giá</span>
+                  <span className="home-insight-tag">Góp ý UI</span>
+                  <span className="home-insight-tag">Báo lỗi</span>
+                </div>
+                <span className="home-insight-panel__cta">Gửi phản hồi →</span>
+              </div>
+              <div className="home-insight-panel__shine" aria-hidden="true" />
+            </Link>
+
+            <Link
+              to="/promotions"
+              className="home-insight-panel"
+              style={{ "--panel-index": 3, "--insight-card-image": "url('/assets/images/Celestial_Pipa_Sunset_4K_Wallpaper.png')", "--insight-card-pos": "48% 28%" }}
+            >
+              <span className="home-insight-panel__label">ƯU ĐÃI</span>
+              <div className="home-insight-panel__badge">HOT</div>
+              <div className="home-insight-panel__content">
+                <h3 className="home-insight-panel__title">Ưu đãi độc quyền đang chờ bạn</h3>
+                <p className="home-insight-panel__desc">Mã giảm giá, combo bắp nước và chương trình tích điểm đặc biệt dành cho thành viên.</p>
+                <span className="home-insight-panel__cta">Xem ưu đãi →</span>
+              </div>
+              <div className="home-insight-panel__shine" aria-hidden="true" />
+            </Link>
+
+            <Link
+              to="/?tab=now"
+              className="home-insight-panel"
+              style={{ "--panel-index": 4, "--insight-card-image": "url('/assets/images/Azure_Dragon_Sword_Saint.png')", "--insight-card-pos": "48% 22%" }}
+            >
+              <span className="home-insight-panel__label">LICH CHIEU</span>
+              <div className="home-insight-panel__content">
+                <h3 className="home-insight-panel__title">Cập nhật nhanh các suất chiếu đang mở bán</h3>
+                <p className="home-insight-panel__desc">Theo dõi phim đang chiếu, giờ chiếu và đường tắt đặt vé để chọn ghế nhanh hơn.</p>
+                <div className="home-insight-panel__tags">
+                  <span className="home-insight-tag">{nowShowingMovies.length} phim</span>
+                  <span className="home-insight-tag">Đặt vé nhanh</span>
+                </div>
+                <span className="home-insight-panel__cta">Xem lịch chiếu -&gt;</span>
+              </div>
+              <div className="home-insight-panel__shine" aria-hidden="true" />
+            </Link>
+
+            <Link
+              to="/profile"
+              className="home-insight-panel"
+              style={{ "--panel-index": 5, "--insight-card-image": "url('/assets/images/Moonlit_Celestial_Dancer_PinkBlue_4K_Wallpaper.png')", "--insight-card-pos": "50% 24%" }}
+            >
+              <span className="home-insight-panel__label">THANH VIEN</span>
+              <div className="home-insight-panel__content">
+                <h3 className="home-insight-panel__title">Quản lý hành trình xem phim của riêng bạn</h3>
+                <p className="home-insight-panel__desc">Lưu thông tin cá nhân, theo dõi vé đã đặt và quay lại các phim yêu thích để tiếp tục khám phá.</p>
+                <div className="home-insight-panel__tags">
+                  <span className="home-insight-tag home-insight-tag--gold">Hồ sơ</span>
+                  <span className="home-insight-tag">Vé của tôi</span>
+                </div>
+                <span className="home-insight-panel__cta">Mở tài khoản -&gt;</span>
+              </div>
+              <div className="home-insight-panel__shine" aria-hidden="true" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      <section className="home-section home-section--insights-compare" data-reveal>
+        <div className="home-section__header">
+          <div>
+            <h2>Khám phá CineSky - dạng panel</h2>
+          </div>
+        </div>
+
+        <div className="home-insight-compare-stage">
+          <img
+            src="/assets/images/Celestial_Pipa_Sunset_4K_Wallpaper.png"
+            alt=""
+            className="home-insight-compare-stage__bg"
+          />
+          <div className="home-insight-compare-stage__wash" aria-hidden="true" />
+
+          <div className="home-insight-compare-copy">
+            <span>Khám phá</span>
+            <img
+              src="/assets/images/cinesky-wordmark-ai.png"
+              alt="CineSky"
+              className="home-ai-wordmark"
+            />
+            <p>
+              Một góc nhìn gần với phần Tổng quan: ảnh nền tổng rất nhẹ,
+              còn từng card vẫn giữ hình ảnh rõ để dễ so sánh.
+            </p>
+            <Link to="/filter" className="home-solid-link">
+              Khám phá phim
+            </Link>
+          </div>
+
+          <div className="home-insight-compare-panels">
+            <Link
+              to="/about"
+              className="home-insight-compare-panel"
+              style={{ "--panel-y": "-28px", "--compare-card-image": "url('/assets/images/Golden_Dragon_Sovereign.png')" }}
+            >
+              <span>Giới thiệu</span>
+              <strong>Trải nghiệm CineSky</strong>
+              <small>UI/UX, đặt vé, hành trình xem phim.</small>
+            </Link>
+
+            <Link
+              to="/filter"
+              className="home-insight-compare-panel"
+              style={{ "--panel-y": "20px", "--compare-card-image": "url('/assets/images/Emerald_Lotus_Goddess.png')" }}
+            >
+              <span>Lọc phim</span>
+              <strong>{topGenres.length} thể loại nổi bật</strong>
+              <small>Lọc theo thể loại, quốc gia và độ tuổi.</small>
+            </Link>
+
+            <Link
+              to="/?tab=now"
+              className="home-insight-compare-panel"
+              style={{ "--panel-y": "-22px", "--compare-card-image": "url('/assets/images/Violet_Moon_Empress.png')" }}
+            >
+              <span>Đang chiếu</span>
+              <strong>{nowShowingMovies.length} phim đang mở bán</strong>
+              <small>Đi nhanh đến lịch chiếu trong ngày.</small>
+            </Link>
+
+            <Link
+              to="/?tab=soon"
+              className="home-insight-compare-panel"
+              style={{ "--panel-y": "26px", "--compare-card-image": "url('/assets/images/Celestial_Pipa_Sunset_4K_Wallpaper.png')" }}
+            >
+              <span>Sắp chiếu</span>
+              <strong>{comingSoonMovies.length} phim sắp ra mắt</strong>
+              <small>Theo dõi phim mới và trailer nổi bật.</small>
+            </Link>
+
+            <Link
+              to="/promotions"
+              className="home-insight-compare-panel"
+              style={{ "--panel-y": "-18px", "--compare-card-image": "url('/assets/images/Emerald_Lotus_Goddess.png')" }}
+            >
+              <span>Ưu đãi</span>
+              <strong>Combo va ma giam gia</strong>
+              <small>Cập nhật ưu đãi thành viên CineSky.</small>
+            </Link>
+
+            <Link
+              to="/feedback"
+              className="home-insight-compare-panel"
+              style={{ "--panel-y": "18px", "--compare-card-image": "url('/assets/images/Violet_Moon_Empress.png')" }}
+            >
+              <span>Góp ý</span>
+              <strong>Lắng nghe phản hồi</strong>
+              <small>Gửi đánh giá để cải thiện trải nghiệm.</small>
+            </Link>
+          </div>
         </div>
       </section>
 
