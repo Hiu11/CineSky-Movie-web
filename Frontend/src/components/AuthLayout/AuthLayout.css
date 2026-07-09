@@ -103,25 +103,16 @@
 }
 
 .auth-page__brand {
-  display: inline-flex;
-  align-items: baseline;
-  gap: 8px;
+  display: inline-block;
   margin-bottom: 18px;
   text-decoration: none;
-  font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(54px, 7vw, 88px);
-  font-weight: 700;
-  line-height: 0.95;
-  letter-spacing: -1.8px;
 }
 
-.auth-page__brand-mark {
-  color: #7c3aed;
-  text-shadow: 0 0 24px rgba(124, 58, 237, 0.28);
-}
-
-.auth-page__brand-name {
-  color: #ffffff;
+.auth-page__brand img {
+  display: block;
+  width: min(360px, 78vw);
+  height: auto;
+  filter: drop-shadow(0 12px 26px rgba(247, 180, 0, 0.18));
 }
 
 .auth-page__eyebrow {

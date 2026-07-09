@@ -433,7 +433,7 @@ export default function MovieDetail() {
               className="md-poster" 
               src={movie.poster} 
               alt={movie.title} 
-              onError={(e) => { e.target.onerror = null; e.target.src = "/assets/images/logo.svg"; }} 
+              onError={(e) => { e.target.onerror = null; e.target.src = "/assets/images/cinesky-wordmark-ai.png"; }} 
             />
           </div>
         </div>
@@ -594,7 +594,7 @@ export default function MovieDetail() {
                   <img 
                     src={item} 
                     alt={`${movie.title} still ${index + 1}`} 
-                    onError={(e) => { e.target.onerror = null; e.target.src = "/assets/images/logo.svg"; }} 
+                    onError={(e) => { e.target.onerror = null; e.target.src = "/assets/images/cinesky-wordmark-ai.png"; }} 
                   />
                 </article>
               ))}
@@ -759,7 +759,7 @@ export default function MovieDetail() {
                   <img 
                     src={item.poster} 
                     alt={item.title} 
-                    onError={(e) => { e.target.onerror = null; e.target.src = "/assets/images/logo.svg"; }} 
+                    onError={(e) => { e.target.onerror = null; e.target.src = "/assets/images/cinesky-wordmark-ai.png"; }} 
                   />
                   <div className="md-related-card__body">
                     <strong>{item.title}</strong>

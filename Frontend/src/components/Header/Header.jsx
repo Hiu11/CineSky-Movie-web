@@ -645,7 +645,7 @@ export default function Header({
     <header className="main-header">
       <div className="header-top">
         <Link to="/" className="logo-link-clean">
-          <img src="/assets/images/logo.svg" alt="CineSky" className="logo-image" />
+          <img src="/assets/images/cinesky-wordmark-ai.png" alt="CineSky" className="logo-image" />
         </Link>
 
         <div className="search-shell" ref={searchWrapperRef}>
@@ -785,7 +785,7 @@ export default function Header({
           />
           <aside className="mobile-drawer">
             <div className="mobile-drawer__header">
-              <strong>CineSky</strong>
+              <img src="/assets/images/cinesky-wordmark-ai.png" alt="CineSky" className="mobile-drawer__logo" />
               <button
                 type="button"
                 className="mobile-drawer__close"

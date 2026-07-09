@@ -11,6 +11,9 @@ const Footer = ({ flushTop = false }) => {
     <footer className={"complex-footer" + (flushTop ? " complex-footer--flush" : "")}>
       <div className="footer-top-grid">
         <div className="footer-brand">
+          <Link to="/" className="footer-logo-link">
+            <img src="/assets/images/cinesky-wordmark-ai.png" alt="CineSky" className="footer-logo-image" />
+          </Link>
           <p className="brand-slogan">BE HAPPY. BE A STAR</p>
           <div className="social-icons">
             <i className="fab fa-facebook"></i>

@@ -428,6 +428,188 @@
   line-height: 1.88;
 }
 
+.about-hero--panel {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  min-height: 560px;
+  padding: 0;
+  overflow: hidden;
+  background: rgba(5, 6, 13, 0.7);
+  border-color: rgba(255, 218, 145, 0.14);
+}
+
+.about-hero--panel::before {
+  display: none;
+}
+
+.about-hero-panel__bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  opacity: 0.22;
+  filter: brightness(0.72) saturate(0.95);
+  z-index: 0;
+}
+
+.about-hero-panel__wash {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    linear-gradient(90deg, rgba(5, 6, 14, 0.82) 0%, rgba(5, 6, 14, 0.34) 40%, rgba(5, 6, 14, 0.58) 100%),
+    radial-gradient(circle at 20% 50%, rgba(247, 180, 0, 0.1), transparent 40%);
+  pointer-events: none;
+}
+
+.about-hero-panel__content {
+  position: relative;
+  z-index: 2;
+  flex: 0 0 330px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 18px;
+  padding: 48px 28px 48px 38px;
+}
+
+.about-hero-panel__content > span {
+  color: #c8842a;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.about-hero-panel__content h1 {
+  margin: 0;
+  color: #d19643;
+  font-family: "Segoe Script", "Brush Script MT", "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(56px, 6vw, 92px);
+  font-weight: 700;
+  line-height: 0.95;
+  letter-spacing: 0;
+  text-shadow: 0 1px 0 rgba(255,245,218,0.45), 0 8px 24px rgba(0,0,0,0.42);
+}
+
+.about-hero-panel__content p {
+  margin: 0;
+  color: rgba(255, 228, 184, 0.84);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 18px;
+  font-style: italic;
+  font-weight: 600;
+  line-height: 1.6;
+  text-shadow: 0 7px 20px rgba(0,0,0,0.32);
+}
+
+.about-hero-panel__cards {
+  position: relative;
+  z-index: 2;
+  flex: 1 1 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 56px 34px 56px 6px;
+}
+
+.about-hero-panel__card {
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: calc(100% - 76px);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 30px 16px 28px;
+  color: #fff;
+  text-decoration: none;
+  background-image:
+    linear-gradient(180deg, rgba(5, 6, 14, 0.04) 0%, rgba(5, 6, 14, 0.16) 44%, rgba(5, 6, 14, 0.72) 100%),
+    var(--about-panel-image);
+  background-size:
+    100% 100%,
+    calc(var(--about-panel-count) * 100%) 100%;
+  background-position:
+    center,
+    var(--panel-bg-position, center);
+  background-repeat: no-repeat;
+  border: 2px solid rgba(137, 80, 31, 0.82);
+  outline: 1px solid rgba(255, 226, 161, 0.46);
+  outline-offset: -7px;
+  border-radius: 32px 32px 48px 48px / 40px 40px 64px 64px;
+  box-shadow:
+    0 14px 34px rgba(0, 0, 0, 0.34),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -70px 90px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+  transform: translateY(var(--panel-y, 0));
+  transition:
+    transform 0.36s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.36s ease,
+    box-shadow 0.36s ease;
+}
+
+.about-hero-panel__card::before,
+.about-hero-panel__card::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  width: 56px;
+  height: 24px;
+  transform: translateX(-50%);
+  border: 2px solid rgba(116, 61, 25, 0.82);
+  background: rgba(168, 105, 46, 0.62);
+  z-index: 1;
+}
+
+.about-hero-panel__card::before {
+  top: -2px;
+  border-top: none;
+  border-radius: 0 0 30px 30px;
+}
+
+.about-hero-panel__card::after {
+  bottom: -2px;
+  border-bottom: none;
+  border-radius: 30px 30px 0 0;
+}
+
+.about-hero-panel__card span,
+.about-hero-panel__card strong {
+  position: relative;
+  z-index: 2;
+}
+
+.about-hero-panel__card span {
+  color: var(--primary-gold, #f7b400);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.65);
+}
+
+.about-hero-panel__card strong {
+  font-size: 16px;
+  line-height: 1.25;
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+}
+
+.about-hero-panel__card:hover {
+  transform: translateY(calc(var(--panel-y, 0px) - 8px));
+  border-color: rgba(247, 180, 0, 0.55);
+  box-shadow:
+    0 20px 50px rgba(0, 0, 0, 0.44),
+    0 0 0 1px rgba(247, 180, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
 .about-project-note {
   max-width: 720px;
   padding: 18px 20px;
@@ -1929,4 +2111,55 @@
 }
 
 
+}
+
+@media (max-width: 1024px) {
+  .about-hero--panel {
+    flex-direction: column;
+  }
+
+  .about-hero-panel__content {
+    flex: none;
+    padding: 38px 28px 10px;
+  }
+
+  .about-hero-panel__cards {
+    min-height: 460px;
+    padding: 28px;
+  }
+}
+
+@media (max-width: 768px) {
+  .about-hero--panel {
+    min-height: 0;
+    border-radius: 22px;
+  }
+
+  .about-hero-panel__content {
+    padding: 30px 20px 8px;
+  }
+
+  .about-hero-panel__content h1 {
+    font-size: 56px;
+  }
+
+  .about-hero-panel__cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    min-height: 0;
+    gap: 12px;
+    padding: 16px;
+  }
+
+  .about-hero-panel__card {
+    min-height: 220px;
+    height: auto;
+    transform: none;
+    background-size: cover;
+    background-position: center;
+  }
+
+  .about-hero-panel__card:hover {
+    transform: translateY(-6px);
+  }
 }

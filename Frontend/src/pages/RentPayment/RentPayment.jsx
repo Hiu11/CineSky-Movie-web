@@ -6,7 +6,7 @@ import { getMovies } from "../../services/movieService";
 import { GALAXY_PAYMENT_METHODS, formatVnd } from "../../utils/paymentUi";
 import "./RentPayment.css";
 
-const LOGO = "/assets/images/logo.svg";
+const LOGO = "/assets/images/cinesky-wordmark-ai.png";
 const RENT_PRICE = 50000;
 const PLAN_NAMES = {
   vip: "Gói CineSky VIP",
