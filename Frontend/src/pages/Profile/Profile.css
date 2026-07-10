@@ -1682,5 +1682,47 @@ select.profile-input option {
   }
 }
 
+@media (max-width: 520px) {
+  .profile-dashboard-layout {
+    width: 100%;
+    padding-inline: 12px;
+    overflow-x: hidden;
+  }
+
+  .dashboard-sidebar,
+  .dashboard-main,
+  .dashboard-hero-glass,
+  .glass-panel-section {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .dashboard-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .sidebar-identity {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+
+  .sidebar-identity h2,
+  .sidebar-identity p,
+  .nav-btn,
+  .logout-btn {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .profile-voucher-grid,
+  .profile-favorites,
+  .profile-bookings,
+  .profile-details,
+  .form-grid,
+  .history-split-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 
 

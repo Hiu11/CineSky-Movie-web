@@ -582,3 +582,32 @@
     font-size: 12px;
   }
 }
+
+@media (max-width: 520px) {
+  .cinema-news-page {
+    padding-inline: 12px;
+  }
+
+  .cinema-news-hero,
+  .cinema-news-brief,
+  .cinema-news-expanded,
+  .cinema-news-all,
+  .cinema-news-related {
+    padding: 16px 14px;
+    border-radius: 18px;
+  }
+
+  .cinema-news-featured img,
+  .cinema-news-card--compact img {
+    aspect-ratio: 16 / 11;
+  }
+
+  .cinema-news-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .cinema-news-source__links a {
+    width: 100%;
+    justify-content: center;
+  }
+}

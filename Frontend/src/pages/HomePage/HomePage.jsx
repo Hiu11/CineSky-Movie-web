@@ -1380,7 +1380,7 @@ const HomePage = ({ searchQuery = "" }) => {
               className="home-insight-panel"
               style={{ "--panel-index": 4, "--insight-card-image": "url('/assets/images/Azure_Dragon_Sword_Saint.png')", "--insight-card-pos": "48% 22%" }}
             >
-              <span className="home-insight-panel__label">LICH CHIEU</span>
+              <span className="home-insight-panel__label">LỊCH CHIẾU</span>
               <div className="home-insight-panel__content">
                 <h3 className="home-insight-panel__title">Cập nhật nhanh các suất chiếu đang mở bán</h3>
                 <p className="home-insight-panel__desc">Theo dõi phim đang chiếu, giờ chiếu và đường tắt đặt vé để chọn ghế nhanh hơn.</p>
@@ -1398,7 +1398,7 @@ const HomePage = ({ searchQuery = "" }) => {
               className="home-insight-panel"
               style={{ "--panel-index": 5, "--insight-card-image": "url('/assets/images/Moonlit_Celestial_Dancer_PinkBlue_4K_Wallpaper.png')", "--insight-card-pos": "50% 24%" }}
             >
-              <span className="home-insight-panel__label">THANH VIEN</span>
+              <span className="home-insight-panel__label">THÀNH VIÊN</span>
               <div className="home-insight-panel__content">
                 <h3 className="home-insight-panel__title">Quản lý hành trình xem phim của riêng bạn</h3>
                 <p className="home-insight-panel__desc">Lưu thông tin cá nhân, theo dõi vé đã đặt và quay lại các phim yêu thích để tiếp tục khám phá.</p>

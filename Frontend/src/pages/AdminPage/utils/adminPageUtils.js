@@ -447,7 +447,7 @@ export const movieSuggestions = {
 
 export const formatAdminDateTime = (value) => {
   if (!value) {
-    return "Not updated";
+    return "Chưa cập nhật";
   }
 
   const date = new Date(value);
@@ -765,9 +765,9 @@ export const mapMovieToRecord = (movie, index = null) => ({
   id: String(movie.id),
   name: movie.title,
   statusKey: normalizeMovieStatusValue(movie.status),
-  status: movie.status === "rental" ? "Phim thuê" : movie.status === "coming-soon" ? "Coming soon" : "Now showing",
-  time: movie.releaseDate || movie.release || "Not updated",
-  value: `${movie.rating || "P"} • ${movie.duration || 0} min • ${(movie.genres || []).join(", ")}`,
+  status: movie.status === "rental" ? "Phim thuê" : movie.status === "coming-soon" ? "Sắp chiếu" : "Đang chiếu",
+  time: movie.releaseDate || movie.release || "Chưa cập nhật",
+  value: `${movie.rating || "P"} • ${movie.duration || 0} phút • ${(movie.genres || []).join(", ")}`,
   catalogOrder: Number.isInteger(index) ? index + 1 : movie.catalogOrder,
 });
 
