@@ -1793,6 +1793,8 @@
   .about-hero__actions,
   .about-cta__actions {
     display: flex;
+  }
+
   .about-journey-card,
   .about-roadmap-card {
     padding: 22px 20px;
@@ -2110,9 +2112,6 @@
   }
 }
 
-
-}
-
 @media (max-width: 1024px) {
   .about-hero--panel {
     flex-direction: column;
@@ -2161,5 +2160,44 @@
 
   .about-hero-panel__card:hover {
     transform: translateY(-6px);
+  }
+}
+
+@media (max-width: 520px) {
+  .about-hero--panel {
+    border-radius: 18px;
+  }
+
+  .about-hero-panel__content {
+    padding: 24px 18px 8px;
+  }
+
+  .about-hero-panel__content h1 {
+    font-size: 42px;
+    line-height: 1;
+  }
+
+  .about-hero-panel__content p {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .about-hero__actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .about-hero__actions a,
+  .about-hero__actions button {
+    width: 100%;
+  }
+
+  .about-hero-panel__cards {
+    padding: 12px;
+  }
+
+  .about-hero-panel__card {
+    min-height: 210px;
+    padding: 28px 16px 24px;
   }
 }

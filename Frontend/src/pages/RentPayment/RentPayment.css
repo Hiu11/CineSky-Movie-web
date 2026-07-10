@@ -932,3 +932,39 @@
     justify-content: flex-start;
   }
 }
+
+@media (max-width: 520px) {
+  .rent-page {
+    padding-inline: 12px;
+  }
+
+  .rent-select__movie,
+  .rent-select__combo,
+  .rent-checkout,
+  .rent-wallet,
+  .rent-confirm {
+    border-radius: 18px;
+  }
+
+  .rent-library-strip {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .rent-method {
+    grid-template-columns: 22px minmax(0, 1fr);
+  }
+
+  .rent-method__logos {
+    grid-column: 2;
+  }
+
+  .rent-method strong,
+  .rent-method span {
+    min-width: 0;
+  }
+
+  .rent-confirm__actions,
+  .rent-summary__actions {
+    grid-template-columns: 1fr;
+  }
+}

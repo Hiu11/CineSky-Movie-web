@@ -4973,3 +4973,88 @@
   .home-insight-compare-panel { height: auto; min-height: 220px; transform: none; }
   .home-insight-compare-panel:hover { transform: translateY(-6px); }
 }
+
+@media (max-width: 520px) {
+  .home-overview-section {
+    gap: 20px;
+  }
+
+  .home-overview-compare-stage,
+  .home-insight-compare-stage,
+  .home-insight-stage {
+    border-radius: 18px;
+  }
+
+  .home-overview-compare-copy,
+  .home-insight-compare-copy {
+    padding: 24px 18px 8px;
+    gap: 12px;
+  }
+
+  .home-overview-compare-copy span,
+  .home-insight-compare-copy span {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+  }
+
+  .home-overview-compare-copy h3,
+  .home-insight-compare-copy h3 {
+    font-size: 42px;
+    line-height: 0.98;
+  }
+
+  .home-ai-wordmark {
+    width: min(88vw, 300px);
+    margin: -4px 0 0;
+  }
+
+  .home-overview-compare-copy p,
+  .home-insight-compare-copy p {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .home-overview-compare-panels,
+  .home-insight-compare-panels,
+  .home-insight-panels {
+    padding: 12px;
+    gap: 12px;
+  }
+
+  .home-overview-compare-panel,
+  .home-insight-compare-panel,
+  .home-insight-panel,
+  .home-insight-panel:nth-child(n) {
+    min-height: 210px;
+    padding: 28px 16px 24px;
+    border-radius: 24px 24px 34px 34px / 30px 30px 46px 46px;
+  }
+
+  .home-overview-compare-panel strong,
+  .home-insight-compare-panel strong,
+  .home-insight-panel__title {
+    font-size: 18px;
+    line-height: 1.24;
+  }
+
+  .home-overview-compare-panel small,
+  .home-insight-compare-panel small,
+  .home-insight-panel__desc {
+    font-size: 13px;
+    line-height: 1.45;
+  }
+
+  .home-insight-panel__stats {
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .home-insight-panel__tags {
+    gap: 8px;
+  }
+
+  .home-insight-tag {
+    max-width: 100%;
+    white-space: normal;
+  }
+}
