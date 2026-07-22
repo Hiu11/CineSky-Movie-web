@@ -3,9 +3,9 @@
   "name": "CineSky Movie Web",
   "icons": [
     {
-      "src": "cinesky-favicon.svg",
-      "sizes": "any",
-      "type": "image/svg+xml"
+      "src": "cinesky-favicon.png",
+      "sizes": "1024x1024",
+      "type": "image/png"
     },
     {
       "src": "logo192.png",
